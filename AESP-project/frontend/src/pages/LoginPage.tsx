@@ -66,8 +66,12 @@ const LoginPage: React.FC = () => {
             </Button>
           </Form.Item>
           
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', marginBottom: 12 }}>
             Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
+          </div>
+
+          <div style={{ textAlign: 'center', borderTop: '1px solid #d9d9d9', paddingTop: 12 }}>
+            <a href="/admin-login">Đăng nhập Admin</a>
           </div>
         </Form>
       </Card>

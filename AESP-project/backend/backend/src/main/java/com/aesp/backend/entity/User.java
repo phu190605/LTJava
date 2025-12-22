@@ -18,5 +18,5 @@ public class User {
     private String email;
     private String password;
     private String fullName;
-    private String role; // Lưu thẳng chữ "ADMIN", "MENTOR", "LEARNER" cho nhanh
+    private String role;
 }
