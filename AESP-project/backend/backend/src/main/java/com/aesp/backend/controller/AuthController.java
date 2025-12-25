@@ -42,11 +42,16 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Error: Email đã tồn tại!");
         }
 
+        // Nếu có gửi role và role khác LEARNER thì từ chối, còn nếu không gửi role thì cho phép
+        if (request.getRole() != null && !"LEARNER".equalsIgnoreCase(request.getRole())) {
+            return ResponseEntity.badRequest().body("Error: Chỉ admin mới được tạo tài khoản mentor!");
+        }
+
         // Tạo user mới
         User user = new User();
         user.setEmail(request.getEmail());
         user.setFullName(request.getFullName());
-        user.setRole(request.getRole());
+        user.setRole("LEARNER"); // Đảm bảo luôn là LEARNER
         user.setPassword(passwordEncoder.encode(request.getPassword())); // Mã hóa pass
 
         userRepository.save(user);
