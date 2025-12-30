@@ -53,6 +53,7 @@ public class AuthController {
         user.setFullName(request.getFullName());
         user.setRole("LEARNER"); // Đảm bảo luôn là LEARNER
         user.setPassword(passwordEncoder.encode(request.getPassword())); // Mã hóa pass
+        user.setActive(true);
 
         userRepository.save(user);
 

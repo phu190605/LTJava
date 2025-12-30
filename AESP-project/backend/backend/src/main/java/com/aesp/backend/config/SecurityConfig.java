@@ -21,6 +21,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())  // <--- DÒNG NÀY QUAN TRỌNG NHẤT: Tắt chặn POST
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // Cho phép vào Register/Login thoải mái
+                .requestMatchers("/admin/users/**").permitAll()
                 .anyRequest().authenticated() // Các cái khác phải đăng nhập
             );
         return http.build();
