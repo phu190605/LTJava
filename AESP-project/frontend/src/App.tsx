@@ -4,6 +4,7 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import LandingPage from './pages/LandingPage'; // <--- Import trang mới
+import TestSpeechPage from './pages/TestSpeechPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         
         <Route path="/admin" element={<h1>Khu vực Admin</h1>} />
+        <Route path="/test-speech" element={<TestSpeechPage />} />
       </Routes>
     </BrowserRouter>
   );

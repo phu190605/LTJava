@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import com.aesp.backend.entity.User;
 import com.aesp.backend.repository.UserRepository;
 
+
 @Component
 public class AdminInitializer implements CommandLineRunner {
 
