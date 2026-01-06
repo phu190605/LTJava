@@ -4,6 +4,8 @@ import {
     getAllMentors,
     getAllSkills,
     assignSkillsToMentor,
+    deleteMentor,
+    removeSkillFromMentor
 } from "../../api/mentorApi";
 
 interface Skill {
@@ -21,30 +23,20 @@ interface Mentor {
 export default function MentorManager() {
     const [mentors, setMentors] = useState<Mentor[]>([]);
     const [skills, setSkills] = useState<Skill[]>([]);
-
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
     const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
     const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
     const fetchMentors = async () => {
-        try {
-            const res = await getAllMentors();
-            setMentors(res.data);
-        } catch (err) {
-            console.error(err);
-        }
+        const res = await getAllMentors();
+        setMentors(res.data);
     };
 
     const fetchSkills = async () => {
-        try {
-            const res = await getAllSkills();
-            setSkills(res.data);
-        } catch {
-            setSkills([]);
-        }
+        const res = await getAllSkills();
+        setSkills(res.data);
     };
 
     useEffect(() => {
@@ -57,7 +49,6 @@ export default function MentorManager() {
             alert("Nhập đủ thông tin");
             return;
         }
-
         await createMentor({ fullName, email, password });
         setFullName("");
         setEmail("");
@@ -67,26 +58,52 @@ export default function MentorManager() {
 
     const handleAssignSkills = async () => {
         if (!selectedMentor) return;
-
         await assignSkillsToMentor(selectedMentor.id, selectedSkills);
-        alert("Gán skill thành công");
         setSelectedMentor(null);
         setSelectedSkills([]);
         fetchMentors();
     };
 
+    const handleDeleteMentor = async (id: number) => {
+        if (!window.confirm("Xóa mentor này vĩnh viễn?")) return;
+        await deleteMentor(id);
+        fetchMentors();
+    };
+
+    const handleRemoveSkill = async (mentorId: number, skillId: number) => {
+        await removeSkillFromMentor(mentorId, skillId);
+        fetchMentors();
+    };
+
     return (
-        <div style={pageStyle}>
+        <div style={page}>
             <h2 style={title}>🎓 Quản lý Mentor</h2>
 
             {/* CREATE */}
             <div style={card}>
                 <h3 style={cardTitle}>➕ Tạo Mentor</h3>
-                <div style={formRow}>
-                    <input style={input} placeholder="Họ tên" value={fullName} onChange={e => setFullName(e.target.value)} />
-                    <input style={input} placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-                    <input style={input} placeholder="Mật khẩu" value={password} onChange={e => setPassword(e.target.value)} />
-                    <button style={primaryBtn} onClick={handleCreateMentor}>Tạo</button>
+                <div style={row}>
+                    <input
+                        style={input}
+                        placeholder="Họ tên"
+                        value={fullName}
+                        onChange={e => setFullName(e.target.value)}
+                    />
+                    <input
+                        style={input}
+                        placeholder="Email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                    />
+                    <input
+                        style={input}
+                        placeholder="Mật khẩu"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                    />
+                    <button style={primaryBtn} onClick={handleCreateMentor}>
+                        Tạo
+                    </button>
                 </div>
             </div>
 
@@ -106,18 +123,43 @@ export default function MentorManager() {
                     </thead>
                     <tbody>
                         {mentors.map(m => (
-                            <tr key={m.id}>
+                            <tr
+                                key={m.id}
+                                onMouseEnter={e => (e.currentTarget.style.background = "#f9fafb")}
+                                onMouseLeave={e => (e.currentTarget.style.background = "#fff")}
+                            >
                                 <td style={td}>{m.id}</td>
                                 <td style={td}>{m.fullName}</td>
                                 <td style={td}>{m.email}</td>
                                 <td style={td}>
-                                    {m.skills?.length
-                                        ? m.skills.map(s => s.name).join(", ")
-                                        : <span style={{ color: "#999" }}>Chưa có</span>}
+                                    {m.skills?.length ? (
+                                        m.skills.map(s => (
+                                            <span key={s.id} style={skillChip}>
+                                                {s.name}
+                                                <button
+                                                    style={removeSkillBtn}
+                                                    onClick={() => handleRemoveSkill(m.id, s.id)}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <span style={{ color: "#999" }}>Chưa có</span>
+                                    )}
                                 </td>
                                 <td style={td}>
-                                    <button style={outlineBtn} onClick={() => setSelectedMentor(m)}>
+                                    <button
+                                        style={outlineBtn}
+                                        onClick={() => setSelectedMentor(m)}
+                                    >
                                         Gán skill
+                                    </button>
+                                    <button
+                                        style={dangerBtn}
+                                        onClick={() => handleDeleteMentor(m.id)}
+                                    >
+                                        Xóa
                                     </button>
                                 </td>
                             </tr>
@@ -130,11 +172,13 @@ export default function MentorManager() {
             {selectedMentor && (
                 <div style={overlay}>
                     <div style={modal}>
-                        <h3>Gán skill cho <b>{selectedMentor.fullName}</b></h3>
+                        <h3>
+                            Gán skill cho <b>{selectedMentor.fullName}</b>
+                        </h3>
 
                         <div style={{ marginTop: 12 }}>
                             {skills.map(s => (
-                                <label key={s.id} style={checkboxRow}>
+                                <label key={s.id} style={checkbox}>
                                     <input
                                         type="checkbox"
                                         value={s.name}
@@ -153,9 +197,16 @@ export default function MentorManager() {
                             ))}
                         </div>
 
-                        <div style={{ marginTop: 16, textAlign: "right" }}>
-                            <button style={primaryBtn} onClick={handleAssignSkills}>Lưu</button>
-                            <button style={cancelBtn} onClick={() => setSelectedMentor(null)}>Hủy</button>
+                        <div style={{ textAlign: "right", marginTop: 16 }}>
+                            <button style={primaryBtn} onClick={handleAssignSkills}>
+                                Lưu
+                            </button>
+                            <button
+                                style={cancelBtn}
+                                onClick={() => setSelectedMentor(null)}
+                            >
+                                Hủy
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -164,9 +215,9 @@ export default function MentorManager() {
     );
 }
 
-/* ========== STYLE ========== */
+/* ================= STYLE ================= */
 
-const pageStyle = {
+const page = {
     padding: 32,
     background: "#f4f6f8",
     minHeight: "100vh",
@@ -188,7 +239,7 @@ const cardTitle = {
     marginBottom: 12,
 };
 
-const formRow = {
+const row = {
     display: "flex",
     gap: 12,
     flexWrap: "wrap" as const,
@@ -219,6 +270,16 @@ const outlineBtn = {
     cursor: "pointer",
 };
 
+const dangerBtn = {
+    marginLeft: 8,
+    background: "#ff4d4f",
+    color: "#fff",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: 6,
+    cursor: "pointer",
+};
+
 const cancelBtn = {
     marginLeft: 8,
     background: "#ddd",
@@ -228,22 +289,49 @@ const cancelBtn = {
     cursor: "pointer",
 };
 
+/* TABLE */
+
 const table = {
     width: "100%",
     borderCollapse: "collapse" as const,
+    marginTop: 12,
 };
 
 const th = {
-    border: "1px solid #ddd",
-    padding: 10,
-    background: "#f0f2f5",
+    border: "1px solid #e5e7eb",
+    padding: "12px 10px",
+    background: "#f9fafb",
     textAlign: "left" as const,
+    fontWeight: 600,
 };
 
 const td = {
-    border: "1px solid #ddd",
-    padding: 10,
+    border: "1px solid #e5e7eb",
+    padding: "10px",
+    verticalAlign: "middle" as const,
 };
+
+/* SKILL CHIP */
+
+const skillChip = {
+    display: "inline-flex",
+    alignItems: "center",
+    background: "#eef2ff",
+    padding: "4px 8px",
+    borderRadius: 6,
+    marginRight: 6,
+    marginBottom: 6,
+};
+
+const removeSkillBtn = {
+    border: "none",
+    background: "transparent",
+    color: "red",
+    marginLeft: 6,
+    cursor: "pointer",
+};
+
+/* MODAL */
 
 const overlay = {
     position: "fixed" as const,
@@ -261,9 +349,7 @@ const modal = {
     minWidth: 320,
 };
 
-const checkboxRow = {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
+const checkbox = {
+    display: "block",
     marginBottom: 6,
 };

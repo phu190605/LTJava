@@ -6,11 +6,6 @@ export interface CreateMentorRequest {
     password: string;
 }
 
-export interface AssignSkillsRequest {
-    mentorId: number;
-    skills: string[];
-}
-
 export const createMentor = (data: CreateMentorRequest) => {
     return axiosClient.post("/admin/mentors", data);
 };
@@ -28,4 +23,12 @@ export const assignSkillsToMentor = (mentorId: number, skills: string[]) => {
         mentorId,
         skills
     });
+};
+
+export const deleteMentor = (mentorId: number) => {
+    return axiosClient.delete(`/admin/mentors/${mentorId}`);
+};
+
+export const removeSkillFromMentor = (mentorId: number, skillId: number) => {
+    return axiosClient.delete(`/admin/mentors/${mentorId}/skills/${skillId}`);
 };

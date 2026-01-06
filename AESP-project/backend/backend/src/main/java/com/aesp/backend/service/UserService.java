@@ -7,12 +7,19 @@ import com.aesp.backend.entity.User;
 
 public interface UserService {
 
-    // User management
-    List<User> getAllUsers();
-    void disableUser(Long userId);
-
-    // Mentor management
+    // ===== Mentor =====
     User createMentor(CreateMentorRequest request);
+
     List<User> getAllMentors();
+
     void assignSkillsToMentor(Long mentorId, List<String> skills);
+
+    void deleteMentor(Long mentorId);
+
+    void removeSkillFromMentor(Long mentorId, Long skillId);
+
+    // ===== User =====
+    List<User> getAllUsers();
+
+    void disableUser(Long userId);
 }

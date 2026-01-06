@@ -3,7 +3,9 @@ package com.aesp.backend.controller;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,8 +39,27 @@ public class AdminMentorController {
     @PostMapping("/assign-skills")
     public void assignSkills(@RequestBody AssignSkillsRequest request) {
         userService.assignSkillsToMentor(
-            request.getMentorId(),
-            request.getSkills()
+                request.getMentorId(),
+                request.getSkills()
         );
+    }
+
+    // =========================
+    // 🗑 Xóa mentor
+    // =========================
+    @DeleteMapping("/{id}")
+    public void deleteMentor(@PathVariable Long id) {
+        userService.deleteMentor(id);
+    }
+
+    // =========================
+    // ❌ Gỡ skill khỏi mentor
+    // =========================
+    @DeleteMapping("/{mentorId}/skills/{skillId}")
+    public void removeSkillFromMentor(
+            @PathVariable Long mentorId,
+            @PathVariable Long skillId
+    ) {
+        userService.removeSkillFromMentor(mentorId, skillId);
     }
 }
