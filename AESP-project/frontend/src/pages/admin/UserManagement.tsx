@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axiosClient from "../api/axiosClient";
-import '../css/user-management.css';
+import axiosClient from "../../api/axiosClient";
+import '../../css/user-management.css';
 
 interface User {
   id: number;

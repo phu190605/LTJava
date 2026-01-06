@@ -1,12 +1,14 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-
 import LoginPage from './pages/LoginPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import LandingPage from './pages/LandingPage'; // <--- Import trang mới
-import UserManagement from './pages/UserManagement';
-import MentorManager from './pages/MentorManager';
+import UserManagement from './pages/admin/UserManagement';
+import MentorManager from './pages/admin/MentorManager';
+import PolicyManager from './pages/admin/PolicyManager';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminLayout from './layouts/AdminLayout';
 
 function App() {
   return (
@@ -22,9 +24,12 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
 
         {/* Admin */}
-        <Route path="/admin" element={<h1>Khu vực Admin</h1>} />
-        <Route path="/admin/users" element={<UserManagement/>}/>
-        <Route path="/admin/mentors" element={<MentorManager />} />
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="users" element={<UserManagement />} />
+        <Route path="mentors" element={<MentorManager />} />
+        <Route path="policies" element={<PolicyManager />} />
+      </Route>
       </Routes>
     </BrowserRouter>
   );

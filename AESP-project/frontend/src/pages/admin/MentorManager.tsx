@@ -4,7 +4,7 @@ import {
     getAllMentors,
     getAllSkills,
     assignSkillsToMentor,
-} from "../api/mentorApi";
+} from "../../api/mentorApi";
 
 interface Skill {
     id: number;

@@ -15,11 +15,12 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ===== BASIC INFO =====
     @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
-    @JsonIgnore //không trả password ra API
+    @JsonIgnore // không trả password ra API
     private String password;
 
     // ADMIN / MENTOR / LEARNER
@@ -47,7 +48,6 @@ public class User {
     public User() {}
 
     // ===== GETTER & SETTER =====
-
     public Long getId() {
         return id;
     }
