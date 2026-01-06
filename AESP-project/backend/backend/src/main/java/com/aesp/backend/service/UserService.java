@@ -1,28 +1,18 @@
 package com.aesp.backend.service;
 
-import com.aesp.backend.entity.User;
-import com.aesp.backend.repository.UserRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 
-@Service
-public class UserService {
+import com.aesp.backend.dto.request.CreateMentorRequest;
+import com.aesp.backend.entity.User;
 
-    private final UserRepository userRepository;
+public interface UserService {
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    // User management
+    List<User> getAllUsers();
+    void disableUser(Long userId);
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    public void disableUser(Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setActive(false);
-        userRepository.save(user);
-    }
+    // Mentor management
+    User createMentor(CreateMentorRequest request);
+    List<User> getAllMentors();
+    void assignSkillsToMentor(Long mentorId, List<String> skills);
 }
