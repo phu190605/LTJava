@@ -96,6 +96,33 @@ public class SpeechServiceImpl implements SpeechService {
                 System.err.println("[ERROR] jsonResult from Azure is null.");
             }
 
+            // --- Lưu kết quả đánh giá vào DB để sau này truy vấn lịch sử ---
+            com.aesp.backend.entity.SpeechAssessment assessmentEntity = new com.aesp.backend.entity.SpeechAssessment();
+            // Nếu có userId từ context thì set vào sau này; hiện để null
+            assessmentEntity.setUserId(null);
+            assessmentEntity.setReferenceText(referenceText);
+            assessmentEntity.setAudioUrl(null);
+            assessmentEntity.setAccuracyScore(pronResult.getAccuracyScore());
+            assessmentEntity.setFluencyScore(pronResult.getFluencyScore());
+            assessmentEntity.setCompletenessScore(pronResult.getCompletenessScore());
+            assessmentEntity.setProsodyScore(0.0);
+            assessmentEntity.setOverallScore(pronResult.getPronunciationScore());
+
+            // Chuyển WordResult -> WordDetail và liên kết
+            List<com.aesp.backend.entity.WordDetail> wordDetails = new ArrayList<>();
+            for (com.aesp.backend.dto.response.WordResult wr : wordResultsDTO) {
+                com.aesp.backend.entity.WordDetail wd = new com.aesp.backend.entity.WordDetail();
+                wd.setSpeechAssessment(assessmentEntity);
+                wd.setWord(wr.getWord());
+                wd.setAccuracyScore(wr.getAccuracyScore());
+                wd.setErrorType(wr.getErrorType());
+                wordDetails.add(wd);
+            }
+            assessmentEntity.setWordDetails(wordDetails);
+
+            // Save (cascade will persist WordDetail)
+            assessmentRepository.save(assessmentEntity);
+
             return new AssessmentResult(
                     determineLevel(pronResult.getPronunciationScore()),
                     pronResult.getPronunciationScore(),

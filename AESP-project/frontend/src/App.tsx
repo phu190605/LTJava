@@ -5,6 +5,10 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import LandingPage from './pages/LandingPage'; // <--- Import trang mới
 import TestSpeechPage from './pages/TestSpeechPage';
+import PeerFindPage from './pages/PeerFindPage';
+import PeerRoomPage from './pages/PeerRoomPage';
+import CreateRoomPage from './pages/CreateRoomPage';
+import PracticeRoomPage from './pages/PracticeRoomPage';
 
 function App() {
   return (
@@ -22,6 +26,10 @@ function App() {
         
         <Route path="/admin" element={<h1>Khu vực Admin</h1>} />
         <Route path="/test-speech" element={<TestSpeechPage />} />
+        <Route path="/peer/find" element={<PeerFindPage />} />
+        <Route path="/peer/create" element={<CreateRoomPage />} />
+        <Route path="/peer/room/:roomId" element={<PeerRoomPage />} />
+        <Route path="/practice" element={<PracticeRoomPage />} />
       </Routes>
     </BrowserRouter>
   );
