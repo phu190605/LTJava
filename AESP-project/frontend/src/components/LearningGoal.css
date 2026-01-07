@@ -1,5 +1,6 @@
 .goal-container {
-  background: linear-gradient(180deg, #2b32b2 0%, #1488cc 100%); /* Màu xanh tím giống mẫu */
+  background: linear-gradient(180deg, #2b32b2 0%, #1488cc 100%);
+  /* Màu xanh tím giống mẫu */
   min-height: 60vh;
   padding: 30px;
   border-radius: 20px;
@@ -16,8 +17,15 @@
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .goal-title {
@@ -42,7 +50,8 @@
 }
 
 .goal-card {
-  background: rgba(255, 255, 255, 0.15); /* Kính mờ */
+  background: rgba(255, 255, 255, 0.15);
+  /* Kính mờ */
   border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 20px;
@@ -52,7 +61,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 140px; /* Ô cao như hình mẫu */
+  height: 140px;
+  /* Ô cao như hình mẫu */
 }
 
 .goal-card:hover {
@@ -62,7 +72,8 @@
 
 .goal-card.selected {
   background: rgba(255, 255, 255, 0.2);
-  border: 2px solid #60a5fa; /* Viền xanh sáng */
+  border: 2px solid #60a5fa;
+  /* Viền xanh sáng */
   box-shadow: 0 0 15px rgba(96, 165, 250, 0.6);
 }
 
@@ -85,13 +96,16 @@
 /* Hai nút bằng nhau, cùng bo tròn */
 .back-btn,
 .continue-btn {
-  flex: 1 1 0;                  /* mỗi nút chia đều không gian */
-  display: inline-flex;         /* căn giữa nội dung */
+  flex: 1 1 0;
+  /* mỗi nút chia đều không gian */
+  display: inline-flex;
+  /* căn giữa nội dung */
   align-items: center;
   justify-content: center;
   min-height: 44px;
   padding: 0 22px;
-  border-radius: 14px;          /* bo tròn giống nhau */
+  border-radius: 14px;
+  /* bo tròn giống nhau */
   font-size: 14px;
   font-weight: 600;
   line-height: 1;
@@ -99,10 +113,13 @@
 
 /* Nút Thoát: phiên bản secondary, đồng bộ phong cách */
 .back-btn {
-  background-color: #eef2ff;         /* nền nhạt */
-  color: #1f2937;                     /* chữ xám đậm */
-  border: 1px solid #c7d2fe;          /* viền nhẹ */
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  background-color: #eef2ff;
+  /* nền nhạt */
+  color: #1f2937;
+  /* chữ xám đậm */
+  border: 1px solid #c7d2fe;
+  /* viền nhẹ */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   transition: all 0.25s ease;
 }
 
@@ -117,7 +134,7 @@
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #ffffff;
   border: none;
-  box-shadow: 0 6px 12px rgba(37,99,235,0.35);
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.35);
   transition: all 0.25s ease;
 }
 
@@ -131,7 +148,7 @@
 .continue-btn:hover {
   background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
   transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(30,64,175,0.35);
+  box-shadow: 0 8px 16px rgba(30, 64, 175, 0.35);
 }
 
 /* Trạng thái disabled (khi chưa chọn mục) vẫn đồng bộ hình dạng */

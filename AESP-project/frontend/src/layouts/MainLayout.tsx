@@ -51,7 +51,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <div style={{ color: 'white', fontSize: '20px', fontWeight: 'bold' }}>
           Study-S Admin
         </div>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ color: 'white' }}>Xin chào, <strong>{user?.fullName}</strong> ({user?.role})</span>
           <Dropdown overlay={userMenu} placement="bottomRight">

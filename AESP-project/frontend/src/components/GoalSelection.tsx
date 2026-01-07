@@ -44,16 +44,16 @@ const GoalSelection: React.FC<Props> = ({ onNext, onBack }) => {
       {loading ? <Spin style={{ marginTop: 40, color: 'white' }} /> : (
         <div className="options-grid">
           {topics.map((item: any) => (
-            <div 
+            <div
               key={item.topicId}
               className={`option-card ${selectedIds.includes(item.topicId) ? 'selected' : ''}`}
               onClick={() => handleToggle(item.topicId)}
             >
               {/* Hiển thị ảnh từ Backend hoặc placeholder */}
               {item.iconUrl ? (
-                 <img src={item.iconUrl} alt="icon" style={{width: 32, height: 32, marginBottom: 10}} />
+                <img src={item.iconUrl} alt="icon" style={{ width: 32, height: 32, marginBottom: 10 }} />
               ) : (
-                 <span className="goal-icon">🎯</span>
+                <span className="goal-icon">🎯</span>
               )}
               <span className="goal-text">{item.topicName}</span>
             </div>
@@ -65,12 +65,12 @@ const GoalSelection: React.FC<Props> = ({ onNext, onBack }) => {
         {/* Back: dùng class back-btn để đồng bộ style với LearningGoal */}
         <Button className="back-btn" onClick={onBack}>Quay lại</Button>
         {/* Continue: primary đồng bộ màu và trạng thái disabled */}
-        <Button 
-            type="primary" className="continue-btn" 
-            onClick={() => onNext({ interestTopicIds: selectedIds })}
-            disabled={selectedIds.length === 0}
+        <Button
+          type="primary" className="continue-btn"
+          onClick={() => onNext({ interestTopicIds: selectedIds })}
+          disabled={selectedIds.length === 0}
         >
-            Tiếp tục
+          Tiếp tục
         </Button>
       </div>
     </div>

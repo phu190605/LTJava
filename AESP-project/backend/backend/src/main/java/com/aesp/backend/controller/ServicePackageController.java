@@ -28,7 +28,7 @@ public class ServicePackageController {
         List<ServicePackage> packages = servicePackageRepository.findAll();
         return ResponseEntity.ok(packages);
     }
-    
+
     // API: Lấy chi tiết 1 gói (để trang thanh toán gọi)
     @GetMapping("/{id}")
     public ResponseEntity<ServicePackage> getPackageById(@PathVariable Integer id) {

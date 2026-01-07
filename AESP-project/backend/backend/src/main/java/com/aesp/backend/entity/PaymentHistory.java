@@ -14,11 +14,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import lombok.Data;
 
 @Entity
 @Table(name = "payment_history")
-@Data
 public class PaymentHistory {
 
     @Id
@@ -26,36 +24,85 @@ public class PaymentHistory {
     @Column(name = "payment_id")
     private Long paymentId;
 
-    // Liên kết tới bảng Users (Nhiều hóa đơn thuộc về 1 User)
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Liên kết tới bảng ServicePackages (Nhiều hóa đơn thuộc về 1 Gói)
     @ManyToOne
     @JoinColumn(name = "package_id", nullable = false)
     private ServicePackage servicePackage;
 
-    private BigDecimal amount; // Số tiền
+    private BigDecimal amount;
 
     @Column(name = "payment_date")
     private LocalDateTime paymentDate;
 
-    @Enumerated(EnumType.STRING) // Lưu dưới dạng chuỗi ("SUCCESS", "FAILED")
+    @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
-    // Tự động gán thời gian hiện tại khi lưu record mới
+    // --- ENUM PHẢI LÀ PUBLIC ---
+    public enum PaymentStatus {
+        SUCCESS,
+        FAILED
+    }
+
     @PrePersist
     protected void onCreate() {
-        paymentDate = LocalDateTime.now();
+        // Nếu không có ngày thì lấy ngày hiện tại
+        if (paymentDate == null) {
+            paymentDate = LocalDateTime.now();
+        }
         if (status == null) {
             status = PaymentStatus.SUCCESS;
         }
     }
-}
+    // ============= GETTERS & SETTERS =============
 
-// Enum cho trạng thái thanh toán (Bạn có thể để chung trong file này hoặc tách riêng)
-enum PaymentStatus {
-    SUCCESS,
-    FAILED
+    public Long getPaymentId() {
+        return paymentId;
+    }
+
+    public void setPaymentId(Long paymentId) {
+        this.paymentId = paymentId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public ServicePackage getServicePackage() {
+        return servicePackage;
+    }
+
+    public void setServicePackage(ServicePackage servicePackage) {
+        this.servicePackage = servicePackage;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    public LocalDateTime getPaymentDate() {
+        return paymentDate;
+    }
+
+    public void setPaymentDate(LocalDateTime paymentDate) {
+        this.paymentDate = paymentDate;
+    }
+
+    public PaymentStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PaymentStatus status) {
+        this.status = status;
+    }
 }

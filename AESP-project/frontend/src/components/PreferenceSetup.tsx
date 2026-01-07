@@ -17,7 +17,7 @@ const PreferenceSetup: React.FC<Props> = ({ onSubmit, onBack, loading }) => {
 
   // 1. Lấy danh sách gói cước
   useEffect(() => {
-    axiosClient.get('/service-packages')
+    axiosClient.get('/profile/packages')
       .then(res => {
         setPackages(Array.isArray(res) ? res : []);
         setFetching(false);
@@ -37,19 +37,19 @@ const PreferenceSetup: React.FC<Props> = ({ onSubmit, onBack, loading }) => {
   return (
     <div style={{ maxWidth: 600, margin: '0 auto' }}>
       <h3>3. Thiết lập lộ trình & Gói học</h3>
-      
+
       {/* Chọn Trình độ (Bổ sung cho đủ API) */}
-      <Card title="Trình độ hiện tại của bạn" size="small" style={{marginBottom: 16}}>
-        <Select value={level} onChange={setLevel} style={{width: '100%'}}>
-           <Select.Option value="A1">Beginner (A1)</Select.Option>
-           <Select.Option value="A2">Elementary (A2)</Select.Option>
-           <Select.Option value="B1">Intermediate (B1)</Select.Option>
-           <Select.Option value="B2">Upper Intermediate (B2)</Select.Option>
+      <Card title="Trình độ hiện tại của bạn" size="small" style={{ marginBottom: 16 }}>
+        <Select value={level} onChange={setLevel} style={{ width: '100%' }}>
+          <Select.Option value="A1">Beginner (A1)</Select.Option>
+          <Select.Option value="A2">Elementary (A2)</Select.Option>
+          <Select.Option value="B1">Intermediate (B1)</Select.Option>
+          <Select.Option value="B2">Upper Intermediate (B2)</Select.Option>
         </Select>
       </Card>
 
       {/* Chọn Thời gian học (Bổ sung cho đủ API) */}
-      <Card title={`Mục tiêu học: ${time} phút/ngày`} size="small" style={{marginBottom: 16}}>
+      <Card title={`Mục tiêu học: ${time} phút/ngày`} size="small" style={{ marginBottom: 16 }}>
         <Slider min={5} max={60} step={5} value={time} onChange={setTime} />
       </Card>
 
@@ -58,8 +58,8 @@ const PreferenceSetup: React.FC<Props> = ({ onSubmit, onBack, loading }) => {
       {fetching ? <Spin /> : (
         <Radio.Group value={selectedPkgId} onChange={e => setSelectedPkgId(e.target.value)} style={{ width: '100%' }}>
           {packages.map((pkg: any) => (
-            <Card key={pkg.id} style={{ marginBottom: 12 }} hoverable onClick={() => setSelectedPkgId(pkg.id)}>
-              <Radio value={pkg.id}>
+            <Card key={pkg.packageId} style={{ marginBottom: 12 }} hoverable onClick={() => setSelectedPkgId(pkg.packageId)}>
+              <Radio value={pkg.packageId}>
                 <span style={{ fontWeight: 'bold' }}>{pkg.packageName}</span>
                 {pkg.price > 0 && <Tag color="gold" style={{ marginLeft: 8 }}>{pkg.price.toLocaleString()}đ</Tag>}
               </Radio>

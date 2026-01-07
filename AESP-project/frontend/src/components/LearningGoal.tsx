@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 interface Props {
   onNext: (data: any) => void;
+  onBack: () => void;
 }
 
 const LearningGoal: React.FC<Props> = ({ onNext }) => {
@@ -41,21 +42,21 @@ const LearningGoal: React.FC<Props> = ({ onNext }) => {
 
   return (
     <div className="goal-container">
-      <img src="https://cdn-icons-png.flaticon.com/512/921/921356.png" alt="Mascot" className="goal-mascot"/>
+      <img src="https://cdn-icons-png.flaticon.com/512/921/921356.png" alt="Mascot" className="goal-mascot" />
       <div className="goal-title">Tại sao bạn muốn học tiếng Anh?</div>
-      
+
       {loading ? <Spin size="large" style={{ marginTop: 50 }} /> : (
         <div className="goal-grid">
           {goals.map((item: any) => (
-            <div 
+            <div
               key={item.goalId}
               className={`goal-card ${selectedGoalId === item.goalId ? 'selected' : ''}`}
               onClick={() => setSelectedGoalId(item.goalId)}
             >
               {item.iconUrl ? (
-                 <img src={item.iconUrl} alt="icon" style={{width: 32, height: 32, marginBottom: 10}} />
+                <img src={item.iconUrl} alt="icon" style={{ width: 32, height: 32, marginBottom: 10 }} />
               ) : (
-                 <span className="goal-icon">🎯</span>
+                <span className="goal-icon">🎯</span>
               )}
               <span className="goal-text">{item.goalName}</span>
             </div>
@@ -66,10 +67,10 @@ const LearningGoal: React.FC<Props> = ({ onNext }) => {
       <div style={{ display: 'flex', gap: 10, marginTop: 'auto' }}>
         {/* Nút thoát: điều hướng thẳng về Dashboard */}
         <Button onClick={handleExitToDashboard} className="back-btn">Thoát</Button>
-        <Button 
-            type="primary" block className="continue-btn"
-            disabled={!selectedGoalId}
-            onClick={handleContinue}
+        <Button
+          type="primary" block className="continue-btn"
+          disabled={!selectedGoalId}
+          onClick={handleContinue}
         >
           Tiếp tục
         </Button>

@@ -16,9 +16,9 @@ const ProfileSetupPage: React.FC = () => {
 
   // 1. Chỉ giữ lại 3 bước: Mục tiêu -> Sở thích -> Lộ trình
   const items = [
-    { title: 'Mục tiêu', description: 'Động lực học' }, 
-    { title: 'Sở thích', description: 'Chủ đề quan tâm' },
-    { title: 'Lộ trình', description: 'Gói học tập' },
+    { title: 'Mục tiêu', subTitle: 'Động lực học' },
+    { title: 'Sở thích', subTitle: 'Chủ đề quan tâm' },
+    { title: 'Lộ trình', subTitle: 'Gói học tập' },
   ];
 
   const handleNext = (data: any) => {
@@ -38,19 +38,19 @@ const ProfileSetupPage: React.FC = () => {
     try {
       setLoading(true);
       const allData = { ...formData, ...finalData };
-      
+
       console.log("DỮ LIỆU SETUP GỬI ĐI:", allData);
 
       // Gọi API setup (Đã bỏ qua displayName/phone trong Backend)
       await axiosClient.post('/profile/setup', allData);
 
       message.success("Thiết lập lộ trình thành công!");
-      
+
       // Chuyển hướng về Dashboard sau 1 giây
       setTimeout(() => {
-          navigate('/dashboard'); 
+        navigate('/dashboard');
       }, 1000);
-      
+
     } catch (error: any) {
       console.error(error);
       message.error("Lỗi: " + (error.response?.data || "Vui lòng thử lại sau"));
@@ -76,12 +76,12 @@ const ProfileSetupPage: React.FC = () => {
   return (
     <div style={{ padding: '40px 20px', background: '#f0f2f5', minHeight: '100vh' }}>
       <Card style={{ maxWidth: 900, margin: '0 auto', borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-        <Steps 
-          current={currentStep} 
-          items={items} 
-          style={{ marginBottom: 40, padding: '0 20px' }} 
+        <Steps
+          current={currentStep}
+          items={items}
+          style={{ marginBottom: 40, padding: '0 20px' }}
         />
-        
+
         <div className="setup-content-wrapper" style={{ minHeight: 400 }}>
           {renderContent()}
         </div>

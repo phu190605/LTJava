@@ -1,88 +1,128 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, message, Spin } from 'antd';
+import { Form, Input, Button, message, Spin, DatePicker, Select, Row, Col, Card, Avatar } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
 import axiosClient from '../api/axiosClient';
-
-type LearnerProfile = {
-  user?: { fullName?: string; email?: string };
-  // có thể có thêm các trường khác nhưng không cần cho form này
-};
+import dayjs from 'dayjs';
 
 const SettingsForm: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
 
-  // Load dữ liệu thật từ backend
+  // 1. Lấy dữ liệu thực tế từ API /profile/me
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        // axiosClient đã bóc response.data => trả về trực tiếp LearnerProfile
-        const profile: LearnerProfile = await axiosClient.get('/profile/me');
+        // API trả về đối tượng ProfileResponseRequest
+        const data: any = await axiosClient.get('/profile/me');
+
+        // Đưa dữ liệu vào Form
         form.setFieldsValue({
-          displayName: profile?.user?.fullName || '',
-          email: profile?.user?.email || '',
+          ...data,
+          // Chuyển đổi Date từ Backend sang đối tượng dayjs cho DatePicker
+          dob: data.dob ? dayjs(data.dob) : null,
         });
+        setAvatarUrl(data.avatarUrl);
       } catch (e: any) {
-        const msg = e?.response?.data || e?.message || 'Không tải được thông tin tài khoản';
-        message.error(typeof msg === 'string' ? msg : 'Không tải được thông tin tài khoản');
+        const errorMsg = e.response?.data?.message || "Không thể tải hồ sơ. Vui lòng thiết lập lộ trình trước.";
+        message.error(errorMsg);
       } finally {
         setLoading(false);
       }
     };
-
     fetchProfile();
   }, [form]);
 
+  // 2. Gửi dữ liệu cập nhật về API /profile/update-info
   const onFinish = async (values: any) => {
     setSaving(true);
     try {
-      // Backend chỉ cập nhật displayName -> User.fullName
-      await axiosClient.put('/profile/update-info', {
-        displayName: values.displayName,
-      });
+      const payload = {
+        ...values,
+        // Chuyển định dạng ngày về YYYY-MM-DD để Backend nhận kiểu Date
+        dob: values.dob ? values.dob.toDate() : null
+      };
 
-      // Cập nhật lại localStorage nếu app đọc tên từ đây
-      const storedUserStr = localStorage.getItem('user');
-      if (storedUserStr) {
-        try {
-          const stored = JSON.parse(storedUserStr);
-          stored.fullName = values.displayName;
-          localStorage.setItem('user', JSON.stringify(stored));
-        } catch {}
-      }
-
-      message.success('Đã lưu thay đổi');
+      await axiosClient.put('/profile/update-info', payload);
+      message.success('Thông tin hồ sơ đã được lưu vào Database!');
     } catch (e: any) {
-      const msg = e?.response?.data || e?.message || 'Lưu thay đổi thất bại';
-      message.error(typeof msg === 'string' ? msg : 'Lưu thay đổi thất bại');
+      message.error('Cập nhật thất bại: ' + (e.response?.data || 'Lỗi hệ thống'));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Spin spinning={loading}>
-      <Form form={form} layout="vertical" onFinish={onFinish}>
-        <Form.Item
-          label="Tên hiển thị"
-          name="displayName"
-          rules={[{ required: true, message: 'Nhập tên hiển thị' }]}
-        >
-          <Input placeholder="Nhập tên hiển thị" />
-        </Form.Item>
+    <Spin spinning={loading} tip="Đang kết nối dữ liệu thực tế...">
+      <Card title="Cài đặt tài khoản học tập" bordered={false} style={{ borderRadius: 12 }}>
+        <Form form={form} layout="vertical" onFinish={onFinish}>
+          <Row gutter={24}>
+            {/* Hiển thị Avatar */}
+            <Col span={24} style={{ textAlign: 'center', marginBottom: 20 }}>
+              <Avatar size={80} src={avatarUrl} icon={<UserOutlined />} />
+            </Col>
 
-        {/* Email hiển thị tham khảo (backend hiện chưa cập nhật email ở update-info) */}
-        <Form.Item label="Email" name="email">
-          <Input placeholder="Email (chỉ hiển thị)" disabled />
-        </Form.Item>
+            {/* Thông tin định danh (Chỉ đọc) */}
+            <Col xs={24} md={12}>
+              <Form.Item label="Email tài khoản" name="email">
+                <Input disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item label="Họ tên đăng ký" name="fullName">
+                <Input disabled />
+              </Form.Item>
+            </Col>
 
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={saving}>
-            Lưu thay đổi
-          </Button>
-        </Form.Item>
-      </Form>
+            {/* Thông tin cá nhân hóa (Có thể chỉnh sửa) */}
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Tên hiển thị (Nickname)"
+                name="displayName"
+                rules={[{ required: true, message: 'Vui lòng nhập tên hiển thị' }]}
+              >
+                <Input placeholder="Tên hiện trên Dashboard" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} md={12}>
+              <Form.Item label="Số điện thoại" name="phoneNumber">
+                <Input placeholder="Số điện thoại liên lạc" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} md={12}>
+              <Form.Item label="Ngày sinh" name="dob">
+                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} md={12}>
+              <Form.Item label="Giới tính" name="gender">
+                <Select placeholder="Chọn giới tính">
+                  <Select.Option value="MALE">Nam</Select.Option>
+                  <Select.Option value="FEMALE">Nữ</Select.Option>
+                  <Select.Option value="OTHER">Khác</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+
+            <Col span={24}>
+              <Form.Item label="Nghề nghiệp" name="occupation">
+                <Input placeholder="Ví dụ: Sinh viên, Người đi làm..." />
+              </Form.Item>
+            </Col>
+
+            <Col span={24}>
+              <Button type="primary" htmlType="submit" loading={saving} block size="large">
+                LƯU THAY ĐỔI VÀO DATABASE
+              </Button>
+            </Col>
+          </Row>
+        </Form>
+      </Card>
     </Spin>
   );
 };

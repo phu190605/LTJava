@@ -14,7 +14,8 @@
 }
 
 .welcome-banner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Tím xanh AESP */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Tím xanh AESP */
   border-radius: 16px;
   padding: 30px;
   color: white;
@@ -27,13 +28,13 @@
 .stat-card {
   border-radius: 12px;
   border: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
   transition: all 0.3s;
 }
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .course-card {

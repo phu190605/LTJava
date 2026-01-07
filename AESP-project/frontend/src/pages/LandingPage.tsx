@@ -19,7 +19,7 @@ const LandingPage: React.FC = () => {
               🚀 Công nghệ AI tiên tiến nhất
             </Tag>
             <Title level={1} style={{ fontSize: '48px', fontWeight: 800, color: '#1a1a1a', lineHeight: 1.2 }}>
-              Nói tiếng Anh tự tin <br/> cùng trợ lý AI & Mentor
+              Nói tiếng Anh tự tin <br /> cùng trợ lý AI & Mentor
             </Title>
             <Paragraph style={{ fontSize: '18px', color: '#666', marginBottom: 40, marginTop: 20 }}>
               Luyện tập mọi lúc mọi nơi, phản hồi phát âm tức thì. Lộ trình cá nhân hóa giúp bạn giỏi lên trông thấy.
@@ -33,10 +33,10 @@ const LandingPage: React.FC = () => {
           </Col>
           <Col xs={24} md={12}>
             {/* Ảnh minh họa: Bạn thay link ảnh thật vào đây */}
-            <img 
-              src="https://img.freepik.com/free-photo/group-diverse-people-having-business-meeting_53876-25060.jpg" 
-              alt="Studying" 
-              style={{ width: '100%', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }} 
+            <img
+              src="https://img.freepik.com/free-photo/group-diverse-people-having-business-meeting_53876-25060.jpg"
+              alt="Studying"
+              style={{ width: '100%', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}
             />
           </Col>
         </Row>
@@ -73,8 +73,8 @@ const LandingPage: React.FC = () => {
               </Card>
             </Col>
 
-             {/* Card 3: 1-on-1 Coaching (Hồng) */}
-             <Col xs={24} md={8}>
+            {/* Card 3: 1-on-1 Coaching (Hồng) */}
+            <Col xs={24} md={8}>
               <Card style={{ borderRadius: 20, height: '100%', background: '#FFE6EF', border: 'none' }} bodyStyle={{ padding: 40 }}>
                 <div style={{ width: 60, height: 60, background: '#FF4D82', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                   <UsergroupAddOutlined style={{ fontSize: 30, color: 'white' }} />
@@ -106,7 +106,7 @@ const LandingPage: React.FC = () => {
 
           {/* Gói Chuyên nghiệp (Nổi bật) */}
           <Col xs={24} md={8}>
-            <Card 
+            <Card
               style={{ borderRadius: 20, textAlign: 'center', padding: 30, background: '#2B4DFF', color: 'white', transform: 'scale(1.05)', boxShadow: '0 20px 40px rgba(43, 77, 255, 0.3)' }}
               bordered={false}
             >
@@ -142,7 +142,7 @@ const LandingPage: React.FC = () => {
         <div style={{ maxWidth: 1000, margin: '0 auto', textAlign: 'center' }}>
           <Title level={2}>Đội ngũ giáo viên tại AESP</Title>
           <Paragraph>Giáo viên bản xứ giàu kinh nghiệm, tận tâm đồng hành</Paragraph>
-          
+
           <Row gutter={[30, 30]} style={{ marginTop: 50 }}>
             {[1, 2, 3].map((item) => (
               <Col xs={24} md={8} key={item}>

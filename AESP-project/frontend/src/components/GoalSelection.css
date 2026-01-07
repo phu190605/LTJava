@@ -13,6 +13,7 @@
 .mascot-area {
   margin-bottom: 20px;
 }
+
 .mascot-img {
   width: 100px;
   height: 100px;
@@ -22,9 +23,17 @@
 }
 
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 .setup-title {
@@ -85,7 +94,8 @@
 /* 5. Nút Back và Continue đồng bộ, chuyên nghiệp và cân bằng */
 .back-btn,
 .continue-btn {
-  flex: 1 1 0;                  /* mỗi nút chiếm phần bằng nhau trong flex */
+  flex: 1 1 0;
+  /* mỗi nút chiếm phần bằng nhau trong flex */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -102,9 +112,10 @@
   background-color: #eef2ff;
   color: #1f2937;
   border: 1px solid #c7d2fe;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   transition: all 0.25s ease;
 }
+
 .back-btn:hover {
   background-color: #e0e7ff;
   border-color: #a5b4fc;
@@ -116,13 +127,14 @@
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #ffffff;
   border: none;
-  box-shadow: 0 6px 12px rgba(37,99,235,0.35);
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.35);
   transition: all 0.25s ease;
 }
+
 .continue-btn:hover {
   background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
   transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(30,64,175,0.35);
+  box-shadow: 0 8px 16px rgba(30, 64, 175, 0.35);
 }
 
 /* Disabled đồng bộ */
