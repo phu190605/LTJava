@@ -365,7 +365,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
         footer={null}
         width={450}
         centered
-        destroyOnClose
+        destroyOnHidden
+        closable={false}
         maskClosable={false} // Bắt buộc bấm X để đóng, tránh đóng nhầm
         style={{ top: 20 }}
         modalRender={(modal) => (

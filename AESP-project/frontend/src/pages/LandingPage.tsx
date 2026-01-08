@@ -241,26 +241,6 @@ const LandingPage: React.FC = () => {
                 >
                   Kiểm tra trình độ ngay
                 </Button>
-                 <div style={{ display: 'flex', alignItems: 'center', color: '#64748B' }}>
-                    <PlayCircleFilled style={{ fontSize: 24, color: '#2B4DFF', marginRight: 10 }} />
-                    <Text style={{ fontSize: 16, fontWeight: 500 }}>Xem video giới thiệu</Text>
-                 </div>
-              </div>
-              
-              <div style={{ marginTop: 50, display: 'flex', alignItems: 'center', gap: 20, padding: '20px', background: 'rgba(255,255,255,0.6)', borderRadius: 20, backdropFilter: 'blur(10px)', width: 'fit-content', boxShadow: softShadow }}>
-                <Avatar.Group size="large">
-                  <Avatar src="https://i.pravatar.cc/100?img=1" />
-                  <Avatar src="https://i.pravatar.cc/100?img=2" />
-                  <Avatar src="https://i.pravatar.cc/100?img=3" />
-                  <Avatar style={{ backgroundColor: '#2B4DFF' }}>+5k</Avatar>
-                </Avatar.Group>
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#FFD700', marginBottom: 5 }}>
-                        <StarFilled /><StarFilled /><StarFilled /><StarFilled /><StarFilled style={{ color: '#E2E8F0' }} />
-                        <Text strong style={{ color: '#0F172A', marginLeft: 5 }}>4.8/5</Text>
-                    </div>
-                    <Text type="secondary">Từ 5,000+ học viên hài lòng</Text>
-                </div>
               </div>
             </Col>
             
@@ -275,7 +255,7 @@ const LandingPage: React.FC = () => {
                 </div>
                 <Card 
                   style={{ position: 'absolute', top: 60, left: -50, width: 200, borderRadius: 20, boxShadow: hoverShadow, border: 'none', transform: 'translateZ(50px)' }}
-                  bodyStyle={{ padding: 20, display: 'flex', alignItems: 'center', gap: 15 }}
+                  styles={{ body: { padding: 20, display: 'flex', alignItems: 'center', gap: 15 } }}
                 >
                   <div style={{ width: 48, height: 48, background: '#E6FFFA', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <CheckCircleFilled style={{ color: '#38B2AC', fontSize: 24 }} />
@@ -339,9 +319,9 @@ const LandingPage: React.FC = () => {
               <Col xs={24} md={8} key={idx}>
                 <Card 
                   className="hover-card" 
-                  bordered={false}
+                  variant="borderless"
                   style={{ borderRadius: 30, height: '100%', boxShadow: softShadow, border: '1px solid #F1F5F9', overflow: 'hidden' }} 
-                  bodyStyle={{ padding: 40, position: 'relative', zIndex: 1 }}
+                  styles={{ body: { padding: 40, position: 'relative', zIndex: 1 } }}
                 >
                   <div className="feature-icon-box" style={{ background: feature.bg, color: feature.color, boxShadow: `0 10px 20px ${feature.color}30` }}>
                     {feature.icon}
@@ -366,7 +346,7 @@ const LandingPage: React.FC = () => {
           <Row gutter={[30, 30]} align="bottom">
             {/* Gói Cơ bản */}
             <Col xs={24} md={8}>
-              <Card className="hover-card" bordered={false} style={{ borderRadius: 30, padding: 30, border: '1px solid #E2E8F0', background: 'white' }}>
+              <Card className="hover-card" variant="borderless" style={{ borderRadius: 30, padding: 30, border: '1px solid #E2E8F0', background: 'white' }}>
                 <Title level={4} style={{ color: '#64748B', marginBottom: 30 }}>Cơ bản</Title>
                 <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 30 }}>
                   <Title level={1} style={{ margin: 0, fontWeight: 800 }}>200K</Title>
@@ -391,7 +371,7 @@ const LandingPage: React.FC = () => {
                   PHỔ BIẾN NHẤT
                 </div>
                 <Card 
-                  bordered={false}
+                  variant="borderless"
                   style={{ borderRadius: 30, padding: 40, background: '#0F172A', color: 'white', transform: 'scale(1.05)', boxShadow: '0 30px 60px rgba(0,0,0,0.2)', position: 'relative' }}
                 >
                   <Title level={4} style={{ color: '#94A3B8', marginBottom: 30 }}>Chuyên nghiệp</Title>
@@ -414,7 +394,7 @@ const LandingPage: React.FC = () => {
 
             {/* Gói Cao cấp */}
             <Col xs={24} md={8}>
-              <Card className="hover-card" bordered={false} style={{ borderRadius: 30, padding: 30, border: '1px solid #E2E8F0', background: 'white' }}>
+              <Card className="hover-card" variant="borderless" style={{ borderRadius: 30, padding: 30, border: '1px solid #E2E8F0', background: 'white' }}>
                 <Title level={4} style={{ color: '#64748B', marginBottom: 30 }}>Cao cấp</Title>
                 <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 30 }}>
                   <Title level={1} style={{ margin: 0, fontWeight: 800 }}>999K</Title>
@@ -451,9 +431,9 @@ const LandingPage: React.FC = () => {
               <Col xs={24} md={8} key={idx}>
                 <Card 
                   className="hover-card" 
-                  bordered={false} 
+                  variant="borderless" 
                   style={{ borderRadius: 30, overflow: 'hidden', boxShadow: softShadow, border: '1px solid #F1F5F9' }}
-                  bodyStyle={{ padding: 0 }}
+                  styles={{ body: { padding: 0 } }}
                 >
                   <div style={{ height: 120, background: `linear-gradient(135deg, ${idx === 0 ? '#2B4DFF' : idx === 1 ? '#8B5CF6' : '#EC4899'} 0%, rgba(255,255,255,0) 100%)`, opacity: 0.8 }}></div>
                   <div style={{ marginTop: -60, textAlign: 'center', padding: '0 20px' }}>
