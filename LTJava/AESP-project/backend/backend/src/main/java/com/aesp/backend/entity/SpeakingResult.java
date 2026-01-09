@@ -11,9 +11,9 @@ public class SpeakingResult {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // lưu user theo ID (KHÔNG quan hệ)
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    // lưu learner theo ID (KHÔNG quan hệ)
+    @Column(name = "learner_id", nullable = false)
+    private Long learnerId;
 
     @Column(nullable = false)
     private int partNumber;
@@ -37,12 +37,12 @@ public class SpeakingResult {
         return id;
     }
 
-    public Long getUserId() {
-        return userId;
+    public Long getLearnerId() {
+        return learnerId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setLearnerId(Long learnerId) {
+        this.learnerId = learnerId;
     }
 
     public int getPartNumber() {
