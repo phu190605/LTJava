@@ -26,4 +26,14 @@ public class UserAdminController {
     public void disableUser(@PathVariable Long id) {
         userService.disableUser(id);
     }
+
+    @PutMapping("/{id}/enable")
+    public void enableUser(@PathVariable Long id) {
+        userService.enableUser(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+    }
 }

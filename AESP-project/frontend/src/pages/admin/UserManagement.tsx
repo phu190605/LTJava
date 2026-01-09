@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import axiosClient from "../../api/axiosClient";
-import '../../css/user-management.css';
+import "../../css/user-management.css";
 
 interface User {
   id: number;
-  name: string;
   email: string;
   role: string;
   active: boolean;
@@ -22,10 +21,10 @@ function UserManagement() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await axiosClient.get("/admin/users"); // → http://localhost:8080/api/admin/users
+      const res = await axiosClient.get("/admin/users");
       setUsers(res.data);
       setError(null);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Lỗi fetch users:", err);
       setError("Không thể tải danh sách người dùng");
     } finally {
@@ -36,10 +35,29 @@ function UserManagement() {
   const disableUser = async (id: number) => {
     try {
       await axiosClient.put(`/admin/users/${id}/disable`);
-      fetchUsers(); // load lại danh sách
-    } catch (err) {
-      console.error("Lỗi disable user:", err);
+      fetchUsers();
+    } catch {
       alert("Disable user thất bại");
+    }
+  };
+
+  const enableUser = async (id: number) => {
+    try {
+      await axiosClient.put(`/admin/users/${id}/enable`);
+      fetchUsers();
+    } catch {
+      alert("Enable user thất bại");
+    }
+  };
+
+  const deleteUser = async (id: number) => {
+    if (!window.confirm("Bạn chắc chắn muốn xóa Learner này?")) return;
+
+    try {
+      await axiosClient.delete(`/admin/users/${id}`);
+      fetchUsers();
+    } catch {
+      alert("Xóa user thất bại");
     }
   };
 
@@ -73,12 +91,28 @@ function UserManagement() {
                 </span>
               </td>
               <td>
-                {u.active && (
+                {u.active ? (
                   <button
                     className="btn-disable"
                     onClick={() => disableUser(u.id)}
                   >
                     Disable
+                  </button>
+                ) : (
+                  <button
+                    className="btn-enable"
+                    onClick={() => enableUser(u.id)}
+                  >
+                    Enable
+                  </button>
+                )}
+
+                {u.role === "LEARNER" && (
+                  <button
+                    className="btn-delete"
+                    onClick={() => deleteUser(u.id)}
+                  >
+                    Delete
                   </button>
                 )}
               </td>

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,6 +44,13 @@ public class User {
     )
     @JsonManagedReference
     private Set<Skill> skills = new HashSet<>();
+    // ===== PASSWORD RESET (TOKEN) =====
+    private String resetToken;
+    private LocalDateTime resetTokenExpiry;
+
+    // ===== PASSWORD RESET (OTP) =====
+    private String resetOtp;
+    private LocalDateTime resetOtpExpiry;
 
     // ===== CONSTRUCTOR =====
     public User() {}
@@ -103,4 +111,38 @@ public class User {
     public void setSkills(Set<Skill> skills) {
         this.skills = skills;
     }
-}
+    // ===== RESET TOKEN =====
+    public String getResetToken() {
+        return resetToken;
+    }
+
+    public void setResetToken(String resetToken) {
+        this.resetToken = resetToken;
+    }
+
+    public LocalDateTime getResetTokenExpiry() {
+        return resetTokenExpiry;
+    }
+
+    public void setResetTokenExpiry(LocalDateTime resetTokenExpiry) {
+        this.resetTokenExpiry = resetTokenExpiry;
+    }
+
+    // ===== RESET OTP =====
+    public String getResetOtp() {
+        return resetOtp;
+    }
+
+    public void setResetOtp(String resetOtp) {
+        this.resetOtp = resetOtp;
+    }
+
+    public LocalDateTime getResetOtpExpiry() {
+        return resetOtpExpiry;
+    }
+
+    public void setResetOtpExpiry(LocalDateTime resetOtpExpiry) {
+        this.resetOtpExpiry = resetOtpExpiry;
+    }
+
+} 

@@ -10,8 +10,7 @@ import com.aesp.backend.entity.User;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
-
+    Optional<User> findByResetToken(String resetToken);
     Boolean existsByEmail(String email);
-
     List<User> findByRole(String role);
-}
+} 

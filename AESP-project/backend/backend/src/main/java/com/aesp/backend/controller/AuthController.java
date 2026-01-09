@@ -17,10 +17,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.aesp.backend.dto.request.ForgotPasswordRequest;
 import com.aesp.backend.dto.request.LoginRequest;
+import com.aesp.backend.dto.request.ResetPasswordRequest;
 import com.aesp.backend.dto.request.SignupRequest;
+import com.aesp.backend.dto.request.TestEmailRequest;
+import com.aesp.backend.dto.request.VerifyOtpRequest;
 import com.aesp.backend.entity.User;
 import com.aesp.backend.repository.UserRepository;
+import com.aesp.backend.service.EmailService;
+import com.aesp.backend.service.IUserService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,6 +38,31 @@ public class AuthController {
 
     @Autowired
     PasswordEncoder passwordEncoder;
+
+    @Autowired
+    IUserService userService;
+
+    @Autowired
+    EmailService emailService;
+
+    // API YÊU CẦU QUÊN MẬT KHẨU
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        // Không tiết lộ xem email có tồn tại hay không - luôn trả về 200
+        userService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok().body("Nếu email tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi.");
+    }
+
+    // API ĐẶT LẠI MẬT KHẨU
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        boolean ok = userService.resetPassword(request.getToken(), request.getNewPassword());
+        if (ok) {
+            return ResponseEntity.ok().body("Đặt lại mật khẩu thành công!");
+        } else {
+            return ResponseEntity.badRequest().body("Token không hợp lệ hoặc đã hết hạn.");
+        }
+    }
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
@@ -133,7 +164,23 @@ public class AuthController {
         resp.put("role", user.getRole());
         resp.put("fullName", user.getFullName());
         resp.put("passwordHash", user.getPassword());
+        // Debug: include reset token info to aid testing (development only)
+        resp.put("resetToken", user.getResetToken());
+        resp.put("resetTokenExpiry", user.getResetTokenExpiry() != null ? user.getResetTokenExpiry().toString() : null);
+        resp.put("resetOtp", user.getResetOtp());
+        resp.put("resetOtpExpiry", user.getResetOtpExpiry() != null ? user.getResetOtpExpiry().toString() : null);
         return ResponseEntity.ok(resp);
+    }
+
+    // Development-only endpoint to send a single test email via current SMTP configuration
+    @PostMapping("/debug/send-test-email")
+    public ResponseEntity<?> sendTestEmail(@RequestBody TestEmailRequest request) {
+        boolean ok = emailService.sendTestEmail(request.getEmail(), request.getSubject(), request.getMessage());
+        if (ok) {
+            return ResponseEntity.ok().body("Test email sent (check inbox)");
+        } else {
+            return ResponseEntity.status(500).body("Failed to send test email; check application logs for details");
+        }
     }
 
     @GetMapping("/debug/check-password")
@@ -149,5 +196,17 @@ public class AuthController {
         resp.put("matches", matches);
         resp.put("storedHash", user.getPassword());
         return ResponseEntity.ok(resp);
+    }
+
+    // Verify OTP sent to user's email. Returns reset token if OTP is valid.
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request) {
+        String token = userService.verifyOtp(request.getEmail(), request.getOtp());
+        if (token != null) {
+            Map<String, String> resp = new HashMap<>();
+            resp.put("token", token);
+            return ResponseEntity.ok(resp);
+        }
+        return ResponseEntity.badRequest().body("OTP không hợp lệ hoặc đã hết hạn.");
     }
 }

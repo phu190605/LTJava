@@ -22,4 +22,6 @@ public interface UserService {
     List<User> getAllUsers();
 
     void disableUser(Long userId);
+    void enableUser(Long userId);
+    void deleteUser(Long userId);
 }

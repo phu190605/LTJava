@@ -120,4 +120,29 @@ public class UserServiceImpl implements UserService {
         user.setActive(false);
         userRepository.save(user);
     }
+    //Enable user
+    @Override
+    public void enableUser(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setActive(true);
+        userRepository.save(user);
+    }
+
+    // Delete user (CHỈ LEARNER)
+    @Override
+    @Transactional
+    public void deleteUser(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!"LEARNER".equals(user.getRole())) {
+            throw new RuntimeException("Only Learner can be deleted");
+        }
+
+        userRepository.delete(user);
+    }   
 }
