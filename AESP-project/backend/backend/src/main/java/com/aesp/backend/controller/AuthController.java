@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.aesp.backend.dto.request.LoginRequest;
 import com.aesp.backend.dto.request.SignupRequest;
+import com.aesp.backend.dto.response.LoginResponse; // ➕ import DTO
 import com.aesp.backend.entity.User;
 import com.aesp.backend.repository.UserRepository;
 import com.aesp.backend.security.JwtUtils;
@@ -63,14 +64,13 @@ public class AuthController {
         return ResponseEntity.ok("Đăng ký thành công!");
     }
 
-    // API ĐĂNG NHẬP (Giả lập trả về Token)
+    // API ĐĂNG NHẬP
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
         Optional<User> userOp = userRepository.findByEmail(request.getEmail());
 
         if (userOp.isPresent()) {
             User user = userOp.get();
-            // Kiểm tra mật khẩu (pass nhập vào vs pass đã mã hóa trong DB)
             boolean passMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
             logger.info("Login attempt email='{}' role='{}' passMatches={}", request.getEmail(), user.getRole(),
                     passMatches);
@@ -87,11 +87,10 @@ public class AuthController {
             }
         }
         logger.info("Login failed for email='{}' (not found or mismatch)", request.getEmail());
-
         return ResponseEntity.badRequest().body("Sai email hoặc mật khẩu!");
     }
 
-    // API ĐĂNG NHẬP ADMIN (Chỉ cho phép tài khoản admin)
+    // API ĐĂNG NHẬP ADMIN
     @PostMapping("/admin/login")
     public ResponseEntity<?> adminLogin(@RequestBody LoginRequest request) {
         Optional<User> userOp = userRepository.findByEmail(request.getEmail());
@@ -101,6 +100,7 @@ public class AuthController {
 
             // Kiểm tra xem user có phải admin không
             logger.info("Admin login attempt email='{}' role='{}'", request.getEmail(), user.getRole());
+
             if (!"ADMIN".equals(user.getRole())) {
                 logger.warn("Admin login rejected for '{}': not ADMIN (role={})", request.getEmail(), user.getRole());
                 return ResponseEntity.badRequest().body("Bạn không có quyền truy cập admin!");
@@ -108,6 +108,7 @@ public class AuthController {
 
             boolean passMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
             logger.info("Admin password match for '{}': {}", request.getEmail(), passMatches);
+
             if (passMatches) {
                 // TẠO TOKEN THIỆT
                 String token = jwtUtils.generateToken(user.getEmail());
@@ -121,11 +122,10 @@ public class AuthController {
             }
         }
         logger.info("Admin login failed for email='{}' (not found or mismatch)", request.getEmail());
-
         return ResponseEntity.badRequest().body("Sai email hoặc mật khẩu!");
     }
 
-    // Temporary debug endpoint (development only) to inspect user row
+    // Debug endpoints giữ nguyên...
     @GetMapping("/debug/user")
     public ResponseEntity<?> debugUser(@RequestParam String email) {
         Optional<User> userOp = userRepository.findByEmail(email);
@@ -156,3 +156,5 @@ public class AuthController {
         return ResponseEntity.ok(resp);
     }
 }
+
+// test

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
+import SpeakingTest from './pages/SpeakingTest';
 import AdminLoginPage from './pages/AdminLoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -38,6 +39,7 @@ function App() {
 
         {/* Trang nội bộ: Phải đăng nhập mới vào được (Đã xử lý trong MainLayout) */}
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/speaking-test" element={<SpeakingTest />} />
 
         <Route path="/admin" element={<h1>Khu vực Admin</h1>} />
       </Routes>

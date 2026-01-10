@@ -1,19 +1,19 @@
 import axios from 'axios';
 
 const axiosClient = axios.create({
-  baseURL: 'http://localhost:8080/api', // Chú ý: Cổng 8080 hoặc 3307 tùy server bạn chạy
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: 'http://localhost:8080/api',
+  // KHÔNG set Content-Type ở đây để trình duyệt tự nhận diện FormData
 });
 
-// Thêm token vào mọi request nếu có (để sau này gọi API bảo mật)
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
+  // Chỉ đính kèm nếu token thực sự tồn tại và không rỗng
+  if (token && token.trim() !== "") {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 //  Interceptor RESPONSE (Bộ lọc kết quả)

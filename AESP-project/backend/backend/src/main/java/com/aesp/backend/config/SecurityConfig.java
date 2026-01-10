@@ -1,10 +1,13 @@
 package com.aesp.backend.config;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod; // Thêm import này
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -20,6 +23,7 @@ import com.aesp.backend.security.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity // Đảm bảo mọi cấu hình được kích hoạt
+
 public class SecurityConfig {
 
     @Autowired

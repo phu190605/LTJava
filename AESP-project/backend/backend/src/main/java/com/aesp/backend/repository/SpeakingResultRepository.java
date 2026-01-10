@@ -1,0 +1,9 @@
+package com.aesp.backend.repository;
+
+import com.aesp.backend.entity.SpeakingResult;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface SpeakingResultRepository extends JpaRepository<SpeakingResult, Long> {
+    Optional<SpeakingResult> findByUserIdAndPartNumber(Long userId, int partNumber);
+}
