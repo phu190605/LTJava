@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,7 +25,6 @@ import com.aesp.backend.security.JwtUtils;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Cho phép Frontend gọi API
 public class AuthController {
 
     @Autowired
@@ -45,9 +43,6 @@ public class AuthController {
         if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest().body("Error: Email đã tồn tại!");
         }
-
-        // Nếu có gửi role và role khác LEARNER thì từ chối, còn nếu không gửi role thì
-        // cho phép
         if (request.getRole() != null && !"LEARNER".equalsIgnoreCase(request.getRole())) {
             return ResponseEntity.badRequest().body("Error: Chỉ admin mới được tạo tài khoản mentor!");
         }

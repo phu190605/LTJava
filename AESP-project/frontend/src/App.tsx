@@ -5,12 +5,20 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import LandingPage from './pages/LandingPage'; // <--- Import trang mới
+<<<<<<< HEAD
 import ProfileSetupPage from './pages/ProfileSetupPage'; // trang thiết lập hồ sơ, mục tiu
 import SettingsPage from './pages/SettingsPage'; // trang cài đặt tài khoản
 import PaymentHistoryPage from './pages/PaymentHistoryPage'; //  trang lịch sử thanh toán
 import SubscriptionPage from './pages/SubscriptionPage'; // trang Quản lý gói học
 import AIPracticePage from './pages/AIPracticePage'; //  trang Luyện nói AI 1-1
 import LearnerLayout from './layouts/LearnerLayout'; // Layout dành cho Learner
+=======
+import TestSpeechPage from './pages/TestSpeechPage';
+import PeerFindPage from './pages/PeerFindPage';
+import PeerRoomPage from './pages/PeerRoomPage';
+import CreateRoomPage from './pages/CreateRoomPage';
+import PracticeRoomPage from './pages/PracticeRoomPage';
+>>>>>>> origin/tich_hop_AI
 
 function App() {
   return (
@@ -42,6 +50,11 @@ function App() {
         <Route path="/speaking-test" element={<SpeakingTest />} />
 
         <Route path="/admin" element={<h1>Khu vực Admin</h1>} />
+        <Route path="/test-speech" element={<TestSpeechPage />} />
+        <Route path="/peer/find" element={<PeerFindPage />} />
+        <Route path="/peer/create" element={<CreateRoomPage />} />
+        <Route path="/peer/room/:roomId" element={<PeerRoomPage />} />
+        <Route path="/practice" element={<PracticeRoomPage />} />
       </Routes>
     </BrowserRouter>
   );

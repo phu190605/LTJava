@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown, message } from 'antd';
-import { UserOutlined, LogoutOutlined, HomeOutlined } from '@ant-design/icons';
+import { Layout, Avatar, Dropdown, message } from 'antd';
+import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const { Header, Content, Footer } = Layout;
@@ -33,18 +33,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     navigate('/login'); // Quay về trang đăng nhập
   };
 
-  // Menu thả xuống khi bấm vào Avatar
-  const userMenu = (
-    <Menu items={[
-      {
-        key: '1',
-        label: 'Đăng xuất',
-        icon: <LogoutOutlined />,
-        onClick: handleLogout,
-      }
-    ]} />
-  );
-
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#001529', padding: '0 20px' }}>
@@ -54,7 +42,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ color: 'white' }}>Xin chào, <strong>{user?.fullName}</strong> ({user?.role})</span>
-          <Dropdown overlay={userMenu} placement="bottomRight">
+          <Dropdown menu={{ items: [{ key: '1', label: 'Đăng xuất', icon: <LogoutOutlined />, onClick: handleLogout }] }} placement="bottomRight">
             <Avatar style={{ backgroundColor: '#87d068', cursor: 'pointer' }} icon={<UserOutlined />} />
           </Dropdown>
         </div>

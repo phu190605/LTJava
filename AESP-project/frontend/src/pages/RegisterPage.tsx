@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Button, message, Card, Select } from 'antd';
+import { Form, Input, Button, message, Card } from 'antd';
 import { UserOutlined, LockOutlined, IdcardOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
@@ -9,16 +9,15 @@ const RegisterPage: React.FC = () => {
 
   const onFinish = async (values: any) => {
     try {
-      // Gọi API đăng ký
+
       await axiosClient.post('/auth/register', {
         email: values.email,
         password: values.password,
-        fullName: values.fullName,
-        role: values.role // Gửi kèm role người dùng chọn
+        fullName: values.fullName
       });
 
       message.success('Đăng ký thành công! Vui lòng đăng nhập.');
-      navigate('/login'); // Chuyển ngay sang trang Login
+      navigate('/login');
 
     } catch (error: any) {
       console.error(error);
@@ -60,20 +59,13 @@ const RegisterPage: React.FC = () => {
             <Input.Password prefix={<LockOutlined />} placeholder="Mật khẩu" size="large" />
           </Form.Item>
 
-          {/* Chọn vai trò: Học viên hay Mentor */}
-          <Form.Item name="role" label="Bạn muốn đăng ký là:">
-            <Select size="large">
-              <Select.Option value="LEARNER">Học viên (Learner)</Select.Option>
-              <Select.Option value="MENTOR">Người hướng dẫn (Mentor)</Select.Option>
-            </Select>
-          </Form.Item>
 
           <Form.Item>
             <Button type="primary" htmlType="submit" size="large" style={{ width: '100%' }}>
               Đăng ký ngay
             </Button>
           </Form.Item>
-          
+
           <div style={{ textAlign: 'center' }}>
             Đã có tài khoản? <a href="/login">Đăng nhập</a>
           </div>
