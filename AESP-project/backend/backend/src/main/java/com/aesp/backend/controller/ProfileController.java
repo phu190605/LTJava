@@ -1,25 +1,27 @@
 package com.aesp.backend.controller;
 
-import com.aesp.backend.dto.request.ProfileResponseRequest;
 import com.aesp.backend.dto.request.DashboardResponse;
+import com.aesp.backend.dto.request.ProfileResponseRequest;
 import com.aesp.backend.entity.*;
 import com.aesp.backend.repository.*;
 import com.aesp.backend.security.JwtUtils;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import com.aesp.backend.entity.SpeakingResult;
+import com.aesp.backend.service.SpeakingResultService;
+import java.time.LocalDateTime;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.Date;
-import java.util.Optional;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -31,25 +33,44 @@ public class ProfileController {
     @Autowired
     private TopicRepository topicRepo;
     @Autowired
-    private LearnerProfileRepository profileRepo;
-    @Autowired
-    private UserRepository userRepo;
-    @Autowired
     private ServicePackageRepository packageRepo;
-    @Autowired
-    private UserRepository userRepository;
+
+    // Đã gộp các biến trùng lặp thành tên chuẩn
     @Autowired
     private LearnerProfileRepository profileRepository;
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private SpeakingResultService speakingResultService;
+
     /**
-     * Helper: Lấy User đang đăng nhập từ SecurityContext (Email nạp từ JWT)
+     * Helper: Mapping A1/A2/B1/B2 sang enum ProficiencyLevel
+     * Đã di chuyển vào trong class
+     */
+    private ProficiencyLevel mapLevelCodeToEnum(String levelCode) {
+        if (levelCode == null)
+            return null;
+        if ("A1".equalsIgnoreCase(levelCode) || "A2".equalsIgnoreCase(levelCode)) {
+            return ProficiencyLevel.BEGINNER;
+        } else if ("B1".equalsIgnoreCase(levelCode)) {
+            return ProficiencyLevel.INTERMEDIATE;
+        } else if ("B2".equalsIgnoreCase(levelCode)) {
+            return ProficiencyLevel.ADVANCED;
+        }
+        return null;
+    }
+
+    /**
+     * Helper: Lấy User đang đăng nhập từ SecurityContext
      */
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = authentication.getName();
-        return userRepo.findByEmail(currentEmail)
+        return userRepository.findByEmail(currentEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + currentEmail));
     }
 
@@ -59,27 +80,23 @@ public class ProfileController {
 
     @GetMapping("/goals")
     public ResponseEntity<List<LearnerGoal>> getAllGoals() {
-        return ResponseEntity.ok(goalRepo.findAll()); // Lấy "thật" từ bảng learner_goals
+        return ResponseEntity.ok(goalRepo.findAll());
     }
 
     @GetMapping("/topics")
     public ResponseEntity<List<Topic>> getAllTopics() {
-        return ResponseEntity.ok(topicRepo.findAll()); // Lấy "thật" từ bảng topics
+        return ResponseEntity.ok(topicRepo.findAll());
     }
 
     @GetMapping("/packages")
     public ResponseEntity<List<ServicePackage>> getAllPackages() {
-        return ResponseEntity.ok(packageRepo.findAll()); // Lấy "thật" từ bảng service_packages
+        return ResponseEntity.ok(packageRepo.findAll());
     }
-
-    // =========================================================================
-    // 2. API XEM HỒ SƠ CÁ NHÂN (DASHBOARD)
-    // =========================================================================
 
     @GetMapping("/me")
     public ResponseEntity<ProfileResponseRequest> getMyProfile() {
         User user = getCurrentUser();
-        LearnerProfile profile = profileRepo.findByUser_Id(user.getId())
+        LearnerProfile profile = profileRepository.findByUser_Id(user.getId())
                 .orElseThrow(() -> new RuntimeException("Hồ sơ chưa được thiết lập"));
 
         ProfileResponseRequest response = new ProfileResponseRequest();
@@ -108,7 +125,7 @@ public class ProfileController {
         if (profile.getInterests() != null && !profile.getInterests().isEmpty()) {
             List<String> names = profile.getInterests().stream()
                     .map(i -> i.getTopic().getTopicName())
-                    .collect(Collectors.toList()); // Sửa lỗi tolist -> toList
+                    .collect(Collectors.toList());
             response.setInterestNames(names);
         }
 
@@ -125,10 +142,11 @@ public class ProfileController {
         try {
             User user = getCurrentUser();
             // Tìm profile theo User object thay vì ID để an toàn hơn
-            LearnerProfile profile = profileRepo.findByUser(user).orElse(new LearnerProfile());
+            LearnerProfile profile = profileRepository.findByUser(user).orElse(new LearnerProfile());
 
             profile.setUser(user);
             profile.setCurrentLevelCode(request.getCurrentLevel());
+            profile.setProficiencyLevel(mapLevelCodeToEnum(request.getCurrentLevel()));
             profile.setDailyLearningGoalMinutes(request.getDailyTime());
 
             // Logic Adaptive: Tự động gán chế độ học
@@ -146,12 +164,12 @@ public class ProfileController {
                 packageRepo.findById(request.getPackageId()).ifPresent(profile::setCurrentPackage);
             }
 
-            // Update Interests (Sửa lỗi orphan removal bằng cách tạo list mới nếu null)
+            // Update Interests
             if (request.getInterestTopicIds() != null) {
                 if (profile.getInterests() == null) {
                     profile.setInterests(new ArrayList<>());
                 } else {
-                    profile.getInterests().clear(); // Hibernate sẽ tự delete nếu cấu hình đúng
+                    profile.getInterests().clear(); // Hibernate sẽ tự delete nếu cấu hình orphanRemoval=true
                 }
 
                 for (Integer topicId : request.getInterestTopicIds()) {
@@ -164,10 +182,22 @@ public class ProfileController {
                 }
             }
 
-            profileRepo.save(profile);
+            profileRepository.save(profile);
+
+            // Save speaking test result if assessmentScore is present
+            if (request.getAssessmentScore() != null) {
+                SpeakingResult result = new SpeakingResult();
+                result.setUserId(user.getId());
+                result.setPartNumber(1); // Assuming partNumber=1 for initial test
+                result.setScore(request.getAssessmentScore().intValue());
+                result.setFeedback("Initial speaking test");
+                result.setCreatedAt(LocalDateTime.now());
+                speakingResultService.saveSpeakingResult(result);
+            }
+
             return ResponseEntity.ok("Thiết lập hồ sơ thành công!");
         } catch (Exception e) {
-            e.printStackTrace(); // In lỗi ra console để dễ debug
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Lỗi setup: " + e.getMessage());
         }
     }
@@ -180,7 +210,7 @@ public class ProfileController {
     @Transactional
     public ResponseEntity<?> updatePersonalDetails(@RequestBody ProfileResponseRequest request) {
         User user = getCurrentUser();
-        LearnerProfile profile = profileRepo.findByUser_Id(user.getId())
+        LearnerProfile profile = profileRepository.findByUser_Id(user.getId())
                 .orElseThrow(() -> new RuntimeException("Hồ sơ không tồn tại"));
 
         if (request.getDisplayName() != null)
@@ -196,11 +226,14 @@ public class ProfileController {
         if (request.getOccupation() != null)
             profile.setOccupation(request.getOccupation());
 
-        profileRepo.save(profile);
+        profileRepository.save(profile);
         return ResponseEntity.ok("Cập nhật thành công!");
     }
 
-    // === API MỚI CHO DASHBOARD ===
+    // =========================================================================
+    // 5. API DASHBOARD (HOME)
+    // =========================================================================
+
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboardData(@RequestHeader("Authorization") String token) {
         try {
@@ -212,7 +245,7 @@ public class ProfileController {
                     .orElseThrow(() -> new RuntimeException("User không tồn tại"));
 
             // 3. Tìm Profile dựa trên User
-            LearnerProfile profile = profileRepo.findByUser(user).orElse(null);
+            LearnerProfile profile = profileRepository.findByUser(user).orElse(null);
 
             // 4. Map dữ liệu sang DTO Response
             DashboardResponse res = new DashboardResponse();
@@ -221,7 +254,7 @@ public class ProfileController {
             // --- TRƯỜNG HỢP 1: CHƯA CÓ PROFILE (Vẫn trả về tên User) ---
             if (profile == null) {
                 res.setFullName(user.getFullName()); // Lấy tên từ bảng User
-                res.setAvatarUrl(null); // Hoặc link ảnh mặc định
+                res.setAvatarUrl(null);
                 res.setCurrentLevel("Chưa kiểm tra");
                 res.setMainGoal("Chưa thiết lập");
                 res.setDailyGoalMinutes(0);
@@ -231,7 +264,7 @@ public class ProfileController {
                 res.setHasMentor(false);
                 res.setDaysLeft(0L);
 
-                return ResponseEntity.ok(res); // Trả về data "rỗng" nhưng có tên User
+                return ResponseEntity.ok(res);
             }
 
             // --- TRƯỜNG HỢP 2: ĐÃ CÓ PROFILE (Mapping như cũ) ---
@@ -248,10 +281,9 @@ public class ProfileController {
                 res.setMainGoal("Chưa đặt mục tiêu");
             }
             res.setDailyGoalMinutes(profile.getDailyLearningGoalMinutes());
-            res.setLearnedMinutes(0); // Tạm thời để 0, sau này làm tính năng học sẽ update
+            res.setLearnedMinutes(0); // Tạm thời để 0
 
             // -- Nhóm Sở thích (Interests) --
-            // Dùng Stream API để lấy list tên Topic từ list ProfileInterest
             List<String> topicNames = new ArrayList<>();
             if (profile.getInterests() != null) {
                 topicNames = profile.getInterests().stream()
@@ -260,7 +292,7 @@ public class ProfileController {
             }
             res.setInterests(topicNames);
 
-            // -- Nhóm Subscription (QUAN TRỌNG CHO TASK CỦA BẠN) --
+            // -- Nhóm Subscription --
             if (profile.getCurrentPackage() != null) {
                 res.setPackageName(profile.getCurrentPackage().getPackageName());
                 res.setHasMentor(

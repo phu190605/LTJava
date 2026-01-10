@@ -45,7 +45,8 @@ public class SecurityConfig {
                                 "/api/sentences/**",
                                 "/api/profile/goals",
                                 "/api/profile/topics",
-                                "/api/profile/packages")
+                                "/api/profile/packages",
+                                "/api/test-questions/**")
                         .permitAll()
                         .requestMatchers("/api/profile/**").authenticated()
                         .anyRequest().authenticated())

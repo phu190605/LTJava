@@ -20,10 +20,6 @@ public class User {
     private String fullName;
     private String role;
 
-    // --- PHẦN QUAN TRỌNG: THÊM THỦ CÔNG GETTER/SETTER ---
-    // (Thêm đoạn này vào là hết lỗi đỏ ở AuthController, DataSeeder ngay)((((fix
-    // được lombok thì xóa))))
-
     public Long getId() {
         return id;
     }

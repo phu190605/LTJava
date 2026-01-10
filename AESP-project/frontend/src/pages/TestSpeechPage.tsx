@@ -1,32 +1,8 @@
 import React, { useState, useRef } from 'react';
-import MainLayout from '../layouts/MainLayout';
 import axios from 'axios';
-import RecordRTC from 'recordrtc';
-import { 
-  Card, 
-  Row, 
-  Col, 
-  Button, 
-  Input, 
-  Typography, 
-  Statistic, 
-  Progress, 
-  Divider, 
-  Spin, 
-  Space
-} from 'antd';
-import { 
-  AudioOutlined, 
-  StopOutlined, 
-  CheckCircleOutlined, 
-  HighlightOutlined, 
-  SoundOutlined 
-} from '@ant-design/icons';
+import RecordRTC from 'recordrtc'; // Import thư viện mới
+import '../App.css';
 
-const { Title, Text } = Typography;
-const { TextArea } = Input;
-
-// --- Interfaces giữ nguyên ---
 interface WordResult {
   word: string;
   accuracyScore: number;
@@ -34,8 +10,8 @@ interface WordResult {
 }
 
 interface AssessmentResult {
-  level: string;
-  overallScore: number;
+level: string;
+overallScore: number;
   feedback: string;
   accuracyScore: number;
   fluencyScore: number;
@@ -44,7 +20,6 @@ interface AssessmentResult {
 }
 
 const TestSpeechPage: React.FC = () => {
-  // --- State Logic giữ nguyên ---
   const [referenceText, setReferenceText] = useState<string>(
     "Hello world. I am learning to speak English properly."
   );
@@ -55,29 +30,31 @@ const TestSpeechPage: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const recorderRef = useRef<RecordRTC | null>(null);
 
-  // --- Logic Ghi âm & API (Không đổi) ---
+  // --- BẮT ĐẦU GHI ÂM ---
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Cấu hình ghi âm chuẩn WAV
       const recorder = new RecordRTC(stream, {
         type: 'audio',
-        mimeType: 'audio/wav',
+        mimeType: 'audio/wav', // Ép buộc định dạng WAV
         recorderType: RecordRTC.StereoAudioRecorder,
-        desiredSampRate: 16000,
+        desiredSampRate: 16000, // Azure thích tần số 16000Hz
         numberOfAudioChannels: 1 
       });
 
       recorder.startRecording();
       recorderRef.current = recorder;
       setIsRecording(true);
-      setResult(null);
-      setAudioUrl(null);
+      setResult(null); // Reset kết quả cũ
     } catch (err) {
       console.error("Lỗi micro:", err);
-      alert("Không thể truy cập Micro! Vui lòng kiểm tra quyền truy cập.");
+      alert("Không thể truy cập Micro!");
     }
   };
 
+  // --- DỪNG GHI ÂM ---
   const stopRecording = () => {
     if (recorderRef.current) {
       recorderRef.current.stopRecording(() => {
@@ -85,6 +62,8 @@ const TestSpeechPage: React.FC = () => {
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
         setIsRecording(false);
+
+        // Gửi file đi chấm điểm ngay
         handleAssess(blob);
       });
     }
@@ -94,6 +73,7 @@ const TestSpeechPage: React.FC = () => {
     setLoading(true);
     try {
       const formData = new FormData();
+      // Đặt tên file .wav để backend nhận diện đúng
       formData.append("file", audioBlob, "recording.wav"); 
       formData.append("text", referenceText);
 
@@ -106,184 +86,75 @@ const TestSpeechPage: React.FC = () => {
       setResult(response.data);
     } catch (error: any) {
       console.error("Lỗi:", error);
-      alert("Lỗi chấm điểm: " + (error.response?.data?.message || "Lỗi kết nối Backend!"));
+      alert("Lỗi chấm điểm: " + (error.response?.data?.message || "Kiểm tra lại Backend Java!"));
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Render Giao diện Mới ---
   return (
-    <MainLayout>
-      <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 30 }}>
-          <Title level={2} style={{ margin: 0 }}>
-            <HighlightOutlined /> Kiểm tra phát âm (AESP)
-          </Title>
-          <Text type="secondary">Luyện tập phát âm chuẩn với công nghệ AI</Text>
-        </div>
+    <div className="container" style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
+      <h1>🗣️ Kiểm tra phát âm (AESP)</h1>
 
-        {/* Khu vực Nhập liệu & Điều khiển */}
-        <Card bordered={false} style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-          <Title level={5}>Đoạn văn mẫu:</Title>
-          <TextArea 
-            rows={3}
-            value={referenceText}
-            onChange={(e) => setReferenceText(e.target.value)}
-            style={{ fontSize: '16px', marginBottom: 20 }}
-            placeholder="Nhập đoạn văn bạn muốn luyện tập..."
-          />
+      <div style={{ marginBottom: '20px' }}>
+        <label style={{ fontWeight: 'bold' }}>Đoạn văn mẫu:</label>
+        <textarea 
+          rows={3}
+          value={referenceText}
+          onChange={(e) => setReferenceText(e.target.value)}
+          style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '5px' }}
+        />
+      </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, alignItems: 'center', flexDirection: 'column' }}>
-            <Space size="large">
-              {!isRecording ? (
-                <Button 
-                  type="primary" 
-                  danger 
-                  shape="round" 
-                  icon={<AudioOutlined />} 
-                  size="large"
-                  onClick={startRecording}
-                  disabled={loading}
-                >
-                  Bắt đầu Ghi âm
-                </Button>
-              ) : (
-                <Button 
-                  type="primary" 
-                  shape="round" 
-                  icon={<StopOutlined />} 
-                  size="large"
-                  onClick={stopRecording}
-                  className="animate-pulse" // Bạn có thể thêm css animation cho nút này đập nhẹ
-                  style={{ backgroundColor: '#1890ff' }}
-                >
-                  Dừng & Chấm điểm
-                </Button>
-              )}
-            </Space>
-
-            {/* Audio Player hiển thị khi có file */}
-            {audioUrl && !isRecording && !loading && (
-              <div style={{ marginTop: 10 }}>
-                <audio src={audioUrl} controls style={{ borderRadius: '20px', height: '40px' }} />
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {/* Khu vực Loading */}
-        {loading && (
-          <div style={{ textAlign: 'center', padding: '50px 0' }}>
-            <Spin size="large" tip="AI đang phân tích giọng nói của bạn..." />
-          </div>
-        )}
-
-        {/* Khu vực Kết quả */}
-        {result && !loading && (
-          <div style={{ marginTop: 30 }}>
-            <Divider>Kết quả phân tích</Divider>
-            
-            {/* Tổng quan điểm số */}
-            <Row gutter={[16, 16]}>
-              {/* Cột Điểm tổng & Level */}
-              <Col xs={24} md={8}>
-                <Card bordered={false} style={{ height: '100%', textAlign: 'center', background: '#f6ffed', border: '1px solid #b7eb8f' }}>
-                  <Space direction="vertical" size="small">
-                    <Text strong style={{ fontSize: 16 }}>Đánh giá tổng quát</Text>
-                    <Progress 
-                      type="circle" 
-                      percent={Math.round(result.overallScore)} 
-                      strokeColor={result.overallScore >= 80 ? '#52c41a' : result.overallScore >= 50 ? '#faad14' : '#ff4d4f'}
-                      format={(percent) => <span style={{ color: '#333' }}>{percent}</span>}
-                    />
-                    <Title level={4} style={{ margin: '10px 0 0' }}>{result.level}</Title>
-                    <Text type="secondary" italic>"{result.feedback}"</Text>
-                  </Space>
-                </Card>
-              </Col>
-
-              {/* Cột Chi tiết các chỉ số */}
-              <Col xs={24} md={16}>
-                <Card bordered={false} style={{ height: '100%' }}>
-                  <Row gutter={[16, 16]}>
-                    <Col span={8}>
-                      <Statistic
-                        title="Độ chính xác (Accuracy)"
-                        value={result.accuracyScore}
-                        precision={1}
-                        valueStyle={{ color: '#3f8600' }}
-                        prefix={<CheckCircleOutlined />}
-                        suffix="/ 100"
-                      />
-                    </Col>
-                    <Col span={8}>
-                      <Statistic
-                        title="Độ trôi chảy (Fluency)"
-                        value={result.fluencyScore}
-                        precision={1}
-                        valueStyle={{ color: '#1890ff' }}
-                        prefix={<SoundOutlined />}
-                        suffix="/ 100"
-                      />
-                    </Col>
-                    <Col span={8}>
-                      <Statistic
-                        title="Độ hoàn thiện (Completeness)"
-                        value={result.completenessScore}
-                        precision={1}
-                        valueStyle={{ color: '#cf1322' }}
-                        suffix="/ 100"
-                      />
-                    </Col>
-                  </Row>
-                  
-                  <Divider style={{ margin: '20px 0' }} />
-                  
-                  {/* Phân tích từng từ */}
-                  <Title level={5}>Chi tiết phát âm:</Title>
-                  <div style={{ 
-                    padding: '20px', 
-                    background: '#fafafa', 
-                    borderRadius: '8px', 
-                    fontSize: '1.2rem', 
-                    lineHeight: '2rem',
-                    border: '1px solid #f0f0f0'
-                  }}>
-                    {result.words.map((w, i) => {
-                      const isError = w.errorType !== "None";
-                      return (
-                        <span key={i} style={{ marginRight: 8, display: 'inline-block' }}>
-                          <span 
-                            style={{ 
-                              color: isError ? '#cf1322' : '#389e0d',
-                              fontWeight: isError ? 'bold' : 500,
-                              textDecoration: isError ? 'underline' : 'none',
-                              cursor: 'default'
-                            }}
-                            title={isError ? `Lỗi: ${w.errorType} (${Math.round(w.accuracyScore)}%)` : `Tốt (${Math.round(w.accuracyScore)}%)`}
-                          >
-                            {w.word}
-                          </span>
-                          {/* Hiển thị điểm nhỏ bên dưới nếu là lỗi */}
-                          {isError && (
-                            <div style={{ fontSize: '0.7rem', color: '#999', textAlign: 'center', marginTop: '-5px' }}>
-                              {Math.round(w.accuracyScore)}%
-                            </div>
-                          )}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </Card>
-              </Col>
-            </Row>
-          </div>
+      <div className="recorder-box" style={{ margin: '20px 0' }}>
+        {!isRecording ? (
+          <button 
+            onClick={startRecording}
+            style={{ padding: '15px 30px', fontSize: '18px', cursor: 'pointer', backgroundColor: '#d32f2f', color: 'white', border: 'none', borderRadius: '50px' }}
+          >
+            🎙️ Bắt đầu Ghi Âm
+          </button>
+        ) : (
+          <button 
+            onClick={stopRecording}
+            style={{ padding: '15px 30px', fontSize: '18px', cursor: 'pointer', backgroundColor: '#1976d2', color: 'white', border: 'none', borderRadius: '50px' }}
+          >
+            ⏹️ Dừng & Chấm điểm
+          </button>
         )}
       </div>
-    </MainLayout>
+
+      {audioUrl && <div style={{ margin: '20px' }}><audio src={audioUrl} controls /></div>}
+      {loading && <p style={{ color: '#1976d2', fontWeight: 'bold' }}>⏳ Đang chấm điểm...</p>}
+
+      {/* HIỂN THỊ KẾT QUẢ */}
+      {result && (
+        <div className="result-box" style={{ marginTop: '30px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', background: '#f9f9f9', textAlign: 'left' }}>
+          <h2 style={{ textAlign: 'center', color: result.overallScore >= 80 ? 'green' : '#d32f2f' }}>
+            {result.level} - {Math.round(result.overallScore)}/100
+          </h2>
+          <p style={{ textAlign: 'center' }}><i>"{result.feedback}"</i></p>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-around', margin: '20px 0' }}>
+            <div>Accuracy: <strong>{Math.round(result.accuracyScore)}</strong></div>
+            <div>Fluency: <strong>{Math.round(result.fluencyScore)}</strong></div>
+            <div>Completeness: <strong>{Math.round(result.completenessScore)}</strong></div>
+          </div>
+
+          <div style={{ fontSize: '1.4rem', lineHeight: '1.8' }}>
+            {result.words.map((w, i) => (
+              <span key={i} style={{ 
+                color: w.errorType !== "None" ? '#d32f2f' : '#2e7d32', 
+                margin: '0 5px', fontWeight: w.errorType !== "None" ? 'bold' : 'normal',
+                textDecoration: w.errorType !== "None" ? 'underline' : 'none' 
+              }}>
+                {w.word}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

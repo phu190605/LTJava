@@ -34,7 +34,7 @@ const LoginPage: React.FC = () => {
         } else if (res.role === 'MENTOR') {
           navigate('/mentor');
         } else {
-          navigate('/dashboard'); // Mặc định là Learner
+          navigate('/speaking-test'); // Mặc định: chuyển đến speaking-test
         }
       } else {
         // Trường hợp API không lỗi nhưng không trả về token

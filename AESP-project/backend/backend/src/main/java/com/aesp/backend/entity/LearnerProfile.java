@@ -1,3 +1,4 @@
+
 package com.aesp.backend.entity;
 
 import java.util.ArrayList;
@@ -80,20 +81,21 @@ public class LearnerProfile {
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProfileInterest> interests;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "proficiency_level")
+    private ProficiencyLevel proficiencyLevel;
+
     // Enum cho Learning Mode
     public enum LearningMode {
         FULL_SENTENCE,
         KEY_PHRASE
     }
 
-    // ============= CONSTRUCTORS =============
-
     public LearnerProfile() {
         this.interests = new ArrayList<>();
     }
 
     // ============= GETTERS & SETTERS =============
-
     public Long getProfileId() {
         return profileId;
     }
@@ -220,5 +222,13 @@ public class LearnerProfile {
 
     public void setInterests(List<ProfileInterest> interests) {
         this.interests = interests;
+    }
+
+    public ProficiencyLevel getProficiencyLevel() {
+        return proficiencyLevel;
+    }
+
+    public void setProficiencyLevel(ProficiencyLevel proficiencyLevel) {
+        this.proficiencyLevel = proficiencyLevel;
     }
 }

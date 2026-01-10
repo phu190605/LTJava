@@ -30,15 +30,14 @@ public class JwtUtils {
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + 86400000)) // 1 ngày
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256) // <--- Đã đổi sang HS256 an toàn
+                .signWith(SignatureAlgorithm.HS256, getSigningKey()) // jjwt < 0.11.0 cần truyền cả thuật toán và key
                 .compact();
     }
 
     // 2. Lấy Email từ Token
     public String getEmailFromToken(String token) {
-        return Jwts.parserBuilder()
+        return Jwts.parser()
                 .setSigningKey(getSigningKey())
-                .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
@@ -47,10 +46,9 @@ public class JwtUtils {
     // 3. Kiểm tra Token hợp lệ
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token);
+            Jwts.parser()
+                    .setSigningKey(getSigningKey())
+                    .parseClaimsJws(token);
             return true;
         } catch (Exception e) {
             // Log lỗi nếu cần thiết

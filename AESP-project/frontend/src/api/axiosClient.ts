@@ -1,15 +1,7 @@
 import axios from 'axios';
 
 const axiosClient = axios.create({
-<<<<<<< HEAD
   baseURL: 'http://localhost:8080/api',
-  // KHÔNG set Content-Type ở đây để trình duyệt tự nhận diện FormData
-=======
-  baseURL: 'http://localhost:8081/api', // Backend chạy trên 8081 (update từ 8080)
-  headers: {
-    'Content-Type': 'application/json',
-  },
->>>>>>> origin/tich_hop_AI
 });
 
 axiosClient.interceptors.request.use((config) => {
@@ -34,7 +26,7 @@ axiosClient.interceptors.response.use(
     return response;
   },
   (error) => {
-// SỬA: Dùng Promise.reject thay vì throw error để đúng chuẩn Axios
+    // SỬA: Dùng Promise.reject thay vì throw error để đúng chuẩn Axios
     return Promise.reject(error);
   }
 );
