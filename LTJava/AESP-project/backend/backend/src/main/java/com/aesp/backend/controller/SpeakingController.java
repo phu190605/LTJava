@@ -24,7 +24,7 @@ public class SpeakingController {
     @PostMapping
     public SpeakingResponseDTO submitSpeaking(
             @RequestParam("audio") MultipartFile audio,
-            @RequestParam("learnerId") Long learnerId,
+            @RequestParam("UserId") Long UserId,
             @RequestParam("partNumber") int partNumber
     ) {
         // 1. Tính điểm từ file âm thanh
@@ -32,10 +32,10 @@ public class SpeakingController {
         String feedback = speakingService.generateFeedback(score);
 
         // 2. Tìm kiếm kết quả cũ để ghi đè (Update) thay vì tạo mới (Insert)
-        SpeakingResult result = repository.findByLearnerIdAndPartNumber(learnerId, partNumber)
+        SpeakingResult result = repository.findByUserIdAndPartNumber(UserId, partNumber)
                 .orElse(new SpeakingResult());
 
-        result.setLearnerId(learnerId);
+        result.setUserId(UserId);
         result.setPartNumber(partNumber);
         result.setScore(score);
         result.setFeedback(feedback);
