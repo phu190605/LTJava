@@ -1,4 +1,4 @@
--- Active: 1768028596239@@127.0.0.1@3307@aesp
+-- Active: 1767324086435@@127.0.0.1@3306@aesp
 
 INSERT INTO test_questions (type, level, content, answer) VALUES
 ('read', 'A1', '"Tom has a red ball." What color is Tom''s ball?', 'red'),
@@ -9,3 +9,26 @@ INSERT INTO test_questions (type, level, content, answer) VALUES
 ('fill', 'B2', 'Photosynthesis occurs in the ___ of the plant cell.', 'chloroplast'),
 ('read', 'B1', '"The teacher explained the lesson clearly." How did the teacher explain the lesson?', 'clearly'),
 ('read', 'B2', '"Although tired, she finished her homework before midnight." When did she finish her homework?', 'before midnight');
+
+
+
+-- 1. Bảng Learner Goals (Mục tiêu học tập)
+INSERT IGNORE INTO `learner_goals` (`goal_id`, `goal_name`, `goal_code`, `description`, `icon_url`) VALUES 
+(1,'Phát triển sự nghiệp','CAREER','Thăng tiến, phỏng vấn, môi trường công sở','/icons/goals/career.png'),
+(2,'Hỗ trợ học tập','EDUCATION','Thi chứng chỉ, du học, nghiên cứu tài liệu','/icons/goals/education.png'),
+(3,'Chuẩn bị đi du lịch','TRAVEL','Giao tiếp sân bay, khách sạn, hỏi đường','/icons/goals/travel.png'),
+(4,'Kết bạn & Giao lưu','SOCIAL','Trò chuyện tự nhiên, hiểu văn hóa','/icons/goals/social.png'),
+(5,'Định cư nước ngoài','MIGRATION','Sinh sống và làm việc lâu dài','/icons/goals/migration.png'),
+(6,'Sở thích cá nhân','HOBBY','Xem phim, nghe nhạc, học cho vui','/icons/goals/hobby.png');
+
+-- 2. Bảng Topics (Chủ đề)
+INSERT IGNORE INTO `topics` (`topic_id`, `topic_name`, `topic_code`, `description`, `icon_url`, `category`) VALUES 
+(1,'Nấu ăn & Ẩm thực','COOKING','Công thức món ăn, nhà hàng','/icons/topics/cooking.png','GENERAL'),
+(2,'Nhiếp ảnh','PHOTO','Góc chụp, ánh sáng, chỉnh ảnh','/icons/topics/camera.png','GENERAL'),
+(3,'Thể thao','SPORTS','Bóng đá, Gym, Yoga','/icons/topics/sports.png','GENERAL'),(4,'Làm vườn','GARDEN','Cây cảnh, thiên nhiên','/icons/topics/garden.png','GENERAL'),(5,'Leo núi & Dã ngoại','HIKING','Cắm trại, sinh tồn','/icons/topics/hiking.png','GENERAL'),(6,'Âm nhạc','MUSIC','Nhạc cụ, ca sĩ, lời bài hát','/icons/topics/music.png','GENERAL'),(7,'Yoga','YOGA','Thiền, tư thế, sức khỏe','/icons/topics/yoga.png','GENERAL'),(8,'Gym & Thể hình','FITNESS','Bài tập, dinh dưỡng','/icons/topics/fitness.png','GENERAL'),(9,'Công nghệ thông tin','TECH','Lập trình, phần mềm, AI','/icons/topics/tech.png','SPECIALIZED'),(10,'Tài chính & Kinh doanh','FINANCE','Đầu tư, chứng khoán, kế toán','/icons/topics/finance.png','SPECIALIZED');
+
+-- 3. Bảng Service Packages (Gói cước)
+INSERT IGNORE INTO `service_packages` (`package_id`, `package_name`, `has_mentor`, `price`, `duration_months`, `description`, `features`) VALUES 
+(1,'Gói Cơ Bản',0,299000.00,1,'Cơ bản - 299k/Tháng','[\"Truy cập dashboard\", \"AI Practice không giới hạn\", \"Chấm điểm phát âm tự động\", \"Lộ trình cá nhân hóa cơ bản\"]'),
+(2,'Gói Chuyên Nghiệp',1,599000.00,1,'Phổ biến - 599k/Tháng','[\"Tất cả tính năng gói Cơ bản\", \"2 buổi mentor/tháng\", \"Báo cáo tiến độ chi tiết\", \"Hỗ trợ ưu tiên\"]'),
+(3,'Gói Cao Cấp',1,999000.00,1,'Cao cấp - 999k/Tháng','[\"Tất cả tính năng gói Chuyên nghiệp\", \"Mentor không giới hạn\", \"Xuất báo cáo PDF/Excel\", \"Chứng nhận hoàn thành\", \"Lộ trình chuyên sâu\"]');

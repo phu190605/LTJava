@@ -33,7 +33,7 @@
     "@types/node": "^24.10.4",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
-    "@types/recordrtc": "^5.6.12",
+    "@types/recordrtc": "^5.6.15",
     "@types/sockjs-client": "^1.5.4",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^5.1.1",
