@@ -16,6 +16,7 @@ import PeerFindPage from './pages/PeerFindPage';
 import PeerRoomPage from './pages/PeerRoomPage';
 import CreateRoomPage from './pages/CreateRoomPage';
 import PracticeRoomPage from './pages/PracticeRoomPage';
+import GamificationDashboard from './pages/GamificationDashboard';
 
 function App() {
   return (
@@ -52,6 +53,8 @@ function App() {
         <Route path="/peer/create" element={<CreateRoomPage />} />
         <Route path="/peer/room/:roomId" element={<PeerRoomPage />} />
         <Route path="/practice" element={<PracticeRoomPage />} />
+        {/* Route cho GamificationDashboard */}
+        <Route path="/gamification" element={<GamificationDashboard />} />
       </Routes>
     </BrowserRouter>
   );

@@ -46,7 +46,10 @@ public class SecurityConfig {
                                 "/api/profile/goals",
                                 "/api/profile/topics",
                                 "/api/profile/packages",
-                                "/api/test-questions/**")
+                                "/api/test-questions/**",
+                                "/api/gamification/stats/**",
+                                "/api/gamification/challenges/**",
+                                "/api/gamification/simulate-speaking")
                         .permitAll()
                         .requestMatchers("/api/profile/**").authenticated()
                         .anyRequest().authenticated())
