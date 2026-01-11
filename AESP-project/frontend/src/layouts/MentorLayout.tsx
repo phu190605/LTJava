@@ -1,58 +1,106 @@
-import { Outlet, useNavigate } from "react-router-dom";
-
+import { NavLink, Outlet } from "react-router-dom";
+import MentorHeader from "../components/MentorHeader";
 export default function MentorLayout() {
-  const navigate = useNavigate();
-
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
-      {/* Sidebar */}
-      <div
+    <div style={{ display: "flex", height: "100vh", background: "#f1f5f9" }}>
+      
+      {/* SIDEBAR */}
+      <aside
         style={{
           width: 220,
-          background: "#1e293b",
-          color: "#fff",
+          background: "#fff",
+          color: "#2563eb",
           padding: 20,
-          height: "100vh",
-          overflowY: "auto", // scroll nếu menu dài
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <h3>Mentor</h3>
+        <h2 style={{ textAlign: "center", marginBottom: 30 }}>
+          AESP Mentor
+        </h2>
 
-        <p
-          style={{ cursor: "pointer", margin: "10px 0" }}
-          onClick={() => navigate("/mentor")}
+        <nav style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <NavLink
+            to="/mentor"
+            end
+            style={({ isActive }) => ({
+              textDecoration: "none",
+              padding: "10px 12px",
+              borderRadius: 6,
+              background: isActive ? "#2563eb" : "transparent",
+              color: isActive ? "#fff" : "#2563eb",
+            })}
+          >
+            Dashboard
+          </NavLink>
+
+          <NavLink
+            to="/mentor/assessment"
+            style={({ isActive }) => ({
+            textDecoration: "none",
+            padding: "10px 12px",
+            borderRadius: 6,
+            background: isActive ? "#2563eb" : "transparent",
+            color: isActive ? "#fff" : "#2563eb",
+            })}
+          >
+            Đánh giá & xếp lớp
+          </NavLink>
+
+        <NavLink
+        to="/mentor/feedbacks"
+        style={({ isActive }) => ({
+        textDecoration: "none",
+        padding: "10px 12px",
+        borderRadius: 6,
+        background: isActive ? "#2563eb" : "transparent",
+        color: isActive ? "#fff" : "#2563eb",
+        })}
         >
-          Dashboard
-        </p>
+        Chấm bài & sửa lỗi
+        </NavLink>
 
-        {/* Feedback chỉ cần link chung, sẽ dùng sessionId ở Dashboard */}
-        <p
-          onClick={() => navigate("/mentor/feedback")}
-          style={{ cursor: "pointer", margin: "10px 0", opacity: 0.5 }}
-        >
-          Feedback
-        </p>
+          <NavLink
+            to="/mentor/materials"
+            style={({ isActive }) => ({
+              textDecoration: "none",
+              padding: "10px 12px",
+              borderRadius: 6,
+              background: isActive ? "#2563eb" : "transparent",
+              color: isActive ? "#fff" : "#2563eb",
+            })}
+          >
+            Kho tài liệu
+          </NavLink>
 
-        <p
-          style={{ cursor: "pointer", margin: "10px 0" }}
-          onClick={() => navigate("/mentor/materials")}
-        >
-          Kho tài liệu
-        </p>
-      </div>
+        </nav>
+      </aside>
 
-      {/* Nội dung chính */}
-      <div
-        style={{
-          flex: 1,
-          padding: 20,
-          overflowY: "auto", // scroll nếu nội dung dài
-          background: "#f9fafb",
-          minHeight: "100vh",
-        }}
-      >
-        <Outlet />
-      </div>
+      {/* CONTENT */}
+<main
+  style={{
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    background: "#f1f5f9",
+  }}
+>
+  <MentorHeader />
+
+  <div
+    style={{
+      flex: 1,
+      padding: 24,
+      overflowY: "auto",
+      display: "flex",
+      justifyContent: "center",
+    }}
+  >
+    <div style={{ width: "100%", maxWidth: 1000 }}>
+      <Outlet />
+    </div>
+  </div>
+</main>
     </div>
   );
 }

@@ -2,6 +2,6 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role:  "MENTOR" | "LEARNER" | "ADMIN";
   active: boolean;
 }

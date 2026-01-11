@@ -10,10 +10,13 @@ import AdminLayout from './layouts/AdminLayout';
 import RegisterPage from './pages/Register';
 import LoginPage from './pages/LoginPage';
 import MentorLayout from "./layouts/MentorLayout";
-import MentorDashboard from "./pages/mentor/MentorDashboard";
-import FeedbackEditor from "./pages/mentor/FeedbackEditor";
+import MentorDashboard from "./pages/mentor/Dashboard";
+import FeedbackDetail from "./pages/mentor/FeedbackDetail";
 import Materials from "./pages/mentor/Materials";
-import FeedbackList from "./pages/mentor/FeedbackList";
+import Profile from "./pages/mentor/Profile";
+import FeedbackList from "./pages/mentor/FeedbackList"
+import AssessmentList from "./pages/mentor/AssessmentList"
+import AssessmentDetail from "./pages/mentor/AssessmentDetail"
 
 function App() {
   return (
@@ -29,13 +32,7 @@ function App() {
         
         {/* Trang nội bộ: Phải đăng nhập mới vào được (Đã xử lý trong MainLayout) */}
         <Route path="/dashboard" element={<DashboardPage />} />
-        {/*mentor*/}
-        <Route path="/mentor" element={<MentorLayout />}>
-          <Route index element={<MentorDashboard />} />
-          <Route path="feedback/:sessionId" element={<FeedbackEditor />} />
-          <Route path="feedback" element={<FeedbackList />} />
-          <Route path="materials" element={<Materials />} />
-        </Route>
+
         {/* Admin */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
@@ -43,6 +40,15 @@ function App() {
         <Route path="mentors" element={<MentorManager />} />
         <Route path="policies" element={<PolicyManager />} />
       </Route>
+      <Route path="/mentor" element={<MentorLayout />}>
+          <Route index element={<MentorDashboard />} />
+          <Route path="feedback/:sessionId" element={<FeedbackDetail />} />
+          <Route path="materials" element={<Materials />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="feedbacks" element={<FeedbackList />} />
+          <Route path="assessment" element={<AssessmentList />} />
+          <Route path="assessment/:sessionId" element={<AssessmentDetail />}/>
+        </Route>
       </Routes>
     </BrowserRouter>
   );
