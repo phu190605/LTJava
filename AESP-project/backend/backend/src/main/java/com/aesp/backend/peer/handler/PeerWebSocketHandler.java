@@ -1,77 +1,159 @@
-@Override
-protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+package com.aesp.backend.peer.handler;
 
-    ChatMessage msg = objectMapper.readValue(message.getPayload(), ChatMessage.class);
+import com.aesp.backend.peer.model.ChatMessage;
+import com.aesp.backend.peer.model.PeerUserSession;
+import com.aesp.backend.peer.model.Room;
+import com.aesp.backend.peer.model.RoomStatus;
+import com.aesp.backend.peer.service.PeerMatchService;
+import com.aesp.backend.peer.service.TopicSuggestionService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-    switch (msg.getType()) {
-        case "JOIN" -> handleJoin(session, msg);
-        case "CHAT" -> handleChat(msg);
-        case "ROOM_FINISHED" -> handleRoomFinished(msg);
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+@Component
+public class PeerWebSocketHandler extends TextWebSocketHandler {
+
+    private final PeerMatchService matchService;
+    private final TopicSuggestionService topicService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public PeerWebSocketHandler(
+            PeerMatchService matchService,
+            TopicSuggestionService topicService
+    ) {
+        this.matchService = matchService;
+        this.topicService = topicService;
     }
-}
 
-private void handleJoin(WebSocketSession session, ChatMessage msg) throws Exception {
+    @Override
+    protected void handleTextMessage(
+            WebSocketSession session,
+            TextMessage message
+    ) throws Exception {
 
-    PeerUserSession user = new PeerUserSession(
-            msg.getSender(), "BASIC", msg.getContent(), session
-    );
+        ChatMessage msg =
+                objectMapper.readValue(message.getPayload(), ChatMessage.class);
 
-    Room room = matchService.matchUser(user);
+        switch (msg.getType()) {
+            case "JOIN" -> handleJoin(session, msg);
+            case "CHAT" -> handleChat(msg);
+            case "ROOM_FINISHED" -> handleRoomFinished(msg);
+        }
+    }
 
-    if (room.getParticipants().size() == 2) {
+    private void handleJoin(WebSocketSession session, ChatMessage msg) throws Exception {
 
-        ChatMessage matched = new ChatMessage(
-                "MATCHED", "SERVER", "Matched", room.getRoomId(), null
+        PeerUserSession user = new PeerUserSession(
+                msg.getSender(),
+                "BASIC",
+                msg.getContent(),
+                session
         );
 
-        ChatMessage topic = new ChatMessage(
-                "TOPIC_SUGGESTION", "SERVER",
-                topicService.randomTopic(),
-                room.getRoomId(), null
+        Room room = matchService.matchUser(user);
+
+        if (room.getParticipants().size() == 2) {
+
+            ChatMessage matched = new ChatMessage(
+                    "MATCHED",
+                    "SERVER",
+                    "Matched successfully",
+                    room.getRoomId(),
+                    null
+            );
+
+            ChatMessage topic = new ChatMessage(
+                    "TOPIC_SUGGESTION",
+                    "SERVER",
+                    topicService.randomTopic(),
+                    room.getRoomId(),
+                    null
+            );
+
+            for (PeerUserSession p : room.getParticipants()) {
+                p.getSession().sendMessage(new TextMessage(
+                        objectMapper.writeValueAsString(matched)
+                ));
+                p.getSession().sendMessage(new TextMessage(
+                        objectMapper.writeValueAsString(topic)
+                ));
+            }
+        }
+    }
+
+    private void handleChat(ChatMessage msg) throws Exception {
+
+        Room room = matchService.findRoomById(msg.getRoomId());
+        if (room == null) return;
+
+        for (PeerUserSession p : room.getParticipants()) {
+            if (p.getSession().isOpen()) {
+                p.getSession().sendMessage(
+                        new TextMessage(objectMapper.writeValueAsString(msg))
+                );
+            }
+        }
+    }
+
+    private void handleRoomFinished(ChatMessage msg) throws Exception {
+
+        Room room = matchService.findRoomById(msg.getRoomId());
+        if (room == null) return;
+
+        room.setStatus(RoomStatus.FINISHED);
+
+        ChatMessage notify = new ChatMessage(
+                "ROOM_FINISHED",
+                "SERVER",
+                "Cuộc trò chuyện đã kết thúc",
+                room.getRoomId(),
+                null
         );
 
         for (PeerUserSession p : room.getParticipants()) {
-            p.getSession().sendMessage(new TextMessage(
-                    objectMapper.writeValueAsString(matched)
-            ));
-            p.getSession().sendMessage(new TextMessage(
-                    objectMapper.writeValueAsString(topic)
-            ));
+            if (p.getSession().isOpen()) {
+                p.getSession().sendMessage(
+                        new TextMessage(objectMapper.writeValueAsString(notify))
+                );
+            }
         }
+
+        matchService.removeRoom(room.getRoomId());
     }
-}
 
-private void handleChat(ChatMessage msg) throws Exception {
-    Room room = matchService.findRoomById(msg.getRoomId());
-    if (room == null) return;
+    @Override
+    public void afterConnectionClosed(
+            WebSocketSession session,
+            CloseStatus status
+    ) {
 
-    for (PeerUserSession p : room.getParticipants()) {
-        if (p.getSession().isOpen()) {
-            p.getSession().sendMessage(
-                    new TextMessage(objectMapper.writeValueAsString(msg))
-            );
-        }
-    }
-}
+        Room room = matchService.findRoomBySession(session);
+        if (room == null) return;
 
-private void handleRoomFinished(ChatMessage msg) throws Exception {
+        ChatMessage offline = new ChatMessage(
+                "USER_OFFLINE",
+                "SERVER",
+                "Đối phương đã rời phòng",
+                room.getRoomId(),
+                null
+        );
 
-    Room room = matchService.findRoomById(msg.getRoomId());
-    if (room == null) return;
+        try {
+            for (PeerUserSession p : room.getParticipants()) {
+                if (p.getSession().isOpen()
+                        && !p.getSession().equals(session)) {
 
-    room.setStatus(RoomStatus.FINISHED);
+                    p.getSession().sendMessage(
+                            new TextMessage(objectMapper.writeValueAsString(offline))
+                    );
+                }
+            }
+        } catch (Exception ignored) {}
 
-    ChatMessage notify = new ChatMessage(
-            "ROOM_FINISHED", "SERVER",
-            "Cuộc trò chuyện đã kết thúc",
-            room.getRoomId(), null
-    );
-
-    for (PeerUserSession p : room.getParticipants()) {
-        if (p.getSession().isOpen()) {
-            p.getSession().sendMessage(
-                    new TextMessage(objectMapper.writeValueAsString(notify))
-            );
-        }
+        matchService.removeRoom(room.getRoomId());
     }
 }
