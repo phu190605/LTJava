@@ -17,6 +17,12 @@ import PeerRoomPage from './pages/PeerRoomPage';
 import CreateRoomPage from './pages/CreateRoomPage';
 import PracticeRoomPage from './pages/PracticeRoomPage';
 import GamificationDashboard from './pages/GamificationDashboard';
+import LandingPage from './pages/LandingPage'; 
+import PeerRoom from './pages/PeerRoom'; 
+import WaitingRoom from './components/WaitingRoom'; 
+import TopicSuggestion from './components/WaitingRoom';
+import ChatBox from './components/ChatBox'; 
+
 
 function App() {
   return (
@@ -47,6 +53,14 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/speaking-test" element={<SpeakingTest />} />
 
+        
+          {/* Trang nội bộ: Phải đăng nhập mới vào được (Đã xử lý trong MainLayout) */}
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/peer-room" element={<PeerRoom />} />
+          <Route path="/waiting-room" element={<WaitingRoom />} />
+          <Route path="/topic-suggestion" element={<TopicSuggestion />} />
+          <Route path="/chat-box" element={<ChatBox />} />
+        
         <Route path="/admin" element={<h1>Khu vực Admin</h1>} />
         <Route path="/test-speech" element={<TestSpeechPage />} />
         <Route path="/peer/find" element={<PeerFindPage />} />

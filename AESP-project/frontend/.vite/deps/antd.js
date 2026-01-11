@@ -6,6 +6,9 @@ import {
   require_react_dom
 } from "./chunk-DLSSDAQF.js";
 import {
+  require_react_dom
+} from "./chunk-YF4B4G2L.js";
+import {
   BarsOutlined_default,
   CalendarOutlined_default,
   CaretDownFilled_default,
@@ -82,7 +85,11 @@ import {
   useMemo,
   warning,
   warning_default
+<<<<<<< HEAD:AESP-project/frontend/.vite/deps/antd.js
 } from "./chunk-GEMFCQVO.js";
+=======
+} from "./chunk-NCTIGAV5.js";
+>>>>>>> module-2-peer-to-peer_v3:AESP-project/frontend/node_modules/.vite/deps/antd.js
 import {
   require_react
 } from "./chunk-WUULKXCI.js";
