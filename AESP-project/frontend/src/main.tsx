@@ -9,9 +9,7 @@ console.log('Starting frontend main.tsx')
 
 const root = createRoot(document.getElementById('root')!)
 root.render(
-  <StrictMode>
     <ErrorBoundary>
       <App />
     </ErrorBoundary>
-  </StrictMode>,
 )

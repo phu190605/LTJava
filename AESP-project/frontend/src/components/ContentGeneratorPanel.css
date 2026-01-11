@@ -1,0 +1,278 @@
+.content-generator-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+}
+
+.content-generator-panel h2 {
+  color: #2c3e50;
+  margin-bottom: 24px;
+  font-size: 24px;
+}
+
+.generator-forms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.form-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.form-section h3 {
+  color: #2c3e50;
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  color: #555;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #4caf50;
+}
+
+.generate-btn {
+  width: 100%;
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.generate-btn:hover:not(:disabled) {
+  background: #45a049;
+}
+
+.generate-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.generate-btn.quick {
+  background: #2196f3;
+}
+
+.generate-btn.quick:hover:not(:disabled) {
+  background: #1976d2;
+}
+
+.error-message {
+  background: #ffebee;
+  border: 1px solid #ef5350;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.error-message p {
+  margin: 0 0 12px 0;
+  color: #c62828;
+}
+
+.error-message button {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.scenario-display {
+  border-top: 2px solid #e0e0e0;
+  padding-top: 24px;
+  margin-top: 24px;
+}
+
+.scenario-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.scenario-header h3 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 22px;
+}
+
+.difficulty-badge {
+  background: #2196f3;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.scenario-context,
+.learning-objective,
+.focus-areas,
+.dialogue-section {
+  margin-bottom: 24px;
+}
+
+.scenario-context h4,
+.learning-objective h4,
+.focus-areas h4,
+.dialogue-section h4 {
+  color: #555;
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.scenario-context p,
+.learning-objective p {
+  color: #666;
+  line-height: 1.6;
+}
+
+.focus-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.focus-tag {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.dialogue-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dialogue-line {
+  background: #f8f9fa;
+  border-left: 4px solid #4caf50;
+  padding: 16px;
+  border-radius: 4px;
+}
+
+.dialogue-speaker {
+  font-weight: 700;
+  color: #4caf50;
+  margin-bottom: 8px;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.dialogue-text {
+  color: #333;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.dialogue-annotation {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #856404;
+  display: flex;
+  align-items: start;
+  gap: 8px;
+}
+
+.annotation-icon {
+  font-size: 16px;
+}
+
+.key-phrases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.key-phrase {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.scenario-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.practice-btn,
+.save-btn {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.practice-btn {
+  background: #4caf50;
+  color: white;
+}
+
+.practice-btn:hover {
+  background: #45a049;
+}
+
+.save-btn {
+  background: white;
+  color: #2196f3;
+  border: 2px solid #2196f3;
+}
+
+.save-btn:hover {
+  background: #2196f3;
+  color: white;
+}

@@ -11,7 +11,7 @@ export function connect(clientId: string, onMatchMessage: (msg: any) => void, on
     return;
   }
 
-  const socket = new SockJS('http://localhost:8081/ws');
+  const socket = new SockJS('http://localhost:8080/ws');
   stompClient = Stomp.over(() => socket);
   stompClient.reconnectDelay = 5000;
   

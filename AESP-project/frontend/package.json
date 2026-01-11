@@ -19,6 +19,7 @@
     "extendable-media-recorder-wav-encoder": "^7.0.133",
     "framer-motion": "^12.24.10",
     "lucide-react": "^0.562.0",
+    "microsoft-cognitiveservices-speech-sdk": "^1.47.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.11.0",

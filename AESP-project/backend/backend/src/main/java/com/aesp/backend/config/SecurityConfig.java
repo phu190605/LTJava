@@ -27,7 +27,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Sử dụng cấu hình CORS bên dưới
             .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/**", "/error", "/ws/**", "/api/chat/**", "/api/speech/**", "/api/sentences/**").permitAll()
+            .requestMatchers("/api/auth/**", "/error", "/ws/**", "/api/chat/**", "/api/speech/**", "/api/sentences/**","/api/topics/**","/api/chat-history/**").permitAll()
+            .requestMatchers("/api/topics/**").permitAll()
             .anyRequest().authenticated() // Các API khác phải đăng nhập
             );
         

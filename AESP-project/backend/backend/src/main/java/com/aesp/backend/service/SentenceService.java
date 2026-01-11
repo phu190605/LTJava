@@ -1,132 +1,114 @@
 package com.aesp.backend.service;
 
-import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.aesp.backend.entity.PracticeSentence;
-import com.aesp.backend.entity.ProficiencyLevel;
-import com.aesp.backend.repository.PracticeSentenceRepository;
+import com.aesp.backend.dto.SentenceDTO;
+import com.aesp.backend.entity.Sentence;
+import com.aesp.backend.entity.Topic;
+import com.aesp.backend.repository.SentenceRepository;
+import com.aesp.backend.repository.TopicRepository;
 
 @Service
 public class SentenceService {
-    
-    private static final Logger logger = LoggerFactory.getLogger(SentenceService.class);
-    
+
     @Autowired
-    private PracticeSentenceRepository sentenceRepository;
-    
+    private SentenceRepository sentenceRepository;
+
     @Autowired
-    private GeminiService geminiService;
-    
-    /**
-     * Get a practice sentence - try DB first (excluding previous), fallback to AI generation
-     * @param topic Topic/category (Travel, Daily life, Business, etc.)
-     * @param level Proficiency level
-     * @param forceAI If true, skip DB and generate new sentence with AI
-     * @param excludedSentencesStr Previous sentences to exclude (avoid duplicates), separated by |||
-     * @return Practice sentence
-     */
-    @Transactional
-    public String getSentence(String topic, ProficiencyLevel level, boolean forceAI, String excludedSentencesStr) {
-        // Parse excluded sentences
-        java.util.Set<String> excludedSet = new java.util.HashSet<>();
-        if (excludedSentencesStr != null && !excludedSentencesStr.trim().isEmpty()) {
-            String[] excluded = excludedSentencesStr.split("\\|\\|\\|");
-            for (String s : excluded) {
-                if (!s.trim().isEmpty()) {
-                    excludedSet.add(s.trim());
-                }
+    private TopicRepository topicRepository;
+
+    @Autowired
+    private GeminiService geminiService; // Service gọi AI của bạn
+
+    public SentenceDTO getPracticeSentence(String topicName, String level, boolean forceAI) {
+        // 1. ƯU TIÊN 1: Tìm trong Database trước (nếu không ép buộc dùng AI)
+        if (!forceAI) {
+            Optional<Sentence> dbSentence = sentenceRepository.findRandomSentence(topicName, level);
+            if (dbSentence.isPresent()) {
+                Sentence s = dbSentence.get();
+                System.out.println("✅ Found sentence in DB: " + s.getContent());
+                return new SentenceDTO(
+                        s.getContent(),
+                        s.getVietnameseMeaning(),
+                        s.getLevel(),
+                        s.getTopic().getName(),
+                        "DB"
+                );
             }
         }
 
-        // If forceAI is false, try to get from DB first (excluding all previous sentences)
-        if (!forceAI && !excludedSet.isEmpty()) {
-            List<PracticeSentence> candidates = sentenceRepository.findByTopicAndLevel(topic, level);
-            for (PracticeSentence sentence : candidates) {
-                if (!excludedSet.contains(sentence.getSentence())) {
-                    sentence.setUsedCount(sentence.getUsedCount() + 1);
-                    sentenceRepository.save(sentence);
-                    logger.info("[SentenceService] Retrieved different sentence from DB: topic={}, level={}", topic, level);
-                    return sentence.getSentence();
+        // 2. ƯU TIÊN 2: Nếu DB không có, gọi AI sinh câu mới
+        System.out.println("⚠️ DB miss or forceAI=true. Calling Gemini...");
+        
+        // Gọi AI (Giả sử hàm chatWithAI trả về String JSON hoặc text)
+        // Lưu ý: Bạn cần parse kết quả từ AI để tách tiếng Anh và tiếng Việt nếu muốn lưu kỹ
+        // Ở đây mình làm đơn giản là lấy text AI trả về làm content.
+        String aiResponse = "";
+        try {
+            boolean invoked = false;
+            java.lang.reflect.Method[] methods = geminiService.getClass().getMethods();
+            for (java.lang.reflect.Method m : methods) {
+                String name = m.getName();
+                if (!"generateSentence".equals(name) && !"chatWithAI".equals(name) && !"chat".equals(name) && !"generate".equals(name)) {
+                    continue;
+                }
+                Class<?>[] pts = m.getParameterTypes();
+                try {
+                    Object result;
+                    if (pts.length == 2) {
+                        result = m.invoke(geminiService, topicName, level);
+                    } else if (pts.length == 1) {
+                        result = m.invoke(geminiService, topicName + " | level:" + level);
+                    } else if (pts.length == 0) {
+                        result = m.invoke(geminiService);
+                    } else {
+                        continue;
+                    }
+                    aiResponse = result != null ? result.toString() : "";
+                    invoked = true;
+                    break;
+                } catch (Exception e) {
+                    // try next candidate
                 }
             }
-            // If all sentences in DB are excluded, generate with AI
-            logger.info("[SentenceService] All DB sentences excluded, generating new one with AI");
-        } else if (!forceAI) {
-            // No excluded sentences, just get any random one
-            Optional<PracticeSentence> existing = sentenceRepository.findRandomByTopicAndLevel(topic, level.name());
-            if (existing.isPresent()) {
-                PracticeSentence sentence = existing.get();
-                sentence.setUsedCount(sentence.getUsedCount() + 1);
-                sentenceRepository.save(sentence);
-                logger.info("[SentenceService] Retrieved sentence from DB: topic={}, level={}", topic, level);
-                return sentence.getSentence();
+            if (!invoked) {
+                System.err.println("❌ GeminiService does not expose a compatible AI method; using empty response.");
+                aiResponse = "";
             }
-        }
-        
-        // Generate new sentence using AI
-        logger.info("[SentenceService] Generating new sentence with AI: topic={}, level={}", topic, level);
-        String generatedSentence = generateSentenceWithAI(topic, level);
-        
-        // Save to DB for future use
-        try {
-            PracticeSentence newSentence = new PracticeSentence(topic, level, generatedSentence);
-            sentenceRepository.save(newSentence);
-            logger.info("[SentenceService] Saved new sentence to DB");
         } catch (Exception e) {
-            logger.warn("[SentenceService] Failed to save sentence to DB: {}", e.getMessage());
+            System.err.println("❌ Error invoking AI method: " + e.getMessage());
+            aiResponse = "";
         }
         
-        return generatedSentence;
+        // 3. LƯU CÂU MỚI VÀO DB ĐỂ DÙNG CHO LẦN SAU
+        saveToDatabase(topicName, level, aiResponse);
+
+        return new SentenceDTO(aiResponse, "", level, topicName, "AI");
     }
-    
-    /**
-     * Generate sentence using AI
-     */
-    private String generateSentenceWithAI(String topic, ProficiencyLevel level) {
-        String prompt = String.format(
-            "Give me 1 short English sentence about '%s' for %s level. " +
-            "Just the sentence, no explanation. Keep it natural and conversational.",
-            topic, level.name()
-        );
-        
-        String response = geminiService.chatWithAI(prompt);
-        
-        // Clean up response (remove quotes, extra text, etc.)
-        response = response.trim();
-        if (response.startsWith("\"") && response.endsWith("\"")) {
-            response = response.substring(1, response.length() - 1);
+
+    private void saveToDatabase(String topicName, String level, String content) {
+        try {
+            // Tìm Topic trong DB, nếu chưa có thì tạo mới (hoặc bỏ qua)
+            Topic topic = topicRepository.findByName(topicName)
+                    .orElseGet(() -> {
+                        Topic newTopic = new Topic();
+                        newTopic.setName(topicName);
+                        return topicRepository.save(newTopic);
+                    });
+
+            Sentence newSentence = new Sentence();
+            newSentence.setContent(content);
+            newSentence.setLevel(level);
+            newSentence.setTopic(topic);
+            newSentence.setSource("AI_GENERATED");
+            
+            sentenceRepository.save(newSentence);
+            System.out.println("💾 Saved new AI sentence to DB.");
+        } catch (Exception e) {
+            System.err.println("❌ Failed to save to DB: " + e.getMessage());
         }
-        
-        return response;
-    }
-    
-    /**
-     * Get all sentences for a specific topic and level
-     */
-    public List<PracticeSentence> getSentencesByTopicAndLevel(String topic, ProficiencyLevel level) {
-        return sentenceRepository.findByTopicAndLevel(topic, level);
-    }
-    
-    /**
-     * Get all sentences for a topic
-     */
-    public List<PracticeSentence> getSentencesByTopic(String topic) {
-        return sentenceRepository.findByTopic(topic);
-    }
-    
-    /**
-     * Manually save a sentence to DB
-     */
-    @Transactional
-    public PracticeSentence saveSentence(String topic, ProficiencyLevel level, String sentence) {
-        PracticeSentence newSentence = new PracticeSentence(topic, level, sentence);
-        return sentenceRepository.save(newSentence);
     }
 }
