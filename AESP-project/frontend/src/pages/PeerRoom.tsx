@@ -1,7 +1,7 @@
 /* uth.edu package */
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, Button, Space, Spin, Typography, Tag, Modal, Tooltip } from "antd";
+import { Card, Button, Space, Spin, Typography, Tag, Modal, Divider } from "antd";
 import {
   TeamOutlined,
   StopOutlined,
@@ -9,8 +9,7 @@ import {
   BulbOutlined,
   RocketOutlined,
   AudioOutlined,
-  ArrowLeftOutlined,
-  InfoCircleOutlined
+  ArrowLeftOutlined
 } from "@ant-design/icons";
 
 import {
@@ -29,9 +28,9 @@ const { Title, Text } = Typography;
 
 /* ================= DATA ================= */
 const TOPICS = [
-  { key: "DAILY", label: "Hàng ngày", desc: "Giao tiếp cơ bản về cuộc sống" },
-  { key: "TRAVEL", label: "Du lịch", desc: "Hỏi đường, đặt phòng, ẩm thực" },
-  { key: "BUSINESS", label: "Kinh doanh", desc: "Phỏng vấn, đàm phán, hội họp" }
+  { key: "DAILY", label: "Hàng ngày", desc: "Giao tiếp đời thường" },
+  { key: "TRAVEL", label: "Du lịch", desc: "Khám phá thế giới" },
+  { key: "BUSINESS", label: "Kinh doanh", desc: "Môi trường công sở" }
 ];
 
 type Topic = { key: string; label: string; desc?: string };
@@ -45,17 +44,40 @@ export default function PeerRoom() {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [suggestion, setSuggestion] = useState<string | null>(null);
+  
+  // State quan trọng để điều khiển vòng xoay
+  const [isWaitingResponse, setIsWaitingResponse] = useState(false);
 
+  /* ================= SOCKET ================= */
   const startConnection = useCallback(() => {
     connectPeerSocket((msg: any) => {
-      if (msg.type === "MATCHED") setRoomId(msg.roomId);
+      console.log("Socket Message Received:", msg);
+
+      // 1. Khi khớp phòng thành công -> Tắt xoay, vào phòng
+      if (msg.type === "MATCHED") {
+        setIsWaitingResponse(false); 
+        setRoomId(msg.roomId);
+      }
+
+      // 2. KHI ĐỐI PHƯƠNG TỪ CHỐI (Xử lý lỗi xoay vòng vòng của bạn ở đây)
+      if (msg.type === "MATCH_REJECTED" || msg.type === "MATCH_FAILED" || msg.type === "CANCELLED") {
+        setIsWaitingResponse(false); // Dừng xoay ngay lập tức
+        setTopic(null); // Quay lại màn hình chọn chủ đề
+        setRoomId(null);
+        Modal.error({
+          title: "Ghép đôi thất bại",
+          content: msg.content || "Đối phương đã từ chối yêu cầu hoặc đã thoát.",
+          centered: true
+        });
+      }
+
       if (msg.type === "CHAT" && msg.sender !== userId) setMessages(prev => [...prev, msg]);
       if (msg.type === "TOPIC_SUGGESTION") setSuggestion(msg.content);
 
       if (msg.type === "ROOM_FINISHED" || msg.type === "USER_OFFLINE") {
         Modal.warning({
-          title: msg.type === "ROOM_FINISHED" ? "Phiên học kết thúc" : "Đối phương đã rời đi",
-          content: "Cảm ơn bạn đã tham gia luyện tập!",
+          title: "Kết thúc",
+          content: "Cuộc hội thoại đã dừng lại.",
           onOk: resetRoom,
           centered: true
         });
@@ -72,43 +94,45 @@ export default function PeerRoom() {
     setMessages([]);
     setSuggestion(null);
     setTopic(null);
+    setIsWaitingResponse(false);
     disconnectPeerSocket();
   };
 
   const handleJoin = (t: Topic) => {
     setTopic(t);
+    setIsWaitingResponse(true); // Bắt đầu xoay vòng chờ
     startConnection();
-    setTimeout(() => joinRoom(userId, t.key), 400);
+    setTimeout(() => joinRoom(userId, t.key), 500);
   };
 
-  /* ================= 1. CHOOSE TOPIC UI ================= */
+  /* ================= UI: CHOOSE TOPIC ================= */
   if (!topic) {
     return (
       <div style={whitePageCenter}>
-        <Button 
-          type="text" 
-          icon={<ArrowLeftOutlined />} 
-          onClick={() => navigate('/dashboard')} 
-          style={backButtonStyle}
-        >
-          QUAY LẠI DASHBOARD
-        </Button>
+        <div style={{ position: 'absolute', top: 40, left: 40 }}>
+          <Button 
+            type="text" 
+            icon={<ArrowLeftOutlined />} 
+            onClick={() => navigate('/dashboard')} 
+            style={{ fontWeight: 600, color: '#1890ff' }}
+          >
+            QUAY LẠI DASHBOARD
+          </Button>
+        </div>
 
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={rocketIconWrapper}>
-            <RocketOutlined style={{ fontSize: 32, color: "#1890ff" }} />
-          </div>
-          <Title level={2} style={{ color: '#002766', marginTop: 16 }}>Luyện Nói Tiếng Anh</Title>
-          <Text type="secondary">Kết nối và luyện tập cùng những người bạn mới</Text>
+          <div style={iconCircle}><RocketOutlined style={{ fontSize: 32, color: "#1890ff" }} /></div>
+          <Title level={2} style={{ color: '#002766', marginTop: 16 }}>Luyện nói tiếng Anh</Title>
+          <Text type="secondary">Chọn chủ đề để kết nối cùng bạn bè khắp nơi</Text>
         </div>
 
         <div style={topicGrid}>
           {TOPICS.map(t => (
             <Card key={t.key} hoverable style={topicCard} onClick={() => handleJoin(t)}>
-              <Title level={4} style={{ margin: 0, color: '#1890ff' }}>{t.label}</Title>
-              <Text type="secondary" style={{ fontSize: 13 }}>{t.desc}</Text>
+              <Title level={4} style={{ color: '#1890ff', margin: 0 }}>{t.label}</Title>
+              <Text type="secondary" style={{ fontSize: 12 }}>{t.desc}</Text>
               <div style={{ marginTop: 16, textAlign: 'right' }}>
-                <Button type="primary" shape="round" ghost size="small">Chọn</Button>
+                <Button type="primary" shape="round" size="small" ghost>Bắt đầu</Button>
               </div>
             </Card>
           ))}
@@ -117,84 +141,64 @@ export default function PeerRoom() {
     );
   }
 
-  /* ================= 2. WAITING UI ================= */
-  if (!roomId) {
+  /* ================= UI: WAITING (Dừng xoay khi isWaitingResponse = false) ================= */
+  if (isWaitingResponse && !roomId) {
     return (
       <div style={whitePageCenter}>
-        <div style={waitingBox}>
-          <Spin size="large" tip={<Text style={{ color: '#1890ff', marginTop: 16, display: 'block' }}>Đang tìm cộng sự...</Text>} />
-          <div style={{ marginTop: 32 }}>
-            <Tag color="blue" style={{ borderRadius: 20, padding: '4px 16px' }}>Chủ đề: {topic.label}</Tag>
+        <Card style={cardSelectionStyle}>
+          <Spin size="large" />
+          <Title level={4} style={{ marginTop: 24, color: '#1890ff' }}>Đang tìm đối tác...</Title>
+          <Text type="secondary">Vui lòng chờ đối phương xác nhận</Text>
+          <div style={{ marginTop: 24 }}>
+            <Button danger type="text" onClick={resetRoom}>Hủy yêu cầu</Button>
           </div>
-          <Button danger type="text" onClick={resetRoom} style={{ marginTop: 24, fontWeight: 500 }}>
-            Hủy tìm kiếm
-          </Button>
-        </div>
+        </Card>
       </div>
     );
   }
 
-  /* ================= 3. MATCHED UI (TRẮNG - XANH CHUYÊN NGHIỆP) ================= */
+  /* ================= UI: MATCHED (PHÒNG HỌC) ================= */
   return (
     <div style={whitePageFull}>
       <div style={contentContainer}>
-        
-        {/* HEADER */}
         <div style={headerSection}>
           <Space size={16}>
             <div style={blueIconBox}><TeamOutlined style={{ fontSize: 22, color: "#fff" }} /></div>
             <div>
-              <Title level={4} style={{ margin: 0, color: '#002766' }}>Lớp Học Trực Tuyến</Title>
-              <Space split={<Divider vertical />}>
-                <Text type="secondary" style={{ fontSize: 12 }}>ID: {roomId.split("-")[0].toUpperCase()}</Text>
-                <Text type="success" style={{ fontSize: 12 }}>● Trạng thái: Đang kết nối</Text>
-              </Space>
+              <Title level={4} style={{ margin: 0, color: '#002766' }}>Lớp học trực tuyến</Title>
+              <Text type="secondary" style={{ fontSize: 12 }}>Mã phòng: {roomId.split("-")[0].toUpperCase()}</Text>
             </div>
           </Space>
-          <div style={topicBadge}>
-            <Text strong style={{ color: '#1890ff' }}>CHỦ ĐỀ: {topic.label.toUpperCase()}</Text>
-          </div>
+          <Tag color="blue" style={{ borderRadius: 10, padding: "5px 15px", fontWeight: 'bold' }}>
+            CHỦ ĐỀ: {topic.label.toUpperCase()}
+          </Tag>
         </div>
 
-        {/* SUGGESTION */}
         {suggestion && (
           <div style={suggestionCardBlue}>
-            <Space align="start">
-              <BulbOutlined style={{ fontSize: 24, color: "#faad14" }} />
-              <div>
-                <Text style={{ fontSize: 12, color: "#8c8c8c", textTransform: 'uppercase', letterSpacing: 1 }}>Gợi ý thảo luận</Text>
-                <div style={{ fontSize: 18, color: "#002766", fontWeight: 600, marginTop: 4 }}>"{suggestion}"</div>
-              </div>
-            </Space>
+            <BulbOutlined style={{ fontSize: 24, color: "#faad14", marginRight: 16 }} />
+            <div>
+              <Text style={{ fontSize: 11, color: "#8c8c8c", textTransform: 'uppercase' }}>Gợi ý thảo luận</Text>
+              <div style={{ fontSize: 18, color: "#002766", fontWeight: 600 }}>"{suggestion}"</div>
+            </div>
           </div>
         )}
 
-        {/* INTERACTION AREA */}
-        <div style={mainLayoutGrid}>
-          
-          {/* VOICE CARD */}
+        <div style={mainGrid}>
           <div style={glassFrame}>
             <div style={frameHeader}>
-              <AudioOutlined style={{ color: '#1890ff' }} /> 
-              <Text strong style={{ color: '#002766' }}>HỘI THOẠI ÂM THANH</Text>
+              <AudioOutlined style={{ color: '#1890ff' }} /> <Text strong>ÂM THANH LIVE</Text>
             </div>
-            <div style={voiceVisualizer}>
+            <div style={voiceStageArea}>
                <VoiceRTC socket={getPeerSocket()} userId={userId} roomId={roomId} />
-            </div>
-            <div style={{ textAlign: 'center', padding: '0 20px' }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                Vui lòng bật Microphone và tai nghe để có chất lượng tốt nhất
-              </Text>
             </div>
           </div>
 
-          {/* CHAT CARD */}
           <div style={glassFrame}>
             <div style={frameHeader}>
-              <MessageOutlined style={{ color: '#1890ff' }} /> 
-              <Text strong style={{ color: '#002766' }}>TIN NHẮN VĂN BẢN</Text>
+              <MessageOutlined style={{ color: '#1890ff' }} /> <Text strong>TIN NHẮN</Text>
             </div>
-            <div style={{ flex: 1, overflow: "hidden", padding: '0 4px' }}>
+            <div style={{ flex: 1, overflow: "hidden" }}>
               <ChatBox
                 messages={messages}
                 currentUser={userId}
@@ -207,129 +211,46 @@ export default function PeerRoom() {
           </div>
         </div>
 
-        {/* FOOTER ACTION */}
-        <div style={footerSection}>
-          <Tooltip title="Kết thúc phiên học hiện tại và quay về màn hình chính">
-            <Button 
-              danger 
-              type="primary" 
-              size="large" 
-              shape="round" 
-              icon={<StopOutlined />}
-              style={endButtonStyle}
-              onClick={() => {
-                Modal.confirm({
-                  title: "Xác nhận kết thúc?",
-                  content: "Bạn sẽ không thể quay lại cuộc hội thoại này.",
-                  okText: "Kết thúc",
-                  cancelText: "Hủy",
-                  onOk: () => { finishRoom(userId, roomId); resetRoom(); }
-                });
-              }}
-            >
-              KẾT THÚC BUỔI HỌC
-            </Button>
-          </Tooltip>
+        <div style={actionFooter}>
+          <Button 
+            danger 
+            type="primary" 
+            size="large" 
+            shape="round" 
+            icon={<StopOutlined />}
+            style={endButtonStyle}
+            onClick={() => {
+              Modal.confirm({
+                title: "Kết thúc buổi luyện nói?",
+                onOk: () => { finishRoom(userId, roomId); resetRoom(); }
+              });
+            }}
+          >
+            KẾT THÚC PHIÊN HỌC
+          </Button>
         </div>
-
       </div>
     </div>
   );
 }
 
-const Divider = ({ vertical }: { vertical?: boolean }) => (
-  <span style={{ borderLeft: vertical ? '1px solid #d9d9d9' : 'none', margin: '0 8px', height: 12 }} />
-);
-
-/* ================= STYLES (TRẮNG - XANH HIỆN ĐẠI) ================= */
-
+/* ================= STYLES ================= */
 const whitePageCenter: any = {
-  minHeight: "100vh", background: "#ffffff",
-  display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center",
-  position: 'relative'
+  minHeight: "100vh", background: "#ffffff", display: "flex", 
+  flexDirection: "column", justifyContent: "center", alignItems: "center", position: 'relative'
 };
-
-const whitePageFull: any = {
-  minHeight: "100vh", background: "#f0f2f5", // Nền hơi xám nhẹ để nổi bật các khung trắng
-  padding: "40px 20px"
-};
-
-const backButtonStyle: any = {
-  position: 'absolute', top: 40, left: 40,
-  color: '#8c8c8c', fontSize: 12, letterSpacing: 1
-};
-
-const rocketIconWrapper = {
-  width: 80, height: 80, background: '#e6f7ff', borderRadius: '50%',
-  display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto'
-};
-
-const topicGrid = {
-  display: 'grid', gridTemplateColumns: 'repeat(3, 280px)', gap: 24,
-  maxWidth: 1000, margin: '0 auto'
-};
-
-const topicCard = {
-  borderRadius: 20, textAlign: 'left' as const,
-  border: '1px solid #f0f0f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
-};
-
-const waitingBox = {
-  textAlign: 'center' as const, padding: 60,
-  background: '#fff', borderRadius: 32, boxShadow: '0 20px 60px rgba(0,0,0,0.05)'
-};
-
-const contentContainer: any = {
-  maxWidth: 1100, margin: "0 auto",
-  display: "flex", flexDirection: "column", gap: "24px"
-};
-
-const headerSection: any = {
-  display: "flex", justifyContent: "space-between", alignItems: "center",
-  background: '#fff', padding: '20px 32px', borderRadius: 24, boxShadow: '0 4px 15px rgba(0,0,0,0.02)'
-};
-
-const blueIconBox = {
-  width: 50, height: 50, background: "#1890ff", borderRadius: 14,
-  display: "flex", alignItems: "center", justifyContent: "center",
-  boxShadow: '0 6px 15px rgba(24, 144, 255, 0.3)'
-};
-
-const topicBadge = {
-  background: '#e6f7ff', padding: '8px 20px', borderRadius: 12, border: '1px solid #bae7ff'
-};
-
-const suggestionCardBlue: any = {
-  background: "#ffffff", padding: "24px 32px", borderRadius: "24px",
-  borderLeft: "6px solid #faad14", boxShadow: "0 10px 30px rgba(0,0,0,0.04)"
-};
-
-const mainLayoutGrid: any = {
-  display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "24px", minHeight: "520px"
-};
-
-const glassFrame: any = {
-  background: "#ffffff", borderRadius: "28px", padding: "24px",
-  boxShadow: "0 15px 35px rgba(0,0,0,0.05)",
-  border: "1px solid #ffffff", display: "flex", flexDirection: "column"
-};
-
-const frameHeader: any = {
-  display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px",
-  paddingBottom: '12px', borderBottom: '1px solid #f5f5f5'
-};
-
-const voiceVisualizer: any = {
-  flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-  background: "radial-gradient(circle, #f0f7ff 0%, #ffffff 100%)",
-  borderRadius: "20px", marginBottom: "20px"
-};
-
-const footerSection: any = {
-  textAlign: "center", padding: "10px 0"
-};
-
-const endButtonStyle = {
-  height: 54, padding: '0 40px', fontSize: 16, fontWeight: 700,
-  letterSpacing: 1, boxShadow: "0 8px 20px rgba(255, 77, 79, 0.2)"
-};
+const whitePageFull: any = { minHeight: "100vh", background: "#f8f9fa", padding: "30px 20px" };
+const iconCircle = { width: 70, height: 70, background: '#e6f7ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' };
+const topicGrid = { display: 'grid', gridTemplateColumns: 'repeat(3, 260px)', gap: 20, maxWidth: 900 };
+const topicCard = { borderRadius: 20, border: '1px solid #f0f0f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' };
+const cardSelectionStyle = { width: 400, textAlign: "center" as const, borderRadius: 24, border: 'none', boxShadow: "0 10px 40px rgba(0,0,0,0.05)" };
+const contentContainer: any = { maxWidth: 1100, margin: "0 auto", display: "flex", flexDirection: "column", gap: "24px" };
+const headerSection: any = { display: "flex", justifyContent: "space-between", alignItems: "center", background: '#fff', padding: '16px 24px', borderRadius: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' };
+const blueIconBox = { width: 46, height: 46, background: "#1890ff", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" };
+const suggestionCardBlue: any = { background: "#ffffff", padding: "20px 24px", borderRadius: "20px", borderLeft: "5px solid #faad14", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", display: 'flex', alignItems: 'center' };
+const mainGrid: any = { display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "24px", minHeight: "500px" };
+const glassFrame: any = { background: "#ffffff", borderRadius: "24px", padding: "24px", boxShadow: "0 10px 30px rgba(0,0,0,0.05)", border: "1px solid #f0f0f0", display: "flex", flexDirection: "column" };
+const frameHeader: any = { display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", color: "#8c8c8c" };
+const voiceStageArea: any = { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f5ff", borderRadius: "16px", marginBottom: "16px" };
+const actionFooter: any = { textAlign: "center", padding: "20px 0", borderTop: "1px solid #eee", marginTop: "10px" };
+const endButtonStyle = { width: 220, height: 50, fontWeight: "bold" };
