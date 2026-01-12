@@ -40,6 +40,7 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/error",
                                 "/ws/**",
+                                "/peer/**",
                                 "/api/chat/**",
                                 "/api/speech/**",
                                 "/api/sentences/**",

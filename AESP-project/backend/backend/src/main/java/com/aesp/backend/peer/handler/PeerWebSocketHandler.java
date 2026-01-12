@@ -46,6 +46,8 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void handleJoin(WebSocketSession session, ChatMessage msg) throws Exception {
+        // 1. In ra để debug xem topic có bị NULL không
+        System.out.println("Topic nhận được: " + msg.getContent());
 
         PeerUserSession user = new PeerUserSession(
                 msg.getSender(),
@@ -57,7 +59,6 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
         Room room = matchService.matchUser(user);
 
         if (room.getParticipants().size() == 2) {
-
             ChatMessage matched = new ChatMessage(
                     "MATCHED",
                     "SERVER",
@@ -66,27 +67,48 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
                     null
             );
 
-            ChatMessage topic = new ChatMessage(
-                    "TOPIC_SUGGESTION",
+            ChatMessage topicSuggestion;
+            try {
+                topicSuggestion = new ChatMessage(
+                        "TOPIC_SUGGESTION",
+                        "SERVER",
+                        topicService.randomTopic(),
+                        room.getRoomId(),
+                        null
+                );
+            } catch (Exception e) {
+                topicSuggestion = new ChatMessage(
+                        "TOPIC_SUGGESTION",
+                        "SERVER",
+                        "Default topic",
+                        room.getRoomId(),
+                        null
+                );
+            }
+
+            String matchedJson = objectMapper.writeValueAsString(matched);
+            String topicJson = objectMapper.writeValueAsString(topicSuggestion);
+
+            for (PeerUserSession p : room.getParticipants()) {
+                if (p.getSession().isOpen()) {
+                    p.getSession().sendMessage(new TextMessage(matchedJson));
+                    p.getSession().sendMessage(new TextMessage(topicJson));
+                }
+            }
+        } else {
+            // 2. Nếu chưa đủ người, báo cho frontend biết là đã "đặt chỗ" thành công
+            ChatMessage waiting = new ChatMessage(
+                    "WAITING",
                     "SERVER",
-                    topicService.randomTopic(),
+                    "Waiting...",
                     room.getRoomId(),
                     null
             );
-
-            for (PeerUserSession p : room.getParticipants()) {
-                p.getSession().sendMessage(new TextMessage(
-                        objectMapper.writeValueAsString(matched)
-                ));
-                p.getSession().sendMessage(new TextMessage(
-                        objectMapper.writeValueAsString(topic)
-                ));
-            }
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(waiting)));
         }
     }
 
     private void handleChat(ChatMessage msg) throws Exception {
-
         Room room = matchService.findRoomById(msg.getRoomId());
         if (room == null) return;
 
@@ -100,7 +122,6 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void handleRoomFinished(ChatMessage msg) throws Exception {
-
         Room room = matchService.findRoomById(msg.getRoomId());
         if (room == null) return;
 

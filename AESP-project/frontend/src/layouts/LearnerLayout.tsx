@@ -6,7 +6,8 @@ import type { MenuProps } from 'antd';
 import {
     HomeOutlined, ReadOutlined, AimOutlined,
     CalendarOutlined, SettingOutlined, UserOutlined,
-    LogoutOutlined, HistoryOutlined, CrownOutlined // <--- THÊM ICON VƯƠNG MIỆN
+    LogoutOutlined, HistoryOutlined, CrownOutlined,
+    TeamOutlined, MessageOutlined // <--- THÊM ICON CHO TÌM BẠN VÀ PHÒNG CHAT
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
@@ -40,9 +41,16 @@ const LearnerLayout: React.FC = () => {
     const menuItems = [
         { key: '/dashboard', icon: <HomeOutlined />, label: 'Tổng quan' },
         { key: '/ai-practice', icon: <AudioOutlined />, label: 'Luyện nói AI (Premium)' },
+        
+        // --- THÊM 2 MỤC ĐIỀU HƯỚNG MỚI ---
+        { key: '/peer-room', icon: <TeamOutlined />, label: 'Tìm bạn học' },
+        { key: '/practice', icon: <MessageOutlined />, label: 'Phòng luyện tập' },
+        // --------------------------------
+
         { key: '/my-courses', icon: <ReadOutlined />, label: 'Khoá học của tôi' },
         { key: '/setup', icon: <AimOutlined />, label: 'Mục tiêu & Lộ trình' },
         { key: '/schedule', icon: <CalendarOutlined />, label: 'Lịch học' },
+        
 
         // --- THÊM MỤC NÀY ---
         {

@@ -17,7 +17,6 @@ import PeerRoomPage from './pages/PeerRoomPage';
 import CreateRoomPage from './pages/CreateRoomPage';
 import PracticeRoomPage from './pages/PracticeRoomPage';
 import GamificationDashboard from './pages/GamificationDashboard';
-import LandingPage from './pages/LandingPage'; 
 import PeerRoom from './pages/PeerRoom'; 
 import WaitingRoom from './components/WaitingRoom'; 
 import TopicSuggestion from './components/WaitingRoom';

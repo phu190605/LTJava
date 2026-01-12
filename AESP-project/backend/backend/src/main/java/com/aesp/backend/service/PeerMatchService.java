@@ -23,7 +23,7 @@ public class PeerMatchService {
 
         for (Room room : rooms) {
             if (room.getStatus() == RoomStatus.WAITING
-                    && room.getTopic().equals(user.getTopic())
+                    && room.getTopic().equalsIgnoreCase(user.getTopic())
                     && room.getParticipants().size() < 2) {
 
                 room.addUser(user);
