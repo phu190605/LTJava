@@ -7,6 +7,7 @@ import com.aesp.backend.peer.model.RoomStatus;
 import com.aesp.backend.peer.service.PeerMatchService;
 import com.aesp.backend.peer.service.TopicSuggestionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -35,8 +36,19 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
             TextMessage message
     ) throws Exception {
 
-        ChatMessage msg =
-                objectMapper.readValue(message.getPayload(), ChatMessage.class);
+        // Đọc payload dạng JSON để kiểm tra type
+        JsonNode jsonNode = objectMapper.readTree(message.getPayload());
+        String type = jsonNode.get("type") != null ? jsonNode.get("type").asText() : "";
+
+        // Nếu là VOICE thì forward cho đối phương
+        if (type.startsWith("VOICE_")) {
+            String roomId = jsonNode.get("roomId") != null ? jsonNode.get("roomId").asText() : "";
+            broadcastToPartner(roomId, session, message);
+            return;
+        }
+
+        // Nếu không phải VOICE thì parse thành ChatMessage
+        ChatMessage msg = objectMapper.readValue(message.getPayload(), ChatMessage.class);
 
         switch (msg.getType()) {
             case "JOIN" -> handleJoin(session, msg);
@@ -46,7 +58,6 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void handleJoin(WebSocketSession session, ChatMessage msg) throws Exception {
-        // 1. In ra để debug xem topic có bị NULL không
         System.out.println("Topic nhận được: " + msg.getContent());
 
         PeerUserSession user = new PeerUserSession(
@@ -96,7 +107,6 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
                 }
             }
         } else {
-            // 2. Nếu chưa đủ người, báo cho frontend biết là đã "đặt chỗ" thành công
             ChatMessage waiting = new ChatMessage(
                     "WAITING",
                     "SERVER",
@@ -176,5 +186,20 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
         } catch (Exception ignored) {}
 
         matchService.removeRoom(room.getRoomId());
+    }
+
+    private void broadcastToPartner(String roomId, WebSocketSession sender, TextMessage message) {
+        Room room = matchService.findRoomById(roomId);
+        if (room == null) return;
+
+        for (PeerUserSession p : room.getParticipants()) {
+            try {
+                if (!p.getSession().getId().equals(sender.getId()) && p.getSession().isOpen()) {
+                    p.getSession().sendMessage(message);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
