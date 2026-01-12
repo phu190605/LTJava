@@ -1,3 +1,4 @@
+/* uth.edu package */
 import React, { useState } from 'react';
 import { Steps, message, Card } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -8,13 +9,11 @@ import GoalSelection from '../components/GoalSelection';
 import PreferenceSetup from '../components/PreferenceSetup';
 
 const ProfileSetupPage: React.FC = () => {
-  // Bắt đầu từ 0 (tương ứng với LearningGoal)
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // 1. Chỉ giữ lại 3 bước: Mục tiêu -> Sở thích -> Lộ trình
   const items = [
     { title: 'Mục tiêu', subTitle: 'Động lực học' },
     { title: 'Sở thích', subTitle: 'Chủ đề quan tâm' },
@@ -33,7 +32,6 @@ const ProfileSetupPage: React.FC = () => {
     }
   };
 
-  // 2. Gửi dữ liệu về Backend (Chỉ chứa thông tin học tập)
   const handleFinalSubmit = async (finalData: any) => {
     try {
       setLoading(true);
@@ -41,12 +39,19 @@ const ProfileSetupPage: React.FC = () => {
 
       console.log("DỮ LIỆU SETUP GỬI ĐI:", allData);
 
-      // Gọi API setup (Đã bỏ qua displayName/phone trong Backend)
+      // 1. Gọi API gửi dữ liệu setup lên Backend
       await axiosClient.post('/profile/setup', allData);
 
-      message.success("Thiết lập lộ trình thành công!");
+      // 2. 🔹 CẬP NHẬT LOCALSTORAGE ĐỂ "MỞ KHÓA" DASHBOARD
+      // Chúng ta cần đánh dấu isSetupComplete = true để LearnerLayout cho phép truy cập Sidebar
+      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const updatedUser = { ...storedUser, isSetupComplete: true };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      // Chuyển hướng về Dashboard sau 1 giây
+      message.success("Thiết lập lộ trình thành công! Chào mừng bạn.");
+
+      // 3. 🔹 ĐIỀU HƯỚNG VỀ DASHBOARD
+      // Chuyển hướng sau 1 giây để người dùng kịp thấy thông báo thành công
       setTimeout(() => {
         navigate('/dashboard');
       }, 1000);
@@ -59,7 +64,6 @@ const ProfileSetupPage: React.FC = () => {
     }
   };
 
-  // 3. Render các Component tương ứng với 3 bước
   const renderContent = () => {
     switch (currentStep) {
       case 0:

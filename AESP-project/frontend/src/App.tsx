@@ -1,16 +1,17 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import SpeakingTest from './pages/SpeakingTest';
 import AdminLoginPage from './pages/AdminLoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
-import LandingPage from './pages/LandingPage'; // <--- Import trang mới
-import ProfileSetupPage from './pages/ProfileSetupPage'; // trang thiết lập hồ sơ, mục tiu
-import SettingsPage from './pages/SettingsPage'; // trang cài đặt tài khoản
-import PaymentHistoryPage from './pages/PaymentHistoryPage'; //  trang lịch sử thanh toán
-import SubscriptionPage from './pages/SubscriptionPage'; // trang Quản lý gói học
-import AIPracticePage from './pages/AIPracticePage'; //  trang Luyện nói AI 1-1
-import LearnerLayout from './layouts/LearnerLayout'; // Layout dành cho Learner
+import LandingPage from './pages/LandingPage'; 
+import ProfileSetupPage from './pages/ProfileSetupPage'; 
+import SettingsPage from './pages/SettingsPage'; 
+import PaymentHistoryPage from './pages/PaymentHistoryPage'; 
+import SubscriptionPage from './pages/SubscriptionPage'; 
+import AIPracticePage from './pages/AIPracticePage'; 
+import LearnerLayout from './layouts/LearnerLayout'; 
 import TestSpeechPage from './pages/TestSpeechPage';
 import PeerFindPage from './pages/PeerFindPage';
 import PeerRoomPage from './pages/PeerRoomPage';
@@ -22,52 +23,52 @@ import WaitingRoom from './components/WaitingRoom';
 import TopicSuggestion from './components/WaitingRoom';
 import ChatBox from './components/ChatBox'; 
 
-
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Trang chủ công khai: Ai cũng vào được */}
+        {/* ================= GIAI ĐOẠN 1: CÔNG KHAI ================= */}
         <Route path="/" element={<LandingPage />} />
-
         <Route path="/login" element={<LoginPage />} />
         <Route path="/admin-login" element={<AdminLoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Trang dành cho Learner: Phải đăng nhập mới vào được */}
-        <Route element={<LearnerLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} /> {/* Trang tổng quan */}
-          <Route path="/setup" element={<ProfileSetupPage />} /> {/* Trang thiết lập hồ sơ, mục tiêu */}
-          <Route path="/settings" element={<SettingsPage />} /> {/* Trang cài đặt tài khoản */}
-          <Route path="/payment-history" element={<PaymentHistoryPage />} /> {/* Trang lịch sử thanh toán */}
-          <Route path="/subscription" element={<SubscriptionPage />} /> {/* Trang Quản lý gói học */}
-          <Route path="/ai-practice" element={<AIPracticePage />} /> {/* Trang Luyện nói AI 1-1 */}
+        {/* ================= GIAI ĐOẠN 2: TEST & SETUP (KHÔNG SIDEBAR) ================= */}
+        {/* Đưa ra ngoài LearnerLayout để ẩn hoàn toàn thanh bên trái */}
+        <Route path="/speaking-test" element={<SpeakingTest />} />
+        <Route path="/setup" element={<ProfileSetupPage />} />
 
-          {/* Các route giữ chỗ (Placeholder) cho Menu đỡ lỗi */}
+        {/* ================= GIAI ĐOẠN 3: APP CHÍNH (CÓ SIDEBAR) ================= */}
+        {/* Chỉ những trang nằm trong Route này mới hiển thị Sidebar từ LearnerLayout */}
+        <Route element={<LearnerLayout />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/payment-history" element={<PaymentHistoryPage />} />
+          <Route path="/subscription" element={<SubscriptionPage />} />
+          <Route path="/ai-practice" element={<AIPracticePage />} />
+          <Route path="/peer-room" element={<PeerRoom />} />
+          <Route path="/gamification" element={<GamificationDashboard />} />
+          
+          {/* Các route bổ sung */}
           <Route path="/my-courses" element={<div>Trang Khóa học (Đang phát triển)</div>} />
           <Route path="/schedule" element={<div>Trang Lịch học (Đang phát triển)</div>} />
         </Route>
 
-        {/* Trang nội bộ: Phải đăng nhập mới vào được (Đã xử lý trong MainLayout) */}
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/speaking-test" element={<SpeakingTest />} />
-
-        
-          {/* Trang nội bộ: Phải đăng nhập mới vào được (Đã xử lý trong MainLayout) */}
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/peer-room" element={<PeerRoom />} />
-          <Route path="/waiting-room" element={<WaitingRoom />} />
-          <Route path="/topic-suggestion" element={<TopicSuggestion />} />
-          <Route path="/chat-box" element={<ChatBox />} />
-        
+        {/* ================= CÁC ROUTE KHÁC ================= */}
         <Route path="/admin" element={<h1>Khu vực Admin</h1>} />
         <Route path="/test-speech" element={<TestSpeechPage />} />
         <Route path="/peer/find" element={<PeerFindPage />} />
         <Route path="/peer/create" element={<CreateRoomPage />} />
         <Route path="/peer/room/:roomId" element={<PeerRoomPage />} />
         <Route path="/practice" element={<PracticeRoomPage />} />
-        {/* Route cho GamificationDashboard */}
-        <Route path="/gamification" element={<GamificationDashboard />} />
+        
+        {/* Placeholder components */}
+        <Route path="/waiting-room" element={<WaitingRoom />} />
+        <Route path="/topic-suggestion" element={<TopicSuggestion />} />
+        <Route path="/chat-box" element={<ChatBox />} />
+
+        {/* Catch-all: Chuyển hướng về login nếu sai đường dẫn */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
