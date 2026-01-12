@@ -1,3 +1,4 @@
+
 package com.aesp.backend.controller;
 
 import java.util.HashMap;
@@ -9,16 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.aesp.backend.dto.request.LoginRequest;
 import com.aesp.backend.dto.request.SignupRequest;
-import com.aesp.backend.dto.response.LoginResponse; // ➕ import DTO
 import com.aesp.backend.entity.User;
 import com.aesp.backend.repository.UserRepository;
 import com.aesp.backend.security.JwtUtils;
@@ -32,34 +27,30 @@ public class AuthController {
 
     @Autowired
     PasswordEncoder passwordEncoder;
+
     @Autowired
     JwtUtils jwtUtils;
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
-    // API ĐĂNG KÝ
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody SignupRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest().body("Error: Email đã tồn tại!");
         }
-        if (request.getRole() != null && !"LEARNER".equalsIgnoreCase(request.getRole())) {
-            return ResponseEntity.badRequest().body("Error: Chỉ admin mới được tạo tài khoản mentor!");
-        }
-
-        // Tạo user mới
+        
         User user = new User();
         user.setEmail(request.getEmail());
         user.setFullName(request.getFullName());
-        user.setRole("LEARNER"); // Đảm bảo luôn là LEARNER
-        user.setPassword(passwordEncoder.encode(request.getPassword())); // Mã hóa pass
+        user.setRole("LEARNER");
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        // Mặc định khi đăng ký là chưa test
+        user.setTested(false); 
 
         userRepository.save(user);
-
         return ResponseEntity.ok("Đăng ký thành công!");
     }
 
-    // API ĐĂNG NHẬP
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
         Optional<User> userOp = userRepository.findByEmail(request.getEmail());
@@ -67,89 +58,62 @@ public class AuthController {
         if (userOp.isPresent()) {
             User user = userOp.get();
             boolean passMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
-            logger.info("Login attempt email='{}' role='{}' passMatches={}", request.getEmail(), user.getRole(),
-                    passMatches);
+            
             if (passMatches) {
-                // TẠO TOKEN THIỆT
                 String token = jwtUtils.generateToken(user.getEmail());
-                Map<String, String> response = new HashMap<>();
+                
+                // CẬP NHẬT: Trả về thêm isTested và level
+                Map<String, Object> response = new HashMap<>();
                 response.put("token", token);
                 response.put("role", user.getRole());
                 response.put("email", user.getEmail());
                 response.put("fullName", user.getFullName());
+                response.put("isTested", user.isTested()); // Quan trọng nhất
+                response.put("level", user.getLevel());
 
                 return ResponseEntity.ok(response);
             }
         }
-        logger.info("Login failed for email='{}' (not found or mismatch)", request.getEmail());
         return ResponseEntity.badRequest().body("Sai email hoặc mật khẩu!");
     }
 
-    // API ĐĂNG NHẬP ADMIN
     @PostMapping("/admin/login")
     public ResponseEntity<?> adminLogin(@RequestBody LoginRequest request) {
         Optional<User> userOp = userRepository.findByEmail(request.getEmail());
 
         if (userOp.isPresent()) {
             User user = userOp.get();
-
-            // Kiểm tra xem user có phải admin không
-            logger.info("Admin login attempt email='{}' role='{}'", request.getEmail(), user.getRole());
-
             if (!"ADMIN".equals(user.getRole())) {
-                logger.warn("Admin login rejected for '{}': not ADMIN (role={})", request.getEmail(), user.getRole());
                 return ResponseEntity.badRequest().body("Bạn không có quyền truy cập admin!");
             }
 
-            boolean passMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
-            logger.info("Admin password match for '{}': {}", request.getEmail(), passMatches);
-
-            if (passMatches) {
-                // TẠO TOKEN THIỆT
+            if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                 String token = jwtUtils.generateToken(user.getEmail());
-                Map<String, String> response = new HashMap<>();
+                
+                Map<String, Object> response = new HashMap<>();
                 response.put("token", token);
                 response.put("role", user.getRole());
                 response.put("email", user.getEmail());
                 response.put("fullName", user.getFullName());
+                response.put("isTested", user.isTested());
 
                 return ResponseEntity.ok(response);
             }
         }
-        logger.info("Admin login failed for email='{}' (not found or mismatch)", request.getEmail());
         return ResponseEntity.badRequest().body("Sai email hoặc mật khẩu!");
     }
 
-    // Debug endpoints giữ nguyên...
+    // Các debug endpoints giữ nguyên nhưng cập nhật trả về thêm info
     @GetMapping("/debug/user")
     public ResponseEntity<?> debugUser(@RequestParam String email) {
         Optional<User> userOp = userRepository.findByEmail(email);
-        if (userOp.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        if (userOp.isEmpty()) return ResponseEntity.notFound().build();
+        
         User user = userOp.get();
-        Map<String, String> resp = new HashMap<>();
-        resp.put("email", user.getEmail());
-        resp.put("role", user.getRole());
-        resp.put("fullName", user.getFullName());
-        resp.put("passwordHash", user.getPassword());
-        return ResponseEntity.ok(resp);
-    }
-
-    @GetMapping("/debug/check-password")
-    public ResponseEntity<?> checkPassword(@RequestParam String email, @RequestParam String password) {
-        Optional<User> userOp = userRepository.findByEmail(email);
-        if (userOp.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        User user = userOp.get();
-        boolean matches = passwordEncoder.matches(password, user.getPassword());
         Map<String, Object> resp = new HashMap<>();
-        resp.put("email", email);
-        resp.put("matches", matches);
-        resp.put("storedHash", user.getPassword());
+        resp.put("email", user.getEmail());
+        resp.put("isTested", user.isTested());
+        resp.put("level", user.getLevel());
         return ResponseEntity.ok(resp);
     }
 }
-
-// test

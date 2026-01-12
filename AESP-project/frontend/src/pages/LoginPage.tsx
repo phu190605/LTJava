@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Form, Input, Button, message, Card } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
@@ -7,44 +8,46 @@ import { useNavigate } from 'react-router-dom';
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
-  // Hàm chạy khi bấm nút Đăng nhập
   const onFinish = async (values: any) => {
     try {
       // 1. Gọi API đăng nhập
-      // Lưu ý: Biến 'res' ở đây CHÍNH LÀ dữ liệu thật (do axiosClient đã xử lý)
       const res: any = await axiosClient.post('/auth/login', {
         email: values.email,
         password: values.password,
       });
 
-      console.log("Kết quả API trả về:", res); // Soi dữ liệu để kiểm tra
+      console.log("Kết quả API trả về:", res); 
 
-      // 2. Kiểm tra và Lưu token
-      // ⚠️ SỬA QUAN TRỌNG: Thay response.data.token bằng res.token
+      // 2. Kiểm tra và Lưu dữ liệu
       if (res.token) {
         localStorage.setItem('token', res.token);
-        // Lưu thông tin user (nếu cần dùng sau này)
+        // Lưu toàn bộ object user bao gồm cả isTested và level
         localStorage.setItem('user', JSON.stringify(res));
 
         message.success('Đăng nhập thành công!');
 
-        // 3. Chuyển hướng (Cũng bỏ .data đi)
+        // 3. LOGIC ĐIỀU HƯỚNG THÔNG MINH
         if (res.role === 'ADMIN') {
           navigate('/admin');
         } else if (res.role === 'MENTOR') {
           navigate('/mentor');
         } else {
-          navigate('/speaking-test'); // Mặc định: chuyển đến speaking-test
+          // KIỂM TRA TRẠNG THÁI TEST TỪ BACKEND TRẢ VỀ
+          if (res.isTested === true) {
+            // Nếu đã test rồi -> Vào thẳng Dashboard
+            message.info("Chào mừng quay trở lại!");
+            navigate('/dashboard'); 
+          } else {
+            // Nếu chưa test (isTested = false hoặc 0) -> Bắt đi làm bài test
+            navigate('/speaking-test');
+          }
         }
       } else {
-        // Trường hợp API không lỗi nhưng không trả về token
         message.error("Lỗi: Không nhận được Token từ server!");
       }
 
     } catch (error: any) {
-      // 4. Xử lý lỗi
       console.error("Lỗi đăng nhập:", error);
-      // Lấy thông báo lỗi từ backend trả về (nếu có)
       const errorMsg = error.response?.data?.message || 'Đăng nhập thất bại!';
       message.error(errorMsg);
     }

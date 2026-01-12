@@ -20,6 +20,11 @@ public class User {
     private String fullName;
     private String role;
 
+    // Thêm 2 trường mới
+    private boolean isTested = false;
+    private String level;
+
+    // Getter/Setter thủ công (nếu không dùng Lombok)
     public Long getId() {
         return id;
     }
@@ -58,5 +63,21 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public boolean isTested() {
+        return isTested;
+    }
+
+    public void setTested(boolean tested) {
+        isTested = tested;
+    }
+
+    public String getLevel() {
+        return level;
+    }
+
+    public void setLevel(String level) {
+        this.level = level;
     }
 }
