@@ -37,7 +37,13 @@ type Topic = { key: string; label: string; desc?: string };
 
 export default function PeerRoom() {
   const navigate = useNavigate();
-  const userIdRef = useRef("user_" + Math.floor(Math.random() * 100000));
+
+  // 🔹 LOGIC LẤY FULL NAME TỪ SQL (Lưu trong LocalStorage)
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  // Lấy full_name từ DB, fallback về email hoặc ID ngẫu nhiên nếu không có
+  const displayName = storedUser.full_name || storedUser.fullName || storedUser.email || ("User_" + Math.floor(Math.random() * 1000));
+  
+  const userIdRef = useRef(displayName);
   const userId = userIdRef.current;
 
   const [topic, setTopic] = useState<Topic | null>(null);
@@ -45,7 +51,6 @@ export default function PeerRoom() {
   const [messages, setMessages] = useState<any[]>([]);
   const [suggestion, setSuggestion] = useState<string | null>(null);
   
-  // State quan trọng để điều khiển vòng xoay
   const [isWaitingResponse, setIsWaitingResponse] = useState(false);
 
   /* ================= SOCKET ================= */
@@ -53,16 +58,14 @@ export default function PeerRoom() {
     connectPeerSocket((msg: any) => {
       console.log("Socket Message Received:", msg);
 
-      // 1. Khi khớp phòng thành công -> Tắt xoay, vào phòng
       if (msg.type === "MATCHED") {
         setIsWaitingResponse(false); 
         setRoomId(msg.roomId);
       }
 
-      // 2. KHI ĐỐI PHƯƠNG TỪ CHỐI (Xử lý lỗi xoay vòng vòng của bạn ở đây)
       if (msg.type === "MATCH_REJECTED" || msg.type === "MATCH_FAILED" || msg.type === "CANCELLED") {
-        setIsWaitingResponse(false); // Dừng xoay ngay lập tức
-        setTopic(null); // Quay lại màn hình chọn chủ đề
+        setIsWaitingResponse(false); 
+        setTopic(null); 
         setRoomId(null);
         Modal.error({
           title: "Ghép đôi thất bại",
@@ -71,7 +74,11 @@ export default function PeerRoom() {
         });
       }
 
-      if (msg.type === "CHAT" && msg.sender !== userId) setMessages(prev => [...prev, msg]);
+      // Khi nhận tin nhắn: Nếu sender không phải là mình (displayName) thì đưa vào danh sách
+      if (msg.type === "CHAT" && msg.sender !== userId) {
+        setMessages(prev => [...prev, msg]);
+      }
+      
       if (msg.type === "TOPIC_SUGGESTION") setSuggestion(msg.content);
 
       if (msg.type === "ROOM_FINISHED" || msg.type === "USER_OFFLINE") {
@@ -100,8 +107,9 @@ export default function PeerRoom() {
 
   const handleJoin = (t: Topic) => {
     setTopic(t);
-    setIsWaitingResponse(true); // Bắt đầu xoay vòng chờ
+    setIsWaitingResponse(true); 
     startConnection();
+    // Gửi userId (Full Name) lên server để định danh trong phòng
     setTimeout(() => joinRoom(userId, t.key), 500);
   };
 
@@ -123,7 +131,7 @@ export default function PeerRoom() {
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div style={iconCircle}><RocketOutlined style={{ fontSize: 32, color: "#1890ff" }} /></div>
           <Title level={2} style={{ color: '#002766', marginTop: 16 }}>Luyện nói tiếng Anh</Title>
-          <Text type="secondary">Chọn chủ đề để kết nối cùng bạn bè khắp nơi</Text>
+          <Text type="secondary">Chào mừng {displayName}, hãy chọn chủ đề bạn thích!</Text>
         </div>
 
         <div style={topicGrid}>
@@ -141,14 +149,14 @@ export default function PeerRoom() {
     );
   }
 
-  /* ================= UI: WAITING (Dừng xoay khi isWaitingResponse = false) ================= */
+  /* ================= UI: WAITING ================= */
   if (isWaitingResponse && !roomId) {
     return (
       <div style={whitePageCenter}>
         <Card style={cardSelectionStyle}>
           <Spin size="large" />
           <Title level={4} style={{ marginTop: 24, color: '#1890ff' }}>Đang tìm đối tác...</Title>
-          <Text type="secondary">Vui lòng chờ đối phương xác nhận</Text>
+          <Text type="secondary">Hệ thống đang tìm bạn đồng hành cho {displayName}</Text>
           <div style={{ marginTop: 24 }}>
             <Button danger type="text" onClick={resetRoom}>Hủy yêu cầu</Button>
           </div>
@@ -157,7 +165,7 @@ export default function PeerRoom() {
     );
   }
 
-  /* ================= UI: MATCHED (PHÒNG HỌC) ================= */
+  /* ================= UI: MATCHED ================= */
   return (
     <div style={whitePageFull}>
       <div style={contentContainer}>
@@ -166,7 +174,7 @@ export default function PeerRoom() {
             <div style={blueIconBox}><TeamOutlined style={{ fontSize: 22, color: "#fff" }} /></div>
             <div>
               <Title level={4} style={{ margin: 0, color: '#002766' }}>Lớp học trực tuyến</Title>
-              <Text type="secondary" style={{ fontSize: 12 }}>Mã phòng: {roomId.split("-")[0].toUpperCase()}</Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>Người dùng: <b>{displayName}</b></Text>
             </div>
           </Space>
           <Tag color="blue" style={{ borderRadius: 10, padding: "5px 15px", fontWeight: 'bold' }}>
@@ -204,7 +212,7 @@ export default function PeerRoom() {
                 currentUser={userId}
                 onSend={(content) => {
                   setMessages(prev => [...prev, { sender: userId, content }]);
-                  sendChat(userId, roomId, content);
+                  sendChat(userId, roomId!, content);
                 }}
               />
             </div>
@@ -222,7 +230,7 @@ export default function PeerRoom() {
             onClick={() => {
               Modal.confirm({
                 title: "Kết thúc buổi luyện nói?",
-                onOk: () => { finishRoom(userId, roomId); resetRoom(); }
+                onOk: () => { finishRoom(userId, roomId!); resetRoom(); }
               });
             }}
           >
@@ -235,10 +243,7 @@ export default function PeerRoom() {
 }
 
 /* ================= STYLES ================= */
-const whitePageCenter: any = {
-  minHeight: "100vh", background: "#ffffff", display: "flex", 
-  flexDirection: "column", justifyContent: "center", alignItems: "center", position: 'relative'
-};
+const whitePageCenter: any = { minHeight: "100vh", background: "#ffffff", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", position: 'relative' };
 const whitePageFull: any = { minHeight: "100vh", background: "#f8f9fa", padding: "30px 20px" };
 const iconCircle = { width: 70, height: 70, background: '#e6f7ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' };
 const topicGrid = { display: 'grid', gridTemplateColumns: 'repeat(3, 260px)', gap: 20, maxWidth: 900 };

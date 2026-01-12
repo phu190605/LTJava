@@ -1,10 +1,10 @@
-
+/* uth.edu package */
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import "../styles/speaking-test.css";
 
-// ... (Giữ nguyên hàm shuffleArray và các interface của bạn)
+// Hàm xáo trộn câu hỏi
 function shuffleArray<T>(array: T[]): T[] {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -25,7 +25,6 @@ const SpeakingTest = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [tempResults, setTempResults] = useState<Record<number, PartResult>>({});
-    const [aiResult, setAiResult] = useState<any | null>(null);
     const [fillAnswers, setFillAnswers] = useState<Record<number, string>>({});
     const [fillCorrect, setFillCorrect] = useState<Record<number, boolean>>({});
     const [fillScore, setFillScore] = useState<Record<number, number>>({});
@@ -33,6 +32,7 @@ const SpeakingTest = () => {
     const recorderRef = useRef<any>(null);
     const navigate = useNavigate();
 
+    // Lấy danh sách câu hỏi từ Backend
     useEffect(() => {
         axiosClient.get('/test-questions').then(res => {
             if (Array.isArray(res)) { setTexts(shuffleArray(res)); } 
@@ -42,7 +42,6 @@ const SpeakingTest = () => {
 
     const TOTAL_PARTS = texts.length;
 
-    // ... (Giữ nguyên hàm startRecording và stopRecording của bạn)
     const startRecording = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -80,6 +79,7 @@ const SpeakingTest = () => {
     const submitAllAndFinish = async () => {
         const readCount = texts.filter(t => t.type === "read").length;
         const completedParts = Object.values(tempResults).filter(res => res && res.aiResult).length;
+        
         if (completedParts < readCount) {
             alert(`Bạn cần ghi âm đủ ${readCount} phần đọc.`);
             return;
@@ -87,7 +87,7 @@ const SpeakingTest = () => {
 
         setIsProcessing(true);
         try {
-            // --- GIỮ NGUYÊN LOGIC TÍNH ĐIỂM CỦA BẠN ---
+            // Tính toán điểm trung bình từ AI
             let totalScore = 0;
             let feedbacks: string[] = [];
             Object.values(tempResults).forEach((partData) => {
@@ -97,6 +97,7 @@ const SpeakingTest = () => {
                 }
             });
 
+            // Tính điểm phần điền từ
             let fillTotal = 0;
             texts.forEach((t, idx) => {
                 if (t.type === "fill") { fillTotal += fillScore[idx + 1] === 1 ? 10 : 0; }
@@ -105,27 +106,25 @@ const SpeakingTest = () => {
             const avgSpeaking = Math.round(totalScore / (readCount || 1));
             const totalFinal = avgSpeaking + fillTotal;
 
+            // Xếp loại trình độ
             let mainLevel = "A1";
             if (totalFinal >= 95) mainLevel = "C1";
             else if (totalFinal >= 80) mainLevel = "B2";
             else if (totalFinal >= 60) mainLevel = "B1";
             else if (totalFinal >= 40) mainLevel = "A2";
 
-            const mainFeedback = feedbacks.length > 0 ? feedbacks[0] : "Cần luyện tập thêm.";
-            setAiResult({ avgScore: totalFinal, mainLevel, mainFeedback });
-
-            // 1. GỌI API LƯU VÀO SQL (Hàm mới tạo ở TestQuestionController)
+            // 1. Lưu kết quả vào Database SQL
             const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
             await axiosClient.post('/test-questions/submit-result', {
                 email: storedUser.email,
                 level: mainLevel
             });
 
-            // 2. CẬP NHẬT LẠI LOCALSTORAGE ĐỂ KHÔNG BỊ QUAY LẠI TRANG TEST
+            // 2. Cập nhật LocalStorage để đồng bộ trạng thái ứng dụng
             const updatedUser = { ...storedUser, isTested: true, level: mainLevel };
             localStorage.setItem("user", JSON.stringify(updatedUser));
 
-            // 3. GỌI PROFILE SETUP NHƯ CŨ
+            // 3. Gọi Profile Setup để khởi tạo lộ trình học
             await axiosClient.post('/profile/setup', {
                 currentLevel: mainLevel,
                 assessmentScore: totalFinal,
@@ -135,7 +134,11 @@ const SpeakingTest = () => {
                 packageId: null
             });
 
-            setTimeout(() => { navigate("/dashboard"); }, 1500); // Chuyển về Dashboard thay vì setup để kiểm tra
+            // 4. ĐIỀU HƯỚNG VỀ TRANG SETUP
+            setTimeout(() => { 
+                navigate("/setup"); 
+            }, 1500);
+
         } catch (err: any) {
             alert("Có lỗi xảy ra khi gửi kết quả.");
         } finally {
@@ -143,7 +146,6 @@ const SpeakingTest = () => {
         }
     };
 
-    // ... (Toàn bộ phần Return bên dưới giữ nguyên 100% code của bạn)
     if (texts.length === 0) return <div className="container">Đang tải câu hỏi...</div>;
     const currentText = texts[currentPart - 1];
     const currentResult = tempResults[currentPart];
@@ -152,6 +154,8 @@ const SpeakingTest = () => {
         <div className="container">
             <h2 className="title">Kiểm tra xếp bậc</h2>
             <p className="subtitle">Hoàn thành các phần để nhận phân tích trình độ từ AI.</p>
+            
+            {/* Thanh tiến độ */}
             <div className="progress-header">
                 <span>Tiến độ bài làm</span>
                 <span>{Object.keys(tempResults).length} / {TOTAL_PARTS}</span>
@@ -159,6 +163,8 @@ const SpeakingTest = () => {
             <div className="progress-bar">
                 <div className="progress" style={{ width: `${(Object.keys(tempResults).length / TOTAL_PARTS) * 100}%` }} />
             </div>
+
+            {/* Danh sách các câu hỏi (Tabs) */}
             <div className="tabs">
                 {texts.map((t, idx) => (
                     <button key={idx + 1} className={`tab ${currentPart === idx + 1 ? "active" : ""}`} onClick={() => setCurrentPart(idx + 1)}>
@@ -166,6 +172,8 @@ const SpeakingTest = () => {
                     </button>
                 ))}
             </div>
+
+            {/* Nội dung câu hỏi (Phân loại: Đọc hoặc Điền từ) */}
             {currentText.type === "read" ? (
                 <>
                     <div className="reading-box">
@@ -179,17 +187,12 @@ const SpeakingTest = () => {
                         </button>
                         {loading && <p style={{ color: '#4f46e5', fontWeight: 'bold', marginTop: '10px' }}>⏳ AI đang phân tích...</p>}
                     </div>
+                    {/* Kết quả AI hiển thị ngay tại chỗ sau khi chấm điểm câu đó */}
                     {currentResult?.aiResult && !isRecording && (
                         <div className="answer-result-section">
                             <h3 style={{ textAlign: 'center', color: currentResult.aiResult.overallScore >= 80 ? '#16a34a' : '#dc2626' }}>
                                 {currentResult.aiResult.level} - {Math.round(currentResult.aiResult.overallScore)}/100
                             </h3>
-                            <p style={{ textAlign: 'center', fontStyle: 'italic', color: '#64748b' }}>"{currentResult.aiResult.feedback}"</p>
-                            <div style={{ display: 'flex', justifyContent: 'space-around', margin: '15px 0', fontSize: '14px' }}>
-                                <span>Accuracy: <b>{Math.round(currentResult.aiResult.accuracyScore)}</b></span>
-                                <span>Fluency: <b>{Math.round(currentResult.aiResult.fluencyScore)}</b></span>
-                                <span>Completeness: <b>{Math.round(currentResult.aiResult.completenessScore)}</b></span>
-                            </div>
                             <div className="words-display-container">
                                 {currentResult.aiResult.words.map((w, i) => (
                                     <span key={i} className={`word-item ${w.errorType !== "None" ? 'word-error' : 'word-none'}`}>{w.word}</span>
@@ -203,7 +206,7 @@ const SpeakingTest = () => {
                 </>
             ) : (
                 <div className="record-box">
-                    <div className="reading-title">Điền từ vào chỗ trống ({currentText.level}):</div>
+                    <div className="reading-title">Điền từ vào chỗ trống:</div>
                     <form onSubmit={e => {
                         e.preventDefault();
                         const userAns = (fillAnswers[currentPart] || '').trim().toLowerCase();
@@ -214,13 +217,21 @@ const SpeakingTest = () => {
                     }}>
                         <p style={{ fontSize: '1.2rem' }}>
                             {currentText.content.split('___')[0]}
-                            <input type="text" value={fillAnswers[currentPart] || ''} onChange={e => setFillAnswers(prev => ({ ...prev, [currentPart]: e.target.value }))} style={{ width: 100, borderBottom: '2px solid #4f46e5', borderTop: 'none', borderLeft: 'none', borderRight: 'none', textAlign: 'center', outline: 'none', fontSize: '1.2rem' }} disabled={fillCorrect[currentPart]} />
+                            <input 
+                                type="text" 
+                                value={fillAnswers[currentPart] || ''} 
+                                onChange={e => setFillAnswers(prev => ({ ...prev, [currentPart]: e.target.value }))} 
+                                style={{ width: 100, borderBottom: '2px solid #4f46e5', borderTop: 'none', borderLeft: 'none', borderRight: 'none', textAlign: 'center', outline: 'none', fontSize: '1.2rem' }} 
+                                disabled={fillCorrect[currentPart]} 
+                            />
                             {currentText.content.split('___')[1]}
                         </p>
                         <button type="submit" className="record-btn" style={{ marginTop: 20 }}>Kiểm tra</button>
                     </form>
                 </div>
             )}
+
+            {/* Nút điều hướng câu hỏi */}
             <div className="nav" style={{ marginTop: 30 }}>
                 <button className="btn-back" disabled={currentPart === 1 || isProcessing} onClick={() => setCurrentPart(p => p - 1)}>← Trước</button>
                 {currentPart < TOTAL_PARTS ? (
