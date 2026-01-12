@@ -1,4 +1,4 @@
-/* uth.edu package */
+
 import React, { useEffect, useState } from 'react';
 import { AudioOutlined } from '@ant-design/icons';
 import { Layout, Menu, Avatar, Typography, Space, theme, Dropdown } from 'antd';
@@ -24,15 +24,18 @@ const LearnerLayout: React.FC = () => {
 
     // --- LOGIC KIỂM TRA TRẠNG THÁI NGƯỜI DÙNG ---
     const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    
+    // Kiểm tra xem đã hoàn thành setup chưa (dựa trên URL hoặc localStorage)
+    const isSetupDone = storedUser.isSetupComplete === true;
+    const isCurrentlySettingUp = location.pathname === "/setup";
 
     // 1. Nếu chưa từng làm Speaking Test -> Buộc quay về trang test
     if (!storedUser.isTested) {
         return <Navigate to="/speaking-test" replace />;
     }
 
-    // 2. Nếu đã test nhưng chưa làm Setup -> Buộc quay về trang setup
-    // (Lưu ý: Bạn cần set isSetupComplete = true trong localStorage khi user nhấn Hoàn tất ở trang ProfileSetupPage)
-    if (!storedUser.isSetupComplete) {
+    // 2. Nếu cố tình vào Dashboard mà chưa xong Setup -> Đẩy về Setup
+    if (!isSetupDone && !isCurrentlySettingUp) {
         return <Navigate to="/setup" replace />;
     }
 
@@ -73,7 +76,7 @@ const LearnerLayout: React.FC = () => {
     const handleMenuClick = ({ key }: { key: string }) => {
         if (key === '/login') {
             localStorage.removeItem('token');
-            localStorage.removeItem('user'); // Xóa cả user info khi logout
+            localStorage.removeItem('user');
             navigate('/login');
         } else {
             navigate(key);
@@ -89,23 +92,38 @@ const LearnerLayout: React.FC = () => {
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            <Sider width={260} theme="light" breakpoint="lg" collapsedWidth="0" style={{ borderRight: '1px solid #f0f0f0' }}>
-                <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #f0f0f0' }}>
-                    <Title level={4} style={{ color: '#1890ff', margin: 0, cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
-                        AESP LEARNER
-                    </Title>
-                </div>
-                <Menu
-                    mode="inline"
-                    selectedKeys={[location.pathname]}
-                    items={menuItems}
-                    onClick={handleMenuClick}
-                    style={{ borderRight: 0, marginTop: 10 }}
-                />
-            </Sider>
+            {/* CHỈ HIỆN SIDEBAR KHI ĐÃ XONG SETUP HOẶC KHÔNG PHẢI TRANG SETUP LẦN ĐẦU */}
+            {isSetupDone && (
+                <Sider width={260} theme="light" breakpoint="lg" collapsedWidth="0" style={{ borderRight: '1px solid #f0f0f0' }}>
+                    <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #f0f0f0' }}>
+                        <Title level={4} style={{ color: '#1890ff', margin: 0, cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
+                            AESP LEARNER
+                        </Title>
+                    </div>
+                    <Menu
+                        mode="inline"
+                        selectedKeys={[location.pathname]}
+                        items={menuItems}
+                        onClick={handleMenuClick}
+                        style={{ borderRight: 0, marginTop: 10 }}
+                    />
+                </Sider>
+            )}
 
             <Layout>
-                <Header style={{ background: colorBgContainer, padding: '0 24px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', borderBottom: '1px solid #f0f0f0' }}>
+                <Header style={{ 
+                    background: colorBgContainer, 
+                    padding: '0 24px', 
+                    display: 'flex', 
+                    justifyContent: isSetupDone ? 'flex-end' : 'space-between', 
+                    alignItems: 'center', 
+                    borderBottom: '1px solid #f0f0f0' 
+                }}>
+                    {/* Nếu chưa xong setup, hiện Logo ở Header để đỡ trống */}
+                    {!isSetupDone && (
+                         <Title level={4} style={{ color: '#1890ff', margin: 0 }}>AESP LEARNER</Title>
+                    )}
+
                     <Dropdown
                         menu={{
                             items: userMenuItems,
@@ -128,7 +146,11 @@ const LearnerLayout: React.FC = () => {
                     </Dropdown>
                 </Header>
 
-                <Content style={{ margin: '24px', overflow: 'initial' }}>
+                <Content style={{ 
+                    margin: isSetupDone ? '24px' : '0', // Full màn hình nếu đang setup
+                    padding: isSetupDone ? '0' : '40px 0', 
+                    overflow: 'initial' 
+                }}>
                     <Outlet />
                 </Content>
             </Layout>

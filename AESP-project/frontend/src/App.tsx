@@ -27,20 +27,23 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ================= GIAI ĐOẠN 1: CÔNG KHAI ================= */}
+        {/* ================= NHÓM 1: CÔNG KHAI ================= */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/admin-login" element={<AdminLoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* ================= GIAI ĐOẠN 2: TEST & SETUP (KHÔNG SIDEBAR) ================= */}
-        {/* Đưa ra ngoài LearnerLayout để ẩn hoàn toàn thanh bên trái */}
+        {/* ================= NHÓM 2: TEST (KHÔNG SIDEBAR) ================= */}
+        {/* Giữ Speaking Test bên ngoài vì đây là bước khảo sát đầu tiên */}
         <Route path="/speaking-test" element={<SpeakingTest />} />
-        <Route path="/setup" element={<ProfileSetupPage />} />
 
-        {/* ================= GIAI ĐOẠN 3: APP CHÍNH (CÓ SIDEBAR) ================= */}
-        {/* Chỉ những trang nằm trong Route này mới hiển thị Sidebar từ LearnerLayout */}
+        {/* ================= NHÓM 3: APP CHÍNH (ĐIỀU KHIỂN BỞI LEARNERLAYOUT) ================= */}
+        {/* Đưa /setup vào trong này. 
+            - Nếu chưa setup: LearnerLayout sẽ ẩn Sidebar (như đã code ở file trước).
+            - Nếu đã setup: LearnerLayout sẽ hiện Sidebar.
+        */}
         <Route element={<LearnerLayout />}>
+          <Route path="/setup" element={<ProfileSetupPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/payment-history" element={<PaymentHistoryPage />} />
@@ -48,19 +51,19 @@ function App() {
           <Route path="/ai-practice" element={<AIPracticePage />} />
           <Route path="/peer-room" element={<PeerRoom />} />
           <Route path="/gamification" element={<GamificationDashboard />} />
+          <Route path="/practice" element={<PracticeRoomPage />} />
           
           {/* Các route bổ sung */}
           <Route path="/my-courses" element={<div>Trang Khóa học (Đang phát triển)</div>} />
           <Route path="/schedule" element={<div>Trang Lịch học (Đang phát triển)</div>} />
         </Route>
 
-        {/* ================= CÁC ROUTE KHÁC ================= */}
+        {/* ================= CÁC ROUTE TIỆN ÍCH KHÁC ================= */}
         <Route path="/admin" element={<h1>Khu vực Admin</h1>} />
         <Route path="/test-speech" element={<TestSpeechPage />} />
         <Route path="/peer/find" element={<PeerFindPage />} />
         <Route path="/peer/create" element={<CreateRoomPage />} />
         <Route path="/peer/room/:roomId" element={<PeerRoomPage />} />
-        <Route path="/practice" element={<PracticeRoomPage />} />
         
         {/* Placeholder components */}
         <Route path="/waiting-room" element={<WaitingRoom />} />
