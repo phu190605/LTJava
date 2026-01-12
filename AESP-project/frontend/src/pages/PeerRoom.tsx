@@ -1,7 +1,12 @@
-/* uth.edu package */
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Card, Button, Space, Spin, Typography, Tag, Modal } from "antd";
-import { TeamOutlined, StopOutlined, MessageOutlined, BulbOutlined, RocketOutlined } from "@ant-design/icons";
+import {
+  TeamOutlined,
+  StopOutlined,
+  MessageOutlined,
+  BulbOutlined,
+  RocketOutlined
+} from "@ant-design/icons";
 
 import {
   connectPeerSocket,
@@ -17,6 +22,8 @@ import ChatBox from "../components/ChatBox";
 
 const { Title, Text } = Typography;
 
+/* ================= DATA ================= */
+
 const TOPICS = [
   { key: "DAILY", label: "Hàng ngày" },
   { key: "TRAVEL", label: "Du lịch" },
@@ -28,6 +35,8 @@ type Topic = {
   label: string;
 };
 
+/* ================= COMPONENT ================= */
+
 export default function PeerRoom() {
   const userIdRef = useRef("user_" + Math.floor(Math.random() * 100000));
   const userId = userIdRef.current;
@@ -38,16 +47,21 @@ export default function PeerRoom() {
   const [suggestion, setSuggestion] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  // ================= SOCKET =================
+  /* ================= SOCKET ================= */
+
   const startConnection = useCallback(() => {
     connectPeerSocket((msg: any) => {
       console.log("WS:", msg);
 
       if (msg.type === "MATCHED") setRoomId(msg.roomId);
-      if (msg.type === "CHAT" && msg.sender !== userId)
+
+      if (msg.type === "CHAT" && msg.sender !== userId) {
         setMessages(prev => [...prev, msg]);
-      if (msg.type === "TOPIC_SUGGESTION")
+      }
+
+      if (msg.type === "TOPIC_SUGGESTION") {
         setSuggestion(msg.content);
+      }
 
       if (msg.type === "ROOM_FINISHED" || msg.type === "USER_OFFLINE") {
         Modal.warning({
@@ -57,6 +71,7 @@ export default function PeerRoom() {
         });
       }
     });
+
     setIsConnected(true);
   }, [userId]);
 
@@ -79,20 +94,26 @@ export default function PeerRoom() {
     setTimeout(() => joinRoom(userId, t.key), 400);
   };
 
-  // ================= CHOOSE TOPIC =================
+  /* ================= CHOOSE TOPIC ================= */
+
   if (!topic) {
     return (
       <div style={centerWrap}>
         <Card style={cardStyle}>
-          <RocketOutlined style={{ fontSize: 42, color: '#1890ff', marginBottom: 16 }} />
-          <Title level={2}>Luyện nói Tiếng Anh</Title>
-          <Text type="secondary">Chọn một chủ đề để kết nối người lạ</Text>
+          <RocketOutlined style={{ fontSize: 42, color: "#1890ff" }} />
+          <Title level={2}>Luyện nói tiếng Anh</Title>
+          <Text type="secondary">Chọn chủ đề để ghép người lạ</Text>
 
-          <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 12 }}>
             {TOPICS.map(t => (
-              <Button key={t.key} type="primary" size="large" ghost
-                style={{ borderRadius: 14, height: 52, fontSize: 16 }}
-                onClick={() => handleJoin(t)}>
+              <Button
+                key={t.key}
+                size="large"
+                type="primary"
+                ghost
+                style={{ borderRadius: 14, height: 50 }}
+                onClick={() => handleJoin(t)}
+              >
                 Chủ đề: {t.label}
               </Button>
             ))}
@@ -102,71 +123,101 @@ export default function PeerRoom() {
     );
   }
 
-  // ================= WAITING =================
+  /* ================= WAITING ================= */
+
   if (!roomId) {
     return (
       <div style={centerWrap}>
         <Card style={cardStyle}>
-          <Spin size="large" tip="Đang tìm người phù hợp..." />
-          <Title level={4} style={{ marginTop: 24 }}>Vui lòng đợi</Title>
+          <Spin size="large" />
+          <Title level={4} style={{ marginTop: 20 }}>
+            Đang tìm người phù hợp...
+          </Title>
           <Tag color="blue">Chủ đề: {topic.label}</Tag>
           <div style={{ marginTop: 12 }}>
-            <Button type="link" danger onClick={resetRoom}>Hủy</Button>
+            <Button danger type="link" onClick={resetRoom}>
+              Hủy
+            </Button>
           </div>
         </Card>
       </div>
     );
   }
 
-  // ================= MATCHED =================
+  /* ================= MATCHED (UI PRO, CÓ KHUNG VOICE vs CHAT) ================= */
+
   return (
     <div style={matchedBg}>
-      <Card style={mainCardStyle} bodyStyle={{ padding: '32px' }}>
-        <Space direction="vertical" size={32} style={{ width: "100%" }}>
+      <Card style={mainCard} bodyStyle={{ padding: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", minHeight: "85vh" }}>
 
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Space size={16}>
-              <div style={{ width: 48, height: 48, background: '#e6f7ff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <TeamOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+          {/* HEADER */}
+          <div style={headerBar}>
+            <Space>
+              <div style={avatar}>
+                <TeamOutlined style={{ fontSize: 20, color: "#1890ff" }} />
               </div>
               <div>
-                <Title level={4} style={{ margin: 0 }}>Đã kết nối</Title>
+                <Title level={5} style={{ margin: 0 }}>
+                  Đã kết nối
+                </Title>
                 <Text type="secondary">Room: {roomId.split("-")[0]}</Text>
               </div>
             </Space>
-            <Tag color="blue">CHỦ ĐỀ: {topic.label}</Tag>
+
+            <Space>
+              <Tag color="blue">CHỦ ĐỀ: {topic.label}</Tag>
+              <Tag color="green">LIVE</Tag>
+            </Space>
           </div>
 
-          {/* Suggestion */}
+          {/* SUGGESTION */}
           {suggestion && (
-            <div style={suggestionBox}>
-              <Space direction="vertical">
-                <Text strong><BulbOutlined /> GỢI Ý THẢO LUẬN</Text>
-                <Title level={2}>"{suggestion}"</Title>
-              </Space>
+            <div style={suggestionBar}>
+              <BulbOutlined style={{ fontSize: 20, color: "#faad14" }} />
+              <Text strong style={{ marginLeft: 12 }}>
+                {suggestion}
+              </Text>
             </div>
           )}
 
-          {/* Voice vs Chat Panels */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 32, minHeight: 450 }}>
-
-            <div style={voicePanelPro}>
+          {/* BODY */}
+          <div style={mainGrid}>
+            {/* VOICE */}
+            <div style={voicePanel}>
               <div style={panelHeader}>
-                <TeamOutlined style={{ color: '#1890ff' }} />
-                <Text strong>Voice Chat</Text>
+                <TeamOutlined />
+                <Text strong>Voice</Text>
               </div>
-              <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <VoiceRTC socket={getPeerSocket()} userId={userId} roomId={roomId} />
               </div>
-              <Text type="secondary">Nhấn micro để bắt đầu nói</Text>
+
+              <Button
+                danger
+                icon={<StopOutlined />}
+                onClick={() => {
+                  Modal.confirm({
+                    title: "Kết thúc cuộc trò chuyện?",
+                    onOk: () => {
+                      finishRoom(userId, roomId);
+                      resetRoom();
+                    }
+                  });
+                }}
+              >
+                Kết thúc
+              </Button>
             </div>
 
-            <div style={chatPanelPro}>
+            {/* CHAT */}
+            <div style={chatPanel}>
               <div style={panelHeader}>
-                <MessageOutlined style={{ color: '#1890ff' }} />
-                <Text strong>Text Chat</Text>
+                <MessageOutlined />
+                <Text strong>Chat</Text>
               </div>
+
               <div style={{ flex: 1 }}>
                 <ChatBox
                   messages={messages}
@@ -178,22 +229,9 @@ export default function PeerRoom() {
                 />
               </div>
             </div>
-
           </div>
 
-          <div style={{ textAlign: 'center' }}>
-            <Button danger shape="round" icon={<StopOutlined />}
-              onClick={() => {
-                Modal.confirm({
-                  title: "Kết thúc?",
-                  onOk: () => { finishRoom(userId, roomId); resetRoom(); }
-                });
-              }}>
-              Dừng cuộc hội thoại
-            </Button>
-          </div>
-
-        </Space>
+        </div>
       </Card>
     </div>
   );
@@ -202,51 +240,84 @@ export default function PeerRoom() {
 /* ================= STYLES ================= */
 
 const centerWrap = {
-  minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#f0f5ff"
+  minHeight: "100vh",
+  background: "#f0f5ff",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center"
 };
 
 const cardStyle = {
-  width: 480, borderRadius: 24, textAlign: "center", boxShadow: '0 10px 40px rgba(24,144,255,0.1)'
+  width: 420,
+  borderRadius: 24,
+  textAlign: "center",
+  boxShadow: "0 10px 40px rgba(24,144,255,0.1)"
 };
 
 const matchedBg = {
-  minHeight: "100vh", background: "#f8f9fb", padding: "60px 20px"
+  minHeight: "100vh",
+  background: "#f5f7fa",
+  padding: 24
 };
 
-const mainCardStyle = {
-  maxWidth: 1000, margin: "0 auto", borderRadius: 32, boxShadow: '0 20px 60px rgba(0,0,0,0.05)'
-};
-
-const suggestionBox = {
-  background: '#fffbe6', padding: 28, borderRadius: 20, border: '1px solid #ffe58f'
-};
-
-const voicePanelPro = {
-  background: '#ffffff',
-  border: '1px solid #e6f4ff',
+const mainCard = {
+  maxWidth: 1100,
+  margin: "0 auto",
   borderRadius: 24,
+  overflow: "hidden"
+};
+
+const headerBar = {
+  padding: "16px 32px",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  borderBottom: "1px solid #eee"
+};
+
+const avatar = {
+  width: 42,
+  height: 42,
+  background: "#e6f7ff",
+  borderRadius: 12,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center"
+};
+
+const suggestionBar = {
+  padding: "16px 32px",
+  background: "#fffbe6",
+  borderBottom: "1px solid #ffe58f",
+  display: "flex",
+  alignItems: "center"
+};
+
+const mainGrid = {
+  flex: 1,
+  display: "grid",
+  gridTemplateColumns: "1fr 1.4fr"
+};
+
+const voicePanel = {
   padding: 24,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 12,
-  boxShadow: '0 6px 20px rgba(24,144,255,0.06)'
+  borderRight: "1px solid #eee",
+  display: "flex",
+  flexDirection: "column",
+  gap: 12
 };
 
-const chatPanelPro = {
-  background: '#ffffff',
-  border: '1px solid #e6f4ff',
-  borderRadius: 24,
+const chatPanel = {
   padding: 16,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 12,
-  boxShadow: '0 6px 20px rgba(24,144,255,0.06)'
+  display: "flex",
+  flexDirection: "column",
+  gap: 12
 };
 
 const panelHeader = {
-  display: 'flex',
-  alignItems: 'center',
+  display: "flex",
   gap: 8,
-  paddingBottom: 10,
-  borderBottom: '1px solid #f0f0f0'
+  alignItems: "center",
+  borderBottom: "1px solid #eee",
+  paddingBottom: 8
 };
