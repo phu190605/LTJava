@@ -5,6 +5,7 @@ import com.aesp.backend.entity.Feedback;
 import com.aesp.backend.repository.FeedbackRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -16,17 +17,27 @@ public class FeedbackService {
         this.repo = repo;
     }
 
+    // ===== Submit feedback =====
     public Feedback submitFeedback(FeedbackRequestDTO dto) {
         Feedback fb = new Feedback();
         fb.setSessionId(dto.sessionId);
         fb.setComment(dto.comment);
         fb.setGrammarScore(dto.grammarScore);
         fb.setPronunciationScore(dto.pronunciationScore);
-        fb.setTimeStamp(dto.timeStamp);
+
+        // ✅ Lưu thời điểm hiện tại
+        fb.setTimeStamp(LocalDateTime.now());
+
         return repo.save(fb);
     }
 
+    // ===== Lấy feedback theo session =====
     public List<Feedback> getFeedback(String sessionId) {
         return repo.findBySessionId(sessionId);
+    }
+
+    // ===== Lấy feedback theo mentor (có thể dùng cho Dashboard) =====
+    public List<Feedback> getFeedbackByMentor(String mentorId) {
+        return repo.findByMentorId(mentorId);
     }
 }

@@ -15,7 +15,7 @@ public class LearningSession implements Serializable {
     private String audioUrl;
     private String status = "WAITING"; // mặc định
 
-    // Getters & Setters
+    // ===== Getters & Setters =====
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

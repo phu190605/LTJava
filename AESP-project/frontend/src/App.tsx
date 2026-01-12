@@ -17,6 +17,9 @@ import Profile from "./pages/mentor/Profile";
 import FeedbackList from "./pages/mentor/FeedbackList"
 import AssessmentList from "./pages/mentor/AssessmentList"
 import AssessmentDetail from "./pages/mentor/AssessmentDetail"
+import PackageManager from "./pages/admin/PackageManager";
+import PurchaseManager from "./pages/admin/PurchaseManager";
+import AdminProfile from "./pages/admin/AdminProfile";
 
 function App() {
   return (
@@ -36,8 +39,11 @@ function App() {
         {/* Admin */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
+        <Route path="profile" element={<AdminProfile />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="mentors" element={<MentorManager />} />
+        <Route path="packages" element={<PackageManager />} />
+        <Route path="purchases" element={<PurchaseManager />} />
         <Route path="policies" element={<PolicyManager />} />
       </Route>
       <Route path="/mentor" element={<MentorLayout />}>
@@ -47,7 +53,7 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="feedbacks" element={<FeedbackList />} />
           <Route path="assessment" element={<AssessmentList />} />
-          <Route path="assessment/:sessionId" element={<AssessmentDetail />}/>
+          <Route path="assessment/:userId" element={<AssessmentDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -8,5 +8,6 @@ import java.util.List;
 public interface FeedbackRepository
         extends JpaRepository<Feedback, String> {
     List<Feedback> findBySessionId(String sessionId);
+    List<Feedback> findByMentorId(String mentorId);
 }
 

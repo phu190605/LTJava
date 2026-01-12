@@ -2,7 +2,7 @@ import axios from "axios";
 import type {
   MentorProfile,
   LearningMaterial,
-  LearningSession,
+  Assessment,
 } from "../types/mentor";
 
 /* ================== BASE CONFIG ================== */
@@ -17,28 +17,20 @@ export const getDashboard = (mentorId: string) =>
   });
 
 /* ================== ASSESSMENT & LEVELING ================== */
+/** Danh sách học viên đã nộp bài test đầu vào */
+export const getPendingAssessments = () =>
+  axios.get<Assessment[]>(`${BASE}/assessments/pending`);
 
-/**
- * Lấy danh sách bài test đầu vào của học viên
- */
-export const getSessions = (mentorId: string) =>
-  axios.get<LearningSession[]>(`${BASE}/sessions/${mentorId}`);
+// Chi tiết 1 bài test
+export const getAssessmentDetail = (assessmentId: number) =>
+  axios.get<Assessment>(`${BASE}/assessments/${assessmentId}`);
 
-/**
- * Lấy chi tiết feedback + AI score của 1 session
- */
-export const getFeedback = (sessionId: string) =>
-  axios.get(`${BASE}/feedback/${sessionId}`);
-
-/**
- * Mentor chấm bài & xếp lớp
- */
-export const submitFeedback = (data: {
-  sessionId: string;
-  level: string;
-  comment: string;
-}) =>
-  axios.post(`${BASE}/feedback`, data);
+// Mentor xác nhận xếp lớp
+export const submitAssessment = (data: {
+  assessmentId: number;   // sửa từ userId -> assessmentId
+  finalLevel: string;
+  mentorComment: string;
+}) => axios.post(`${BASE}/assessments/submit`, data);
 
 /* ================== MATERIALS ================== */
 

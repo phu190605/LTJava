@@ -4,13 +4,13 @@ import com.aesp.backend.dto.request.FeedbackRequestDTO;
 import com.aesp.backend.dto.request.UpdateMentorProfileDTO;
 import com.aesp.backend.entity.*;
 import com.aesp.backend.repository.*;
-
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -20,9 +20,8 @@ public class MentorService {
     private final FeedbackRepository feedbackRepo;
     private final LearningMaterialRepository materialRepo;
     private final MentorProfileRepository profileRepo;
-    private final UserRepository userRepo; // ✅ FIX: thêm userRepo
+    private final UserRepository userRepo;
 
-    // ✅ FIX: inject userRepo
     public MentorService(
             LearningSessionRepository sessionRepo,
             FeedbackRepository feedbackRepo,
@@ -41,19 +40,48 @@ public class MentorService {
 
     public Map<String, Object> getDashboard(String mentorId) {
 
-        long pendingFeedbacks = sessionRepo
-                .findByMentorId(mentorId)
-                .stream()
+        // Lấy tất cả session của mentor
+        List<LearningSession> sessions = sessionRepo.findByMentorId(mentorId);
+
+        // ======= To-do list =======
+        long pendingFeedbacks = sessions.stream()
                 .filter(s -> "WAITING".equals(s.getStatus()))
                 .count();
 
-        long totalSessions = sessionRepo.findByMentorId(mentorId).size();
+        long pendingAssessments = 0; // Nếu bạn có module Assessment, cập nhật ở đây
 
+        Map<String, Object> todo = new HashMap<>();
+        todo.put("pendingFeedbacks", pendingFeedbacks);
+        todo.put("pendingAssessments", pendingAssessments);
+
+        // ======= Statistics =======
+        long activeLearners = sessions.stream()
+                .map(LearningSession::getLearnerId)
+                .distinct()
+                .count();
+
+        long totalSessions = sessions.size();
+
+        // Feedbacks this week (dùng thời gian hiện tại)
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
+        long feedbacksThisWeek = feedbackRepo.findByMentorId(mentorId).stream()
+                .filter(f -> f.getTimeStamp() != null && f.getTimeStamp().isAfter(oneWeekAgo))
+                .count();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("activeLearners", activeLearners);
+        stats.put("sessionsThisWeek", totalSessions); // nếu muốn chính xác tuần, cần thêm createdAt
+        stats.put("feedbacksThisWeek", feedbacksThisWeek);
+
+        // ======= Schedule (placeholder) =======
+        List<Map<String, Object>> schedule = new ArrayList<>();
+        // Sau này tích hợp booking/appointment, thêm object {time, learner, topic}
+
+        // ======= Kết hợp tất cả =======
         Map<String, Object> res = new HashMap<>();
-        res.put("pendingAssessments", 0); // assessment làm sau
-        res.put("pendingFeedbacks", pendingFeedbacks);
-        res.put("activeLearners", totalSessions);
-        res.put("sessionsThisWeek", totalSessions);
+        res.put("todo", todo);
+        res.put("stats", stats);
+        res.put("schedule", schedule);
 
         return res;
     }
@@ -73,7 +101,7 @@ public class MentorService {
         fb.setComment(dto.comment);
         fb.setGrammarScore(dto.grammarScore);
         fb.setPronunciationScore(dto.pronunciationScore);
-        fb.setTimeStamp(dto.timeStamp);
+        fb.setTimeStamp(LocalDateTime.now());
 
         return feedbackRepo.save(fb);
     }
@@ -107,7 +135,12 @@ public class MentorService {
             m.setMentorId(mentorId);
             m.setTitle(title);
             m.setFileUrl("http://localhost:8080/materials/" + filename);
-            m.setType(file.getContentType().contains("pdf") ? "PDF" : "OTHER");
+            m.setType(
+                    file.getContentType() != null &&
+                    file.getContentType().contains("pdf")
+                            ? "PDF"
+                            : "OTHER"
+            );
 
             return materialRepo.save(m);
 
@@ -124,12 +157,19 @@ public class MentorService {
 
     public MentorProfile updateProfile(UpdateMentorProfileDTO dto) {
 
-        if (dto.mentorId == null) {
-            throw new RuntimeException("mentorId không được null");
+        if (dto == null || dto.mentorId == null || dto.mentorId.isEmpty()) {
+            throw new RuntimeException("mentorId không hợp lệ");
         }
 
-        // ✅ FIX QUAN TRỌNG: mentorId PHẢI tồn tại trong bảng user
-        User mentor = userRepo.findById(Long.valueOf(dto.mentorId))
+        // mentorId phải tồn tại trong bảng users
+        Long mentorUserId;
+        try {
+            mentorUserId = Long.parseLong(dto.mentorId);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("mentorId phải là số");
+        }
+
+        User mentor = userRepo.findById(mentorUserId)
                 .orElseThrow(() -> new RuntimeException("Mentor user không tồn tại"));
 
         MentorProfile profile = profileRepo
@@ -143,8 +183,8 @@ public class MentorService {
 
         profile.setFullName(dto.fullName);
         profile.setBio(dto.bio);
-        profile.setSkills(dto.skills);
-        profile.setCertificates(dto.certificates);
+        profile.setSkills(dto.skills == null ? new ArrayList<>() : dto.skills);
+        profile.setCertificates(dto.certificates == null ? new ArrayList<>() : dto.certificates);
 
         return profileRepo.save(profile);
     }

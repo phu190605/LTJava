@@ -1,3 +1,4 @@
+/* ================== LEARNING SESSION ================== */
 export interface LearningSession {
   id: string;
   learnerId: string;
@@ -6,6 +7,7 @@ export interface LearningSession {
   status: string;
 }
 
+/* ================== MATERIAL ================== */
 export interface LearningMaterial {
   id: string;
   title: string;
@@ -13,6 +15,7 @@ export interface LearningMaterial {
   type: string;
 }
 
+/* ================== MENTOR PROFILE ================== */
 export interface MentorProfile {
   mentorId: string;
   fullName: string;
@@ -20,4 +23,14 @@ export interface MentorProfile {
   skills: string[];
   certificates: string[];
   avatarUrl?: string;
+}
+
+/* ================== ASSESSMENT & LEVELING ================== */
+export interface Assessment {
+  id: number;         
+  userId: number;      
+  score: number;      
+  feedback: string;    
+  audioUrl?: string;  
+  createdAt: string;  
 }

@@ -1,35 +1,39 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getSessions } from "../../api/mentorService";
+import { getPendingAssessments } from "../../api/mentorService";
+import type { Assessment } from "../../types/mentor";
 
 export default function AssessmentList() {
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [list, setList] = useState<Assessment[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    getSessions("mentor01").then(res => setSessions(res.data));
+    getPendingAssessments().then(res => setList(res.data));
   }, []);
 
   return (
-    <div>
-      <h1 style={{ fontSize: 24, marginBottom: 20 }}>
-        Đánh giá & Xếp lớp
-      </h1>
+    <div style={{ padding: 24 }}>
+      <h1>Đánh giá & Xếp lớp</h1>
 
-      <div style={{ background: "#fff", borderRadius: 8, padding: 16 }}>
-        {sessions.map(s => (
+      {list.length === 0 && <p>Chưa có bài test mới</p>}
+
+      <div style={{ background: "#fff", borderRadius: 8 }}>
+        {list.map(a => (
           <div
-            key={s.id}
-            onClick={() => navigate(`/mentor/assessment/${s.id}`)}
+            key={a.id}
+            onClick={() =>
+              navigate(`/mentor/assessment/${a.userId}`)
+            }
             style={{
-              padding: 12,
+              padding: 16,
               borderBottom: "1px solid #e5e7eb",
               cursor: "pointer",
             }}
           >
-            <b>{s.learnerName}</b>
+            <b>User ID: {a.userId}</b>
+            <div>AI Score: {a.score}</div>
             <div style={{ fontSize: 13, color: "#64748b" }}>
-              Submitted: {s.createdAt}
+              Submitted: {new Date(a.createdAt).toLocaleString()}
             </div>
           </div>
         ))}

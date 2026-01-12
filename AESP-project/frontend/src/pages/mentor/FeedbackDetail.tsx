@@ -1,69 +1,41 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import FeedbackForm from "../../components/FeedbackForm";
 import AudioPlayer from "../../components/AudioPlayer";
-import { getFeedback } from "../../api/mentorService";
+import SessionFeedbackForm from "../../components/SessionFeedbackForm";
+import { getSessionDetail } from "../../api/mentorSessionService";
 
 export default function FeedbackDetail() {
-  const { sessionId } = useParams();
-  const [audioUrl, setAudioUrl] = useState<string>("");
+  const { sessionId } = useParams<{ sessionId: string }>();
+  const [audioUrl, setAudioUrl] = useState("");
 
   useEffect(() => {
     if (!sessionId) return;
 
-    getFeedback(sessionId).then(res => {
+    getSessionDetail(sessionId).then(res => {
       setAudioUrl(res.data.audioUrl);
     });
   }, [sessionId]);
 
-  if (!sessionId) {
-    return <div>Session không tồn tại</div>;
-  }
+  if (!sessionId) return <div>Session không tồn tại</div>;
 
   return (
     <div>
-      <h1 style={{ fontSize: 24, marginBottom: 20 }}>
-        Đánh giá & Xếp lớp
-      </h1>
+      <h1>Chấm bài Speaking</h1>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 24,
-        }}
-      >
-        {/* LEFT: AUDIO */}
-        <div
-          style={{
-            flex: 1,
-            background: "#fff",
-            padding: 20,
-            borderRadius: 8,
-            boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-          }}
-        >
-          <h3 style={{ marginBottom: 12 }}>Bài nói của học viên</h3>
-
+      <div style={{ display: "flex", gap: 24 }}>
+        {/* AUDIO */}
+        <div style={{ flex: 1 }}>
+          <h3>Bài nói của học viên</h3>
           {audioUrl ? (
             <AudioPlayer src={audioUrl} />
           ) : (
-            <div style={{ color: "#64748b" }}>
-              Đang tải audio...
-            </div>
+            <p>Đang tải audio...</p>
           )}
         </div>
 
-        {/* RIGHT: FEEDBACK FORM */}
-        <div
-          style={{
-            flex: 1,
-            background: "#fff",
-            padding: 20,
-            borderRadius: 8,
-            boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-          }}
-        >
-          <FeedbackForm sessionId={sessionId} />
+        {/* FEEDBACK */}
+        <div style={{ flex: 1 }}>
+          <SessionFeedbackForm sessionId={sessionId} />
         </div>
       </div>
     </div>
