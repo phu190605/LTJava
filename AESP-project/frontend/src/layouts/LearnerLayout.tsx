@@ -21,6 +21,7 @@ const LearnerLayout: React.FC = () => {
 
     const [userInfo, setUserInfo] = useState<{ fullName: string; avatarUrl: string } | null>(null);
 
+
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
@@ -33,7 +34,21 @@ const LearnerLayout: React.FC = () => {
                 console.error("Lỗi lấy thông tin Header:", error);
             }
         };
+
+        // 1. Gọi lần đầu khi vào trang
         fetchUserInfo();
+
+        // 2. Lắng nghe sự kiện "user-updated" từ SettingsForm bắn sang
+        const handleUpdate = () => {
+            fetchUserInfo(); // Gọi lại API để cập nhật Avatar mới ngay lập tức
+        };
+        
+        window.addEventListener('user-updated', handleUpdate);
+
+        // 3. Dọn dẹp khi thoát trang (Bắt buộc để tránh lỗi)
+        return () => {
+            window.removeEventListener('user-updated', handleUpdate);
+        };
     }, []);
 
     // --- DANH SÁCH MENU BÊN TRÁI ---
