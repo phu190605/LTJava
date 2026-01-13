@@ -10,6 +10,8 @@ import PaymentHistoryPage from './pages/PaymentHistoryPage'; //  trang lịch s�
 import SubscriptionPage from './pages/SubscriptionPage'; // trang Quản lý gói học
 import AIPracticePage from './pages/AIPracticePage'; //  trang Luyện nói AI 1-1
 import LearnerLayout from './layouts/LearnerLayout'; // Layout dành cho Learner
+import CheckoutPage from './pages/CheckoutPage';// trang Thanh toán
+import PaymentSuccessPage from './pages/PaymentSuccessPage';// trang Kết quả thanh toán
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
           <Route path="/payment-history" element={<PaymentHistoryPage />} /> {/* Trang lịch sử thanh toán */}
           <Route path="/subscription" element={<SubscriptionPage />} /> {/* Trang Quản lý gói học */}
           <Route path="/ai-practice" element={<AIPracticePage />} /> {/* Trang Luyện nói AI 1-1 */}
+          <Route path="/checkout/:packageId" element={<CheckoutPage />} />
+          <Route path="/payment-success" element={<PaymentSuccessPage />} />
 
           {/* Các route giữ chỗ (Placeholder) cho Menu đỡ lỗi */}
           <Route path="/my-courses" element={<div>Trang Khóa học (Đang phát triển)</div>} />

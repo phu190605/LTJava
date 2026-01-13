@@ -134,7 +134,7 @@ const SubscriptionPage: React.FC = () => {
                                                 color: isCurrent ? '#52c41a' : '#fff',
                                                 fontWeight: 'bold'
                                             }}
-                                            onClick={() => handleUpgrade(pkg.packageId, pkg.packageName)}
+                                            onClick={() => navigate(`/checkout/${pkg.packageId}`)}
                                         >
                                             {isCurrent ? "Gói hiện tại" : "Nâng cấp ngay"}
                                         </Button>
