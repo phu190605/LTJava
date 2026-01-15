@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Button, Row, Col, Card, Typography, Avatar, Tag, Space } from 'antd';
-import { CheckCircleFilled, AudioOutlined, RobotOutlined, UsergroupAddOutlined, StarFilled, PlayCircleFilled, ThunderboltFilled, GlobalOutlined, AimOutlined } from '@ant-design/icons';
-// import { useNavigate } from 'react-router-dom'; // Không cần dùng navigate nữa
+import { CheckCircleFilled, AudioOutlined, RobotOutlined, UsergroupAddOutlined, ThunderboltFilled, GlobalOutlined, AimOutlined } from '@ant-design/icons';
 import logoImg from '../assets/images/logo.png';
-import AuthModal from '../components/AuthModal'; // Đảm bảo đường dẫn đúng
+import AuthModal from '../components/AuthModal';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -14,7 +13,6 @@ const softShadow = '0 20px 40px rgba(43, 77, 255, 0.08)';
 const hoverShadow = '0 30px 60px rgba(43, 77, 255, 0.15)';
 
 // --- INTERFACE CHO LAYOUT ---
-// Thêm props để nhận hàm mở modal từ cha
 interface LandingLayoutProps {
   children: React.ReactNode;
   onOpenLogin: () => void;
@@ -65,7 +63,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children, onOpenLogin, on
             <Button type="text" style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b' }}>Tính năng</Button>
         </Space>
 
-        {/* ACTION RIGHT - ĐÃ SỬA: GỌI HÀM TỪ PROPS */}
+        {/* ACTION RIGHT */}
         <Space size={20} style={{ minWidth: '200px', justifyContent: 'flex-end' }}>
             {/* Nút Đăng nhập */}
             <Button 
@@ -98,7 +96,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children, onOpenLogin, on
           {children}
       </div>
 
-      {/* Footer (Giữ nguyên) */}
+      {/* Footer */}
       <footer style={{ background: '#0F172A', color: 'white', padding: '80px 20px 40px' }}>
           <div style={{ maxWidth: 1200, margin: '0 auto' }}>
               <Row gutter={[40, 40]}>
@@ -151,13 +149,11 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children, onOpenLogin, on
 
 // --- LANDING PAGE MAIN COMPONENT ---
 const LandingPage: React.FC = () => {
-  // const navigate = useNavigate(); // Đã comment vì dùng Modal
-
-  // 1. STATE QUẢN LÝ MODAL (Thêm mới)
+  // STATE QUẢN LÝ MODAL
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authView, setAuthView] = useState<"LOGIN" | "REGISTER">("LOGIN");
 
-  // 2. CÁC HÀM MỞ MODAL
+  // CÁC HÀM MỞ MODAL
   const openLogin = () => {
     setAuthView("LOGIN");
     setIsAuthModalOpen(true);
@@ -200,11 +196,10 @@ const LandingPage: React.FC = () => {
   `;
 
   return (
-    // Truyền callback xuống Layout để nút Header hoạt động
     <LandingLayout onOpenLogin={openLogin} onOpenRegister={openRegister}>
       <style>{styles}</style>
       
-      {/* 3. CHÈN AUTH MODAL TẠI ĐÂY */}
+      {/* AUTH MODAL */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
@@ -237,7 +232,7 @@ const LandingPage: React.FC = () => {
                   type="primary" 
                   size="large" 
                   style={{ height: '64px', padding: '0 48px', fontSize: '18px', fontWeight: 700, background: primaryGradient, border: 'none', borderRadius: '16px', boxShadow: '0 15px 30px rgba(43, 77, 255, 0.3)' }} 
-                  onClick={openRegister} // SỬA: Mở Modal Register
+                  onClick={openRegister}
                 >
                   Kiểm tra trình độ ngay
                 </Button>
@@ -359,7 +354,6 @@ const LandingPage: React.FC = () => {
                     </li>
                   ))}
                 </ul>
-                {/* SỬA: Mở Modal Register */}
                 <Button onClick={openRegister} size="large" block style={{ borderRadius: 16, height: 56, fontSize: 18, fontWeight: 600, border: '2px solid #E2E8F0', color: '#475569' }}>Chọn gói này</Button>
               </Card>
             </Col>
@@ -386,7 +380,6 @@ const LandingPage: React.FC = () => {
                       </li>
                     ))}
                   </ul>
-                  {/* SỬA: Mở Modal Register */}
                   <Button onClick={openRegister} type="primary" size="large" block style={{ borderRadius: 16, height: 56, fontSize: 18, fontWeight: 700, background: primaryGradient, border: 'none', boxShadow: '0 10px 25px rgba(43, 77, 255, 0.4)' }}>Bắt đầu ngay</Button>
                 </Card>
               </div>

@@ -22,12 +22,12 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
   return (
     <Layout className="layout" style={{ background: '#fff' }}>
       {/* HEADER */}
-      <Header style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
-        background: '#fff', 
-        padding: '0 50px', 
+      <Header style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        background: '#fff',
+        padding: '0 50px',
         boxShadow: '0 2px 8px #f0f1f2',
         height: '80px',
         position: 'sticky',
@@ -35,7 +35,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
         zIndex: 1000
       }}>
         {/* LOGO */}
-        <div 
+        <div
           style={{ fontSize: '24px', fontWeight: '900', color: '#333', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
           onClick={() => navigate('/')}
         >
@@ -43,21 +43,21 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
             AESP
           </div>
         </div>
-        
+
         {/* MENU GIỮA */}
-        <Menu 
-          mode="horizontal" 
-          items={menuItems} 
-          style={{ flex: 1, justifyContent: 'center', borderBottom: 'none', fontSize: '16px', fontWeight: 500 }} 
+        <Menu
+          mode="horizontal"
+          items={menuItems}
+          style={{ flex: 1, justifyContent: 'center', borderBottom: 'none', fontSize: '16px', fontWeight: 500 }}
         />
-        
+
         {/* NÚT BẤM */}
         <div style={{ display: 'flex', gap: '15px' }}>
           <Button type="text" style={{ fontSize: '16px', fontWeight: 600 }} onClick={() => navigate('/login')}>
             Đăng nhập
           </Button>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             size="large"
             style={{ backgroundColor: '#2B4DFF', borderRadius: '6px', fontWeight: 'bold' }}
             onClick={() => navigate('/register')}

@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 
 const { Header, Content, Footer } = Layout;
 
-// Định nghĩa kiểu dữ liệu cho props (nội dung bên trong)
 interface MainLayoutProps {
   children: React.ReactNode;
 }
@@ -14,26 +13,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
 
-  // Lấy thông tin user từ LocalStorage khi mới vào trang
   useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
       setUser(JSON.parse(userStr));
     } else {
-      // Nếu chưa đăng nhập mà cố vào -> Đá về trang Login
       navigate('/login');
     }
   }, [navigate]);
 
-  // Hàm Đăng xuất
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Xóa token
-    localStorage.removeItem('user');  // Xóa thông tin user
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     message.success('Đã đăng xuất!');
-    navigate('/login'); // Quay về trang đăng nhập
+    navigate('/login');
   };
 
-  // Menu thả xuống khi bấm vào Avatar
   const userMenuItems = [
     {
       key: 'logout',
@@ -63,7 +58,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             Xin chào, <strong>{user?.fullName}</strong> ({user?.role})
           </span>
 
-          {/* ✅ FIX TRIỆT ĐỂ LỖI overlay */}
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <Avatar
               style={{ backgroundColor: '#87d068', cursor: 'pointer' }}
@@ -74,14 +68,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </Header>
 
       <Content style={{ padding: 24 }}>
-        <div
-          style={{
-            background: '#fff',
-            padding: 24,
-            minHeight: 380,
-            borderRadius: 8
-          }}
-        >
+        <div style={{ background: '#fff', padding: 24, minHeight: 380, borderRadius: 8 }}>
           {children}
         </div>
       </Content>

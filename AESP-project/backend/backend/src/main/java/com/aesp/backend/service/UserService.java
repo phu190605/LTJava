@@ -1,11 +1,13 @@
 package com.aesp.backend.service;
 
 import java.util.List;
-
+import org.springframework.security.core.userdetails.UserDetailsService;
 import com.aesp.backend.dto.request.CreateMentorRequest;
 import com.aesp.backend.entity.User;
 
-public interface UserService {
+
+
+public interface UserService extends UserDetailsService {
 
     // ===== Mentor =====
     User createMentor(CreateMentorRequest request);

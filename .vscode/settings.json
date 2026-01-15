@@ -1,0 +1,33 @@
+{
+  "java.jdt.ls.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-17",
+      "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot",
+      "default": true
+    }
+  ],
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "maven.terminal.useJavaHome": true,
+  "java.import.maven.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot",
+  "java.import.gradle.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot",
+  "java.server.launchMode": "Standard",
+  "java.configuration.enableAnnotationProcessing": true,
+  "java.jdt.ls.vmargs": "-javaagent:C:/Users/khann/.m2/repository/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar",
+  "java.jdt.ls.lombokSupport.enabled": true,
+  "terminal.integrated.env.windows": {
+    "JAVA_HOME": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot",
+    "PATH": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot\\bin;${env:PATH}"
+  },
+  "terminal.integrated.profiles.windows": {
+    "PowerShell (JDK 17)": {
+      "source": "PowerShell",
+      "env": {
+        "JAVA_HOME": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot",
+        "PATH": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot\\bin;${env:PATH}"
+      }
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell (JDK 17)",
+  "sqltools.connections": []
+}

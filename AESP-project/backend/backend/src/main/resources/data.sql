@@ -7,3 +7,5 @@ INSERT IGNORE INTO skills (name) VALUES
 ('Speaking'),
 ('TOEIC'),
 ('Writing');
+
+

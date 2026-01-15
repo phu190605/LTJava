@@ -21,21 +21,21 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    @JsonIgnore // không trả password ra API
+    @JsonIgnore // Không trả password ra API để bảo mật
     private String password;
 
-    // ADMIN / MENTOR / LEARNER
+    // Phân quyền: "ADMIN", "MENTOR", "LEARNER"
     @Column(nullable = false)
     private String role;
 
     @Column(nullable = false)
     private String fullName;
 
-    // enable / disable user
+    // Trạng thái kích hoạt (true/false)
     @Column(nullable = false)
     private boolean active = true;
 
-    // ===== Mentor skills =====
+    // ===== MENTOR SKILLS (Quan hệ nhiều-nhiều) =====
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "mentor_skills",
@@ -44,18 +44,21 @@ public class User {
     )
     @JsonManagedReference
     private Set<Skill> skills = new HashSet<>();
-    // ===== PASSWORD RESET (TOKEN) =====
+
+    // ===== PASSWORD RESET (TOKEN & OTP) =====
     private String resetToken;
     private LocalDateTime resetTokenExpiry;
 
-    // ===== PASSWORD RESET (OTP) =====
     private String resetOtp;
     private LocalDateTime resetOtpExpiry;
 
     // ===== CONSTRUCTOR =====
-    public User() {}
+    public User() {
+        // Constructor rỗng bắt buộc cho JPA
+    }
 
-    // ===== GETTER & SETTER =====
+    // ===== GETTER & SETTER (VIẾT TAY) =====
+
     public Long getId() {
         return id;
     }
@@ -67,31 +70,31 @@ public class User {
     public String getEmail() {
         return email;
     }
- 
+
     public void setEmail(String email) {
         this.email = email;
     }
- 
+
     public String getPassword() {
         return password;
     }
- 
+
     public void setPassword(String password) {
         this.password = password;
     }
- 
+
     public String getRole() {
         return role;
     }
- 
+
     public void setRole(String role) {
         this.role = role;
     }
- 
+
     public String getFullName() {
         return fullName;
     }
- 
+
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }
@@ -107,11 +110,11 @@ public class User {
     public Set<Skill> getSkills() {
         return skills;
     }
- 
+
     public void setSkills(Set<Skill> skills) {
         this.skills = skills;
     }
-    // ===== RESET TOKEN =====
+
     public String getResetToken() {
         return resetToken;
     }
@@ -128,7 +131,6 @@ public class User {
         this.resetTokenExpiry = resetTokenExpiry;
     }
 
-    // ===== RESET OTP =====
     public String getResetOtp() {
         return resetOtp;
     }
@@ -144,5 +146,4 @@ public class User {
     public void setResetOtpExpiry(LocalDateTime resetOtpExpiry) {
         this.resetOtpExpiry = resetOtpExpiry;
     }
-
-} 
+}

@@ -25,8 +25,12 @@ import com.aesp.backend.dto.request.TestEmailRequest;
 import com.aesp.backend.dto.request.VerifyOtpRequest;
 import com.aesp.backend.entity.User;
 import com.aesp.backend.repository.UserRepository;
+
 import com.aesp.backend.service.EmailService;
 import com.aesp.backend.service.IUserService;
+
+import com.aesp.backend.security.JwtUtils;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -38,6 +42,8 @@ public class AuthController {
 
     @Autowired
     PasswordEncoder passwordEncoder;
+    @Autowired
+    JwtUtils jwtUtils;
 
     @Autowired
     IUserService userService;
@@ -73,7 +79,9 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Error: Email đã tồn tại!");
         }
 
+
         // Nếu có gửi role và role khác LEARNER thì từ chối, còn nếu không gửi role thì cho phép
+
         if (request.getRole() != null && !"LEARNER".equalsIgnoreCase(request.getRole())) {
             return ResponseEntity.badRequest().body("Error: Chỉ admin mới được tạo tài khoản mentor!");
         }
@@ -100,17 +108,17 @@ public class AuthController {
             User user = userOp.get();
             // Kiểm tra mật khẩu (pass nhập vào vs pass đã mã hóa trong DB)
             boolean passMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
-            logger.info("Login attempt email='{}' role='{}' passMatches={}", request.getEmail(), user.getRole(), passMatches);
+            logger.info("Login attempt email='{}' role='{}' passMatches={}", request.getEmail(), user.getRole(),
+                    passMatches);
             if (passMatches) {
-                
-                // Ở đây sau này sẽ sinh JWT Token thật. 
-                // Tạm thời trả về Map để test trước.
+                // TẠO TOKEN THIỆT
+                String token = jwtUtils.generateToken(user.getEmail());
                 Map<String, String> response = new HashMap<>();
-                response.put("token", "fake-jwt-token-cho-vui-123456"); 
+                response.put("token", token);
                 response.put("role", user.getRole());
                 response.put("email", user.getEmail());
                 response.put("fullName", user.getFullName());
-                
+
                 return ResponseEntity.ok(response);
             }
         }
@@ -126,7 +134,7 @@ public class AuthController {
 
         if (userOp.isPresent()) {
             User user = userOp.get();
-            
+
             // Kiểm tra xem user có phải admin không
             logger.info("Admin login attempt email='{}' role='{}'", request.getEmail(), user.getRole());
             if (!"ADMIN".equals(user.getRole())) {
@@ -137,12 +145,14 @@ public class AuthController {
             boolean passMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
             logger.info("Admin password match for '{}': {}", request.getEmail(), passMatches);
             if (passMatches) {
+                // TẠO TOKEN THIỆT
+                String token = jwtUtils.generateToken(user.getEmail());
                 Map<String, String> response = new HashMap<>();
-                response.put("token", "fake-jwt-admin-token-123456");
+                response.put("token", token);
                 response.put("role", user.getRole());
                 response.put("email", user.getEmail());
                 response.put("fullName", user.getFullName());
-                
+
                 return ResponseEntity.ok(response);
             }
         }

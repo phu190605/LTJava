@@ -16,16 +16,17 @@ import com.aesp.backend.dto.request.CreateMentorRequest;
 import com.aesp.backend.entity.User;
 import com.aesp.backend.service.UserService;
 
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/admin/mentors")
-@RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:5173")
 public class AdminMentorController {
 
     private final UserService userService;
-
+    // Constructor
+public AdminMentorController(UserService userService) {
+        this.userService = userService;
+    }
     @PostMapping
     public User createMentor(@RequestBody CreateMentorRequest request) {
         return userService.createMentor(request);

@@ -16,4 +16,19 @@ axiosClient.interceptors.request.use((config) => {
   return config;
 });
 
+//  Interceptor RESPONSE (Bộ lọc kết quả)
+// Tác dụng: Tự động bóc vỏ 'data' ra trước khi trả về cho LoginPage
+axiosClient.interceptors.response.use(
+  (response) => {
+    // Nếu có data thì trả về data, giúp LoginPage gọi res.token là thấy ngay
+    if (response && response.data) {
+      return response.data;
+    }
+    return response;
+  },
+  (error) => {
+// SỬA: Dùng Promise.reject thay vì throw error để đúng chuẩn Axios
+    return Promise.reject(error);
+  }
+);
 export default axiosClient;
