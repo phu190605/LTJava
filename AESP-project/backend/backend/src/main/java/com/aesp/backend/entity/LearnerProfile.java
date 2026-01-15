@@ -1,4 +1,3 @@
-
 package com.aesp.backend.entity;
 
 import java.util.ArrayList;
@@ -54,6 +53,10 @@ public class LearnerProfile {
     @Column(name = "occupation")
     private String occupation;
 
+    // ------ Trạng thái thiết lập (Merged) ------
+    @Column(name = "is_setup_complete", nullable = false)
+    private boolean isSetupComplete = false;
+
     @Column(name = "current_level_code")
     private String currentLevelCode;
 
@@ -96,6 +99,16 @@ public class LearnerProfile {
     }
 
     // ============= GETTERS & SETTERS =============
+    
+    // Getter & Setter cho isSetupComplete (Mới thêm)
+    public boolean isSetupComplete() {
+        return isSetupComplete;
+    }
+
+    public void setSetupComplete(boolean setupComplete) {
+        isSetupComplete = setupComplete;
+    }
+
     public Long getProfileId() {
         return profileId;
     }

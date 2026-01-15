@@ -1,4 +1,3 @@
-
 package com.aesp.backend.controller;
 
 import java.util.HashMap;
@@ -15,7 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import com.aesp.backend.dto.request.LoginRequest;
 import com.aesp.backend.dto.request.SignupRequest;
 import com.aesp.backend.entity.User;
+import com.aesp.backend.entity.LearnerProfile;
 import com.aesp.backend.repository.UserRepository;
+import com.aesp.backend.repository.LearnerProfileRepository;
 import com.aesp.backend.security.JwtUtils;
 
 @RestController
@@ -24,6 +25,9 @@ public class AuthController {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    LearnerProfileRepository learnerProfileRepository; // Thêm repository để check profile
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -44,7 +48,6 @@ public class AuthController {
         user.setFullName(request.getFullName());
         user.setRole("LEARNER");
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        // Mặc định khi đăng ký là chưa test
         user.setTested(false); 
 
         userRepository.save(user);
@@ -62,14 +65,22 @@ public class AuthController {
             if (passMatches) {
                 String token = jwtUtils.generateToken(user.getEmail());
                 
-                // CẬP NHẬT: Trả về thêm isTested và level
+                // KIỂM TRA TRẠNG THÁI SETUP MỤC TIÊU/LỘ TRÌNH
+                boolean isSetupComplete = false;
+                Optional<LearnerProfile> profileOp = learnerProfileRepository.findByUser_Id(user.getId());
+                if (profileOp.isPresent()) {
+                    isSetupComplete = profileOp.get().isSetupComplete();
+                }
+                
                 Map<String, Object> response = new HashMap<>();
                 response.put("token", token);
                 response.put("role", user.getRole());
                 response.put("email", user.getEmail());
                 response.put("fullName", user.getFullName());
-                response.put("isTested", user.isTested()); // Quan trọng nhất
+                response.put("isTested", user.isTested());
                 response.put("level", user.getLevel());
+                // TRẢ VỀ TRẠNG THÁI SETUP ĐỂ FRONTEND ĐIỀU HƯỚNG
+                response.put("isSetupComplete", isSetupComplete); 
 
                 return ResponseEntity.ok(response);
             }
@@ -103,17 +114,24 @@ public class AuthController {
         return ResponseEntity.badRequest().body("Sai email hoặc mật khẩu!");
     }
 
-    // Các debug endpoints giữ nguyên nhưng cập nhật trả về thêm info
     @GetMapping("/debug/user")
     public ResponseEntity<?> debugUser(@RequestParam String email) {
         Optional<User> userOp = userRepository.findByEmail(email);
         if (userOp.isEmpty()) return ResponseEntity.notFound().build();
         
         User user = userOp.get();
+        
+        boolean isSetupComplete = false;
+        Optional<LearnerProfile> profileOp = learnerProfileRepository.findByUser_Id(user.getId());
+        if (profileOp.isPresent()) {
+            isSetupComplete = profileOp.get().isSetupComplete();
+        }
+
         Map<String, Object> resp = new HashMap<>();
         resp.put("email", user.getEmail());
         resp.put("isTested", user.isTested());
         resp.put("level", user.getLevel());
+        resp.put("isSetupComplete", isSetupComplete);
         return ResponseEntity.ok(resp);
     }
 }

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Form, Input, Button, message, Card } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
@@ -21,25 +20,31 @@ const LoginPage: React.FC = () => {
       // 2. Kiểm tra và Lưu dữ liệu
       if (res.token) {
         localStorage.setItem('token', res.token);
-        // Lưu toàn bộ object user bao gồm cả isTested và level
+        // Lưu toàn bộ object user bao gồm cả isTested, isSetupComplete và level
         localStorage.setItem('user', JSON.stringify(res));
 
         message.success('Đăng nhập thành công!');
 
-        // 3. LOGIC ĐIỀU HƯỚNG THÔNG MINH
+        // 3. LOGIC ĐIỀU HƯỚNG THÔNG MINH (ĐÃ MERGE IS_SETUP_COMPLETE)
         if (res.role === 'ADMIN') {
           navigate('/admin');
         } else if (res.role === 'MENTOR') {
           navigate('/mentor');
         } else {
-          // KIỂM TRA TRẠNG THÁI TEST TỪ BACKEND TRẢ VỀ
-          if (res.isTested === true) {
-            // Nếu đã test rồi -> Vào thẳng Dashboard
+          // KIỂM TRA TRẠNG THÁI TEST ĐẦU VÀO
+          if (res.isTested !== true) {
+            // Nếu chưa làm bài test -> Bắt đi làm bài test trước
+            navigate('/speaking-test');
+          } 
+          // KIỂM TRA TRẠNG THÁI SETUP MỤC TIÊU & LỘ TRÌNH
+          else if (res.isSetupComplete === true) {
+            // Nếu đã xong cả test và setup -> Vào thẳng Dashboard
             message.info("Chào mừng quay trở lại!");
             navigate('/dashboard'); 
-          } else {
-            // Nếu chưa test (isTested = false hoặc 0) -> Bắt đi làm bài test
-            navigate('/speaking-test');
+          } 
+          else {
+            // Nếu đã test nhưng chưa setup lộ trình -> Vào trang Setup
+            navigate('/setup');
           }
         }
       } else {

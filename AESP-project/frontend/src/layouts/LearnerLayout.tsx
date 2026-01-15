@@ -1,14 +1,12 @@
-
 import React, { useEffect, useState } from 'react';
-import { AudioOutlined } from '@ant-design/icons';
-import { Layout, Menu, Avatar, Typography, Space, theme, Dropdown } from 'antd';
-import type { MenuProps } from 'antd';
-import {
-    HomeOutlined, ReadOutlined, AimOutlined,
-    CalendarOutlined, SettingOutlined, UserOutlined,
-    LogoutOutlined, HistoryOutlined, CrownOutlined,
+import { 
+    AudioOutlined, HomeOutlined, ReadOutlined, AimOutlined, 
+    CalendarOutlined, SettingOutlined, UserOutlined, 
+    LogoutOutlined, HistoryOutlined, CrownOutlined, 
     TeamOutlined, MessageOutlined 
 } from '@ant-design/icons';
+import { Layout, Menu, Avatar, Typography, Space, theme, Dropdown } from 'antd';
+import type { MenuProps } from 'antd';
 import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 
@@ -19,29 +17,28 @@ const LearnerLayout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { token: { colorBgContainer } } = theme.useToken();
-
     const [userInfo, setUserInfo] = useState<{ fullName: string; avatarUrl: string } | null>(null);
 
-    // --- LOGIC KIỂM TRA TRẠNG THÁI NGƯỜI DÙNG ---
+    // --- 1. LẤY DỮ LIỆU TRẠNG THÁI ---
     const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-    
-    // Kiểm tra xem đã hoàn thành setup chưa (dựa trên URL hoặc localStorage)
     const isSetupDone = storedUser.isSetupComplete === true;
     const isCurrentlySettingUp = location.pathname === "/setup";
 
-    // 1. Nếu chưa từng làm Speaking Test -> Buộc quay về trang test
+    // --- 2. ĐIỀU HƯỚNG BẮT BUỘC (ROUTE GUARDS) ---
+    // Phải kiểm tra điều kiện trước khi fetch dữ liệu để tránh lỗi API
     if (!storedUser.isTested) {
         return <Navigate to="/speaking-test" replace />;
     }
 
-    // 2. Nếu cố tình vào Dashboard mà chưa xong Setup -> Đẩy về Setup
     if (!isSetupDone && !isCurrentlySettingUp) {
         return <Navigate to="/setup" replace />;
     }
 
+    // --- 3. FETCH THÔNG TIN NGƯỜI DÙNG ---
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
+                // Chỉ gọi API nếu đã đăng nhập và đã qua các bước bắt buộc
                 const res: any = await axiosClient.get('/profile/dashboard');
                 setUserInfo({
                     fullName: res.fullName,
@@ -52,8 +49,9 @@ const LearnerLayout: React.FC = () => {
             }
         };
         fetchUserInfo();
-    }, []);
+    }, [location.pathname]); // Re-fetch nếu chuyển trang để cập nhật avatar/tên mới nhất
 
+    // --- 4. CẤU HÌNH MENU ---
     const menuItems = [
         { key: '/dashboard', icon: <HomeOutlined />, label: 'Tổng quan' },
         { key: '/ai-practice', icon: <AudioOutlined />, label: 'Luyện nói AI (Premium)' },
@@ -92,7 +90,7 @@ const LearnerLayout: React.FC = () => {
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            {/* CHỈ HIỆN SIDEBAR KHI ĐÃ XONG SETUP HOẶC KHÔNG PHẢI TRANG SETUP LẦN ĐẦU */}
+            {/* Sidebar chỉ xuất hiện khi ĐÃ hoàn thành setup mục tiêu */}
             {isSetupDone && (
                 <Sider width={260} theme="light" breakpoint="lg" collapsedWidth="0" style={{ borderRight: '1px solid #f0f0f0' }}>
                     <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #f0f0f0' }}>
@@ -119,7 +117,6 @@ const LearnerLayout: React.FC = () => {
                     alignItems: 'center', 
                     borderBottom: '1px solid #f0f0f0' 
                 }}>
-                    {/* Nếu chưa xong setup, hiện Logo ở Header để đỡ trống */}
                     {!isSetupDone && (
                          <Title level={4} style={{ color: '#1890ff', margin: 0 }}>AESP LEARNER</Title>
                     )}
@@ -147,9 +144,10 @@ const LearnerLayout: React.FC = () => {
                 </Header>
 
                 <Content style={{ 
-                    margin: isSetupDone ? '24px' : '0', // Full màn hình nếu đang setup
+                    margin: isSetupDone ? '24px' : '0', 
                     padding: isSetupDone ? '0' : '40px 0', 
-                    overflow: 'initial' 
+                    overflow: 'initial',
+                    transition: 'all 0.3s'
                 }}>
                     <Outlet />
                 </Content>
