@@ -1,10 +1,11 @@
 package com.aesp.backend.controller;
 
-import com.aesp.backend.dto.request.DashboardResponse;
+import com.aesp.backend.dto.response.DashboardResponse;
 import com.aesp.backend.dto.request.ProfileResponseRequest;
 import com.aesp.backend.entity.*;
 import com.aesp.backend.repository.*;
 import com.aesp.backend.security.JwtUtils;
+import com.aesp.backend.service.SpeakingResultService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -13,14 +14,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import com.aesp.backend.entity.SpeakingResult;
-import com.aesp.backend.service.SpeakingResultService;
 import java.time.LocalDateTime;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -42,17 +37,17 @@ public class ProfileController {
     private JwtUtils jwtUtils;
     @Autowired
     private SpeakingResultService speakingResultService;
+    @Autowired
+    private SpeechAssessmentRepository speechAssessmentRepo;
 
     private ProficiencyLevel mapLevelCodeToEnum(String levelCode) {
         if (levelCode == null) return null;
-        if ("A1".equalsIgnoreCase(levelCode) || "A2".equalsIgnoreCase(levelCode)) {
-            return ProficiencyLevel.BEGINNER;
-        } else if ("B1".equalsIgnoreCase(levelCode)) {
-            return ProficiencyLevel.INTERMEDIATE;
-        } else if ("B2".equalsIgnoreCase(levelCode)) {
-            return ProficiencyLevel.ADVANCED;
-        }
-        return null;
+        return switch (levelCode.toUpperCase()) {
+            case "A1", "A2" -> ProficiencyLevel.BEGINNER;
+            case "B1" -> ProficiencyLevel.INTERMEDIATE;
+            case "B2" -> ProficiencyLevel.ADVANCED;
+            default -> null;
+        };
     }
 
     private User getCurrentUser() {
@@ -111,9 +106,6 @@ public class ProfileController {
         return ResponseEntity.ok(response);
     }
 
-    // =========================================================================
-    // API SETUP LỘ TRÌNH (FIXED: Added isSetupComplete = true)
-    // =========================================================================
     @PostMapping("/setup")
     @Transactional
     public ResponseEntity<?> setupProfile(@RequestBody ProfileResponseRequest request) {
@@ -125,11 +117,8 @@ public class ProfileController {
             profile.setCurrentLevelCode(request.getCurrentLevel());
             profile.setProficiencyLevel(mapLevelCodeToEnum(request.getCurrentLevel()));
             profile.setDailyLearningGoalMinutes(request.getDailyTime());
-
-            // 1. QUAN TRỌNG: Đánh dấu đã setup thành công để lưu 1 vào DB
             profile.setSetupComplete(true); 
 
-            // Logic Adaptive: Tự động gán chế độ học
             if ("A1".equals(request.getCurrentLevel()) || "A2".equals(request.getCurrentLevel())) {
                 profile.setLearningMode(LearnerProfile.LearningMode.FULL_SENTENCE);
             } else {
@@ -160,7 +149,6 @@ public class ProfileController {
                 }
             }
 
-            // 2. Lưu lại bản ghi đã có setSetupComplete(true)
             profileRepository.save(profile);
 
             if (request.getAssessmentScore() != null) {
@@ -179,24 +167,6 @@ public class ProfileController {
         }
     }
 
-    @PutMapping("/update-info")
-    @Transactional
-    public ResponseEntity<?> updatePersonalDetails(@RequestBody ProfileResponseRequest request) {
-        User user = getCurrentUser();
-        LearnerProfile profile = profileRepository.findByUser_Id(user.getId())
-                .orElseThrow(() -> new RuntimeException("Hồ sơ không tồn tại"));
-
-        if (request.getDisplayName() != null) profile.setDisplayName(request.getDisplayName());
-        if (request.getPhoneNumber() != null) profile.setPhoneNumber(request.getPhoneNumber());
-        if (request.getAvatarUrl() != null) profile.setAvatarUrl(request.getAvatarUrl());
-        if (request.getDob() != null) profile.setDob(request.getDob());
-        if (request.getGender() != null) profile.setGender(request.getGender());
-        if (request.getOccupation() != null) profile.setOccupation(request.getOccupation());
-
-        profileRepository.save(profile);
-        return ResponseEntity.ok("Cập nhật thành công!");
-    }
-
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboardData(@RequestHeader("Authorization") String token) {
         try {
@@ -211,56 +181,42 @@ public class ProfileController {
                 res.setFullName(user.getFullName());
                 res.setCurrentLevel("Chưa kiểm tra");
                 res.setMainGoal("Chưa thiết lập");
-                res.setDailyGoalMinutes(0);
-                res.setLearnedMinutes(0);
-                res.setInterests(new ArrayList<>());
-                res.setPackageName("Free Tier");
-                res.setHasMentor(false);
-                res.setDaysLeft(0L);
                 return ResponseEntity.ok(res);
             }
 
-            res.setFullName(profile.getDisplayName() != null && !profile.getDisplayName().isEmpty()
-                    ? profile.getDisplayName() : user.getFullName());
+            res.setFullName(profile.getDisplayName() != null && !profile.getDisplayName().isEmpty() 
+                ? profile.getDisplayName() : user.getFullName());
             res.setAvatarUrl(profile.getAvatarUrl());
             res.setCurrentLevel(profile.getCurrentLevelCode());
-
-            if (profile.getMainGoal() != null) {
-                res.setMainGoal(profile.getMainGoal().getGoalName());
-            } else {
-                res.setMainGoal("Chưa đặt mục tiêu");
-            }
             res.setDailyGoalMinutes(profile.getDailyLearningGoalMinutes());
-            res.setLearnedMinutes(0);
 
-            List<String> topicNames = new ArrayList<>();
-            if (profile.getInterests() != null) {
-                topicNames = profile.getInterests().stream()
-                        .map(interest -> interest.getTopic().getTopicName())
-                        .collect(Collectors.toList());
-            }
-            res.setInterests(topicNames);
+            // Lấy dữ liệu theo Order By CreatedAt DESC như bạn đã sửa trong Repository
+            List<SpeechAssessment> assessments = speechAssessmentRepo.findByUserIdOrderByCreatedAtDesc(user.getId());
+            
+            // Heatmap
+            Map<String, Integer> heatMapData = assessments.stream()
+                .collect(Collectors.groupingBy(
+                    a -> a.getCreatedAt().toLocalDate().toString(),
+                    Collectors.summingInt(a -> 1)
+                ));
+            res.setHeatMapData(heatMapData);
 
-            if (profile.getCurrentPackage() != null) {
-                res.setPackageName(profile.getCurrentPackage().getPackageName());
-                res.setHasMentor(profile.getCurrentPackage().getHasMentor() != null 
-                        ? profile.getCurrentPackage().getHasMentor() : false);
-            } else {
-                res.setPackageName("Free Tier");
-                res.setHasMentor(false);
-            }
+            // Trends - Đảo ngược lại để hiển thị từ cũ đến mới trên biểu đồ
+            List<SpeechAssessment> trendData = new ArrayList<>(assessments);
+            Collections.reverse(trendData);
 
-            if (profile.getSubscriptionEndDate() != null) {
-                long diffInMillies = profile.getSubscriptionEndDate().getTime() - new Date().getTime();
-                long daysLeft = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
-                res.setDaysLeft(daysLeft > 0 ? daysLeft : 0);
-            } else {
-                res.setDaysLeft(0L);
-            }
+            res.setPronunciationScores(trendData.stream().map(SpeechAssessment::getAccuracyScore).collect(Collectors.toList()));
+            res.setFluencyScores(trendData.stream().map(SpeechAssessment::getFluencyScore).collect(Collectors.toList()));
+            res.setTrendLabels(trendData.stream().map(a -> a.getCreatedAt().toLocalDate().toString()).collect(Collectors.toList()));
+            
+            // Tổng số từ
+            int totalWords = assessments.stream()
+                .mapToInt(a -> a.getWordDetails() != null ? a.getWordDetails().size() : 0).sum();
+            res.setTotalWordsLearned(totalWords);
 
             return ResponseEntity.ok(res);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi lấy dữ liệu Dashboard: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Lỗi Dashboard: " + e.getMessage());
         }
     }
 }

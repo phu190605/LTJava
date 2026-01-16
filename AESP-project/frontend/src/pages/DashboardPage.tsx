@@ -5,14 +5,17 @@ import {
 } from 'antd';
 import {
     UserOutlined, CrownOutlined, RocketOutlined, ClockCircleOutlined,
-    StarFilled, ThunderboltFilled, RightOutlined
+    StarFilled, ThunderboltFilled, RightOutlined, RiseOutlined, CalendarOutlined
 } from '@ant-design/icons';
 import axiosClient from '../api/axiosClient';
 import { useNavigate } from 'react-router-dom';
 
+// Import các component bổ trợ để vẽ biểu đồ
+import LearningTrendChart from '../components/LearningTrendChart';
+import ActivityHeatMap from '../components/ActivityHeatMap';
+
 const { Title, Text } = Typography;
 
-// Dữ liệu giả lập cho Lộ trình (Do chưa có API này, chờ bạn của bạn làm sau)
 const MOCK_LEARNING_PATH = [
     { title: 'Bài 1: Làm quen & Chào hỏi', status: 'finish', desc: 'Hoàn thành xuất sắc' },
     { title: 'Bài 2: Giới thiệu bản thân', status: 'process', desc: 'Đang học dở dang' },
@@ -27,7 +30,7 @@ const DashboardPage: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Gọi API lấy dữ liệu thật từ Backend
+                // API này giờ sẽ trả về cả: pronunciationScores, fluencyScores, heatMapData, totalWordsLearned
                 const res: any = await axiosClient.get('/profile/dashboard');
                 setData(res);
             } catch (error) {
@@ -44,8 +47,8 @@ const DashboardPage: React.FC = () => {
     }
 
     return (
-        <div>
-            {/* 1. HEADER BANNER: Thông tin cá nhân & Level */}
+        <div style={{ padding: '20px' }}>
+            {/* 1. HEADER BANNER */}
             <Card
                 style={{
                     background: 'linear-gradient(135deg, #001529 0%, #1890ff 100%)',
@@ -70,7 +73,6 @@ const DashboardPage: React.FC = () => {
                         <Title level={2} style={{ color: 'white', margin: '4px 0 12px 0' }}>
                             {data?.fullName || "Học viên AESP"}
                         </Title>
-
                         <Space size="middle" wrap>
                             <Tag color="#52c41a" style={{ padding: '4px 12px', borderRadius: 20, fontSize: 14, border: 'none' }}>
                                 <StarFilled /> Level: {data?.currentLevel}
@@ -80,8 +82,6 @@ const DashboardPage: React.FC = () => {
                             </Tag>
                         </Space>
                     </Col>
-
-                    {/* Nút tắt để sửa hồ sơ */}
                     <Col>
                         <Button ghost shape="round" onClick={() => navigate('/setup')}>
                             Cập nhật hồ sơ
@@ -91,20 +91,49 @@ const DashboardPage: React.FC = () => {
             </Card>
 
             <Row gutter={[24, 24]}>
-
-                {/* ================= CỘT TRÁI (NỘI DUNG HỌC TẬP) ================= */}
+                {/* ================= CỘT TRÁI (TIẾN ĐỘ & HOẠT ĐỘNG) ================= */}
                 <Col xs={24} lg={16}>
+                    
+                    {/* BIỂU ĐỒ XU HƯỚNG TIẾN BỘ */}
+                    <Card 
+                        title={<><RiseOutlined style={{ color: '#1890ff' }} /> Xu hướng phát triển kỹ năng</>} 
+                        style={{ borderRadius: 12, marginBottom: 24 }}
+                    >
+                        {data?.pronunciationScores && data.pronunciationScores.length > 0 ? (
+                            <LearningTrendChart 
+                                pronunciation={data.pronunciationScores} 
+                                fluency={data.fluencyScores} 
+                                labels={data.trendLabels} 
+                            />
+                        ) : (
+                            <Alert message="Chưa có dữ liệu đánh giá kỹ năng. Hãy bắt đầu luyện tập để thấy biểu đồ!" type="info" showIcon />
+                        )}
+                    </Card>
 
-                    {/* 2. Sở thích & Chủ đề quan tâm */}
+                    {/* BẢN ĐỒ NHIỆT (SỰ CHĂM CHỈ) */}
+                    <Card 
+                        title={<><CalendarOutlined style={{ color: '#52c41a' }} /> Nhật ký học tập & Sự chăm chỉ</>} 
+                        style={{ borderRadius: 12, marginBottom: 24 }}
+                    >
+                        <ActivityHeatMap rawData={data?.heatMapData || {}} />
+                        <div style={{ marginTop: 16, textAlign: 'right' }}>
+                            <Text type="secondary">Vốn từ vựng đã tích lũy: </Text>
+                            <Text strong style={{ color: '#1890ff', fontSize: 18 }}>
+                                {data?.totalWordsLearned || 0} từ
+                            </Text>
+                        </div>
+                    </Card>
+
+                    {/* Chủ đề quan tâm */}
                     <Card title="Chủ đề bạn quan tâm" style={{ borderRadius: 12, marginBottom: 24 }}>
                         {data?.interests && data.interests.length > 0 ? (
-                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            <Space wrap>
                                 {data.interests.map((topic: string, index: number) => (
-                                    <Tag key={index} color="blue" style={{ padding: '6px 14px', fontSize: 14, borderRadius: 6 }}>
+                                    <Tag key={index} color="blue" style={{ padding: '6px 14px', borderRadius: 6 }}>
                                         #{topic}
                                     </Tag>
                                 ))}
-                            </div>
+                            </Space>
                         ) : (
                             <Alert message="Bạn chưa chọn chủ đề yêu thích" type="info" showIcon action={
                                 <Button size="small" type="link" onClick={() => navigate('/setup')}>Chọn ngay</Button>
@@ -112,11 +141,8 @@ const DashboardPage: React.FC = () => {
                         )}
                     </Card>
 
-                    {/* 3. Lộ trình học (Tạm thời dùng Mock Data) */}
-                    <Card
-                        title={<><ThunderboltFilled style={{ color: '#faad14' }} /> Lộ trình học tập tiếp theo</>}
-                        style={{ borderRadius: 12 }}
-                    >
+                    {/* Lộ trình học */}
+                    <Card title={<><ThunderboltFilled style={{ color: '#faad14' }} /> Lộ trình học tập tiếp theo</>} style={{ borderRadius: 12 }}>
                         <Timeline
                             style={{ marginTop: 10 }}
                             items={MOCK_LEARNING_PATH.map(item => ({
@@ -127,7 +153,7 @@ const DashboardPage: React.FC = () => {
                                         <Text strong style={{ fontSize: 16 }}>{item.title}</Text>
                                         <div style={{ margin: '4px 0' }}><Text type="secondary">{item.desc}</Text></div>
                                         {item.status === 'process' && (
-                                            <Button type="primary" size="small" style={{ borderRadius: 12, marginTop: 4 }}>
+                                            <Button type="primary" size="small" style={{ borderRadius: 12 }}>
                                                 Học tiếp <RightOutlined />
                                             </Button>
                                         )}
@@ -138,29 +164,25 @@ const DashboardPage: React.FC = () => {
                     </Card>
                 </Col>
 
-                {/* ================= CỘT PHẢI (WIDGET & GÓI CƯỚC) ================= */}
+                {/* ================= CỘT PHẢI (STATISTICS) ================= */}
                 <Col xs={24} lg={8}>
-
-                    {/* 4. Mục tiêu ngày */}
+                    {/* Mục tiêu ngày */}
                     <Card style={{ borderRadius: 12, marginBottom: 24, textAlign: 'center' }}>
-                        <Title level={5} style={{ marginBottom: 16 }}>Mục tiêu hôm nay</Title>
-                        <div style={{ marginBottom: 16 }}>
-                            <Progress
-                                type="dashboard"
-                                percent={Math.round(((data?.learnedMinutes || 0) / (data?.dailyGoalMinutes || 30)) * 100)}
-                                strokeColor="#1890ff"
-                                gapDegree={60}
-                            />
-                        </div>
+                        <Title level={5} style={{ marginBottom: 16 }}>Mục tiêu học tập</Title>
+                        <Progress
+                            type="dashboard"
+                            percent={Math.round(((data?.learnedMinutes || 0) / (data?.dailyGoalMinutes || 30)) * 100)}
+                            strokeColor="#1890ff"
+                        />
                         <Statistic
-                            title="Thời gian đã học"
+                            title="Đã học hôm nay"
                             value={data?.learnedMinutes || 0}
                             suffix={`/ ${data?.dailyGoalMinutes} phút`}
                             valueStyle={{ fontSize: 18, fontWeight: 'bold' }}
                         />
                     </Card>
 
-                    {/* 5. Thông tin Gói dịch vụ (Subscription) */}
+                    {/* Gói dịch vụ */}
                     <Card
                         style={{
                             borderRadius: 12,
@@ -171,31 +193,26 @@ const DashboardPage: React.FC = () => {
                     >
                         <CrownOutlined style={{ fontSize: 40, color: '#faad14', marginBottom: 12 }} />
                         <Title level={4} style={{ color: '#d48806', margin: 0 }}>
-                            {data?.packageName || "Chưa đăng ký"}
+                            {data?.packageName || "Free Tier"}
                         </Title>
-
                         <div style={{ margin: '16px 0', borderTop: '1px dashed #d48806', borderBottom: '1px dashed #d48806', padding: '12px 0' }}>
                             <Text strong style={{ display: 'block' }}>
                                 Hạn sử dụng: <span style={{ color: '#d48806' }}>{data?.daysLeft} ngày</span>
                             </Text>
                             <Text type="secondary" style={{ fontSize: 12 }}>
-                                {data?.hasMentor ? "✅ Đã có Mentor hỗ trợ" : "❌ Chưa có Mentor"}
+                                {data?.hasMentor ? "✅ Có Mentor hỗ trợ" : "❌ Chưa có Mentor"}
                             </Text>
                         </div>
-
                         <Button
                             type="primary"
                             block
                             shape="round"
-                            size="large"
                             style={{ background: '#d48806', borderColor: '#d48806', fontWeight: 'bold' }}
-                            // Bấm vào sẽ dẫn sang trang Lịch sử thanh toán để xem chi tiết hoặc nâng cấp
                             onClick={() => navigate('/payment-history')}
                         >
-                            Quản lý gói & Nâng cấp
+                            Quản lý & Nâng cấp
                         </Button>
                     </Card>
-
                 </Col>
             </Row>
         </div>
