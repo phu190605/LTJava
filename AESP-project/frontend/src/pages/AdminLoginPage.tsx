@@ -5,113 +5,76 @@ import axiosClient from '../api/axiosClient';
 import { useNavigate } from 'react-router-dom';
 
 const AdminLoginPage: React.FC = () => {
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
-    // Hàm chạy khi bấm nút Đăng nhập Admin
-    const onFinish = async (values: any) => {
-        setLoading(true);
-        try {
-            // 1. Gọi API đăng nhập admin
-            const response = await axiosClient.post('/auth/admin/login', {
-                email: values.email,
-                password: values.password,
-            });
+const onFinish = async (values: any) => {
+  setLoading(true);
+  try {
+    const res: any = await axiosClient.post("/auth/login", {
+      email: values.email,
+      password: values.password,
+    });
 
-            // 2. Kiểm tra nếu user không phải admin
-            if (response.data.role !== 'ADMIN') {
-                message.error('Bạn không có quyền truy cập admin!');
-                setLoading(false);
-                return;
-            }
+    const token = res.token || res.accessToken;
+    const role = res.role || res.user?.role;
 
-            // 3. Lưu token và thông tin user
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data));
-            localStorage.setItem('role', response.data.role);
+    if (!token || !role) {
+      message.error("Đăng nhập không hợp lệ");
+      return;
+    }
 
-            message.success('Đăng nhập Admin thành công!');
+    if (role !== "ADMIN") {
+      message.error("Tài khoản này không có quyền Admin");
+      return;
+    }
 
-            // 4. Chuyển hướng tới trang admin
-            navigate('/admin');
+    localStorage.setItem("token", token);
+    localStorage.setItem("role", role);
+    localStorage.setItem("user", JSON.stringify(res.user || {}));
 
-        } catch (error: any) {
-            // 5. Xử lý lỗi
-            console.error(error);
-            message.error(error.response?.data || 'Đăng nhập thất bại!');
-        } finally {
-            setLoading(false);
-        }
-    };
+    message.success("Xin chào Admin!");
+    window.location.href = "/admin"; 
+
+  } catch (err: any) {
+    message.error(err.response?.data?.message || "Sai email hoặc mật khẩu");
+  } finally {
+    setLoading(false);
+  }
+};
 
     return (
-        <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '100vh',
-            backgroundColor: '#f0f2f5'
-        }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f0f2f5' }}>
             <Card
-                title={
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <SafetyOutlined style={{ color: '#1890ff' }} />
-                        <span>Đăng nhập Admin</span>
-                    </div>
-                }
-                style={{ width: 400 }}
+                title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><SafetyOutlined style={{ color: '#1890ff' }} /> Đăng nhập Quản Trị</div>}
+                style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
             >
+                {/* Fix lỗi Warning Alert: Dùng description thay vì message cho nội dung dài */}
                 <Alert
-                    message="Khu vực dành cho quản trị viên"
-                    description="Chỉ các tài khoản admin mới có thể truy cập trang này."
+                    message="Khu vực hạn chế"
+                    description="Chỉ dành cho quản trị viên hệ thống."
                     type="warning"
                     showIcon
                     style={{ marginBottom: 20 }}
                 />
 
-                <Form
-                    name="admin-login"
-                    onFinish={onFinish}
-                    layout="vertical"
-                >
-                    <Form.Item
-                        name="email"
-                        rules={[
-                            { required: true, message: 'Vui lòng nhập Email!' },
-                            { type: 'email', message: 'Email không hợp lệ!' }
-                        ]}
-                    >
-                        <Input
-                            prefix={<UserOutlined />}
-                            placeholder="Email"
-                            size="large"
-                        />
+                <Form name="admin-login" onFinish={onFinish} layout="vertical">
+                    <Form.Item name="email" rules={[{ required: true, message: 'Vui lòng nhập Email!' }]}>
+                        <Input prefix={<UserOutlined />} placeholder="Email" size="large" />
                     </Form.Item>
 
-                    <Form.Item
-                        name="password"
-                        rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
-                    >
-                        <Input.Password
-                            prefix={<LockOutlined />}
-                            placeholder="Mật khẩu"
-                            size="large"
-                        />
+                    <Form.Item name="password" rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}>
+                        <Input.Password prefix={<LockOutlined />} placeholder="Mật khẩu" size="large" />
                     </Form.Item>
 
                     <Form.Item>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            style={{ width: '100%', height: 40 }}
-                            loading={loading}
-                        >
+                        <Button type="primary" htmlType="submit" style={{ width: '100%', height: 40 }} loading={loading}>
                             Đăng nhập
                         </Button>
                     </Form.Item>
-
-                    <div style={{ textAlign: 'center', marginTop: 16 }}>
-                        <a href="/login">Quay lại đăng nhập thường</a>
+                    
+                    <div style={{ textAlign: 'center' }}>
+                        <a href="/login">Quay lại trang chủ</a>
                     </div>
                 </Form>
             </Card>

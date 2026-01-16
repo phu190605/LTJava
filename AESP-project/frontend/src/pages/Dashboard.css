@@ -1,0 +1,50 @@
+/* Dashboard.css */
+.dashboard-layout {
+  min-height: 100vh;
+}
+
+.sidebar-logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.welcome-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Tím xanh AESP */
+  border-radius: 16px;
+  padding: 30px;
+  color: white;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(118, 75, 162, 0.2);
+}
+
+.stat-card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.course-card {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+}
+
+.custom-menu .ant-menu-item-selected {
+  background-color: #f0f5ff !important;
+  color: #764ba2 !important;
+  border-right: 3px solid #764ba2;
+}

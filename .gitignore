@@ -30,3 +30,13 @@ Thumbs.db
 # Build outputs
 **/build/
 **/out/
+<<<<<<< HEAD
+=======
+=======
+**/node_modules/
+**/dist/
+**/.vite/
+**/.DS_Store
+**/.env
+
+>>>>>>> origin/merge_admin_learner_package

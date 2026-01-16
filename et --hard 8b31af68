@@ -1,0 +1,14 @@
+[33m8eaed951[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32musermanagement[m[33m, [m[1;31morigin/usermanagement[m[33m)[m HEAD@{0}: reset: moving to HEAD~1
+[33m3d793f79[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{1}: checkout: moving from usermanagement to usermanagement
+[33m3d793f79[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{2}: reset: moving to HEAD~1
+[33m8b31af68[m HEAD@{3}: commit: UserManagement
+[33m3d793f79[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{4}: checkout: moving from main to usermanagement
+[33m3d793f79[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{5}: pull origin main: Fast-forward
+[33m8eaed951[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32musermanagement[m[33m, [m[1;31morigin/usermanagement[m[33m)[m HEAD@{6}: reset: moving to HEAD
+[33m8eaed951[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32musermanagement[m[33m, [m[1;31morigin/usermanagement[m[33m)[m HEAD@{7}: reset: moving to HEAD~1
+[33m6c533de8[m HEAD@{8}: commit: folder css
+[33m8eaed951[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32musermanagement[m[33m, [m[1;31morigin/usermanagement[m[33m)[m HEAD@{9}: reset: moving to HEAD~1
+[33mb474d037[m HEAD@{10}: commit: folder css
+[33m8eaed951[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32musermanagement[m[33m, [m[1;31morigin/usermanagement[m[33m)[m HEAD@{11}: pull origin main: Fast-forward
+[33m25ed3e72[m HEAD@{12}: reset: moving to HEAD
+[33m25ed3e72[m HEAD@{13}: clone: from https://github.com/phu190605/LTJava

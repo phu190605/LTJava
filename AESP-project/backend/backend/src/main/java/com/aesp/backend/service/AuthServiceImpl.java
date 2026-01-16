@@ -14,9 +14,9 @@ import com.aesp.backend.entity.User;
 import com.aesp.backend.repository.UserRepository;
 
 @Service
-public class UserServiceImpl implements IUserService {
+public class AuthServiceImpl implements IUserService {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     @Autowired
     private UserRepository userRepository;

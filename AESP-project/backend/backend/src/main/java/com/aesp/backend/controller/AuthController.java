@@ -9,29 +9,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.aesp.backend.dto.request.ForgotPasswordRequest;
-import com.aesp.backend.dto.request.LoginRequest;
-import com.aesp.backend.dto.request.ResetPasswordRequest;
-import com.aesp.backend.dto.request.SignupRequest;
-import com.aesp.backend.dto.request.TestEmailRequest;
-import com.aesp.backend.dto.request.VerifyOtpRequest;
+import com.aesp.backend.dto.request.*;
 import com.aesp.backend.entity.User;
 import com.aesp.backend.repository.UserRepository;
+import com.aesp.backend.security.JwtUtils;
 import com.aesp.backend.service.EmailService;
 import com.aesp.backend.service.IUserService;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Cho phép Frontend gọi API
+@CrossOrigin(origins = "*")
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     UserRepository userRepository;
@@ -40,171 +32,158 @@ public class AuthController {
     PasswordEncoder passwordEncoder;
 
     @Autowired
+    JwtUtils jwtUtils;
+
+    @Autowired
     IUserService userService;
 
     @Autowired
     EmailService emailService;
 
-    // API YÊU CẦU QUÊN MẬT KHẨU
+    // ================= QUÊN MẬT KHẨU =================
+
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
-        // Không tiết lộ xem email có tồn tại hay không - luôn trả về 200
         userService.forgotPassword(request.getEmail());
-        return ResponseEntity.ok().body("Nếu email tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi.");
+        return ResponseEntity.ok("Nếu email tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi.");
     }
 
-    // API ĐẶT LẠI MẬT KHẨU
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
-        boolean ok = userService.resetPassword(request.getToken(), request.getNewPassword());
+        boolean ok = userService.resetPassword(
+                request.getToken(),
+                request.getNewPassword()
+        );
         if (ok) {
-            return ResponseEntity.ok().body("Đặt lại mật khẩu thành công!");
-        } else {
-            return ResponseEntity.badRequest().body("Token không hợp lệ hoặc đã hết hạn.");
+            return ResponseEntity.ok("Đặt lại mật khẩu thành công!");
         }
+        return ResponseEntity.badRequest().body("Token không hợp lệ hoặc đã hết hạn.");
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    // ================= ĐĂNG KÝ =================
 
-    // API ĐĂNG KÝ
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody SignupRequest request) {
+
         if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest().body("Error: Email đã tồn tại!");
         }
 
-        // Nếu có gửi role và role khác LEARNER thì từ chối, còn nếu không gửi role thì cho phép
         if (request.getRole() != null && !"LEARNER".equalsIgnoreCase(request.getRole())) {
             return ResponseEntity.badRequest().body("Error: Chỉ admin mới được tạo tài khoản mentor!");
         }
 
-        // Tạo user mới
         User user = new User();
         user.setEmail(request.getEmail());
         user.setFullName(request.getFullName());
-        user.setRole("LEARNER"); // Đảm bảo luôn là LEARNER
-        user.setPassword(passwordEncoder.encode(request.getPassword())); // Mã hóa pass
+        user.setRole("LEARNER");
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setActive(true);
 
         userRepository.save(user);
-
         return ResponseEntity.ok("Đăng ký thành công!");
     }
 
-    // API ĐĂNG NHẬP (Giả lập trả về Token)
+    // ================= ĐĂNG NHẬP =================
+
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
-        Optional<User> userOp = userRepository.findByEmail(request.getEmail());
 
+        Optional<User> userOp = userRepository.findByEmail(request.getEmail());
         if (userOp.isPresent()) {
             User user = userOp.get();
-            // Kiểm tra mật khẩu (pass nhập vào vs pass đã mã hóa trong DB)
-            boolean passMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
-            logger.info("Login attempt email='{}' role='{}' passMatches={}", request.getEmail(), user.getRole(), passMatches);
+            boolean passMatches = passwordEncoder.matches(
+                    request.getPassword(),
+                    user.getPassword()
+            );
+
+            logger.info("Login email='{}' role='{}' passMatches={}",
+                    request.getEmail(), user.getRole(), passMatches);
+
             if (passMatches) {
-                
-                // Ở đây sau này sẽ sinh JWT Token thật. 
-                // Tạm thời trả về Map để test trước.
-                Map<String, String> response = new HashMap<>();
-                response.put("token", "fake-jwt-token-cho-vui-123456"); 
-                response.put("role", user.getRole());
-                response.put("email", user.getEmail());
-                response.put("fullName", user.getFullName());
-                
-                return ResponseEntity.ok(response);
+                String token = jwtUtils.generateToken(user.getEmail());
+                Map<String, String> resp = new HashMap<>();
+                resp.put("token", token);
+                resp.put("role", user.getRole());
+                resp.put("email", user.getEmail());
+                resp.put("fullName", user.getFullName());
+                return ResponseEntity.ok(resp);
             }
         }
-        logger.info("Login failed for email='{}' (not found or mismatch)", request.getEmail());
 
         return ResponseEntity.badRequest().body("Sai email hoặc mật khẩu!");
     }
 
-    // API ĐĂNG NHẬP ADMIN (Chỉ cho phép tài khoản admin)
+    // ================= ADMIN LOGIN =================
+
     @PostMapping("/admin/login")
     public ResponseEntity<?> adminLogin(@RequestBody LoginRequest request) {
-        Optional<User> userOp = userRepository.findByEmail(request.getEmail());
 
+        Optional<User> userOp = userRepository.findByEmail(request.getEmail());
         if (userOp.isPresent()) {
             User user = userOp.get();
-            
-            // Kiểm tra xem user có phải admin không
-            logger.info("Admin login attempt email='{}' role='{}'", request.getEmail(), user.getRole());
+
             if (!"ADMIN".equals(user.getRole())) {
-                logger.warn("Admin login rejected for '{}': not ADMIN (role={})", request.getEmail(), user.getRole());
                 return ResponseEntity.badRequest().body("Bạn không có quyền truy cập admin!");
             }
 
-            boolean passMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
-            logger.info("Admin password match for '{}': {}", request.getEmail(), passMatches);
+            boolean passMatches = passwordEncoder.matches(
+                    request.getPassword(),
+                    user.getPassword()
+            );
+
             if (passMatches) {
-                Map<String, String> response = new HashMap<>();
-                response.put("token", "fake-jwt-admin-token-123456");
-                response.put("role", user.getRole());
-                response.put("email", user.getEmail());
-                response.put("fullName", user.getFullName());
-                
-                return ResponseEntity.ok(response);
+                String token = jwtUtils.generateToken(user.getEmail());
+                Map<String, String> resp = new HashMap<>();
+                resp.put("token", token);
+                resp.put("role", user.getRole());
+                resp.put("email", user.getEmail());
+                resp.put("fullName", user.getFullName());
+                return ResponseEntity.ok(resp);
             }
         }
-        logger.info("Admin login failed for email='{}' (not found or mismatch)", request.getEmail());
 
         return ResponseEntity.badRequest().body("Sai email hoặc mật khẩu!");
     }
 
-    // Temporary debug endpoint (development only) to inspect user row
+    // ================= DEBUG =================
+
     @GetMapping("/debug/user")
     public ResponseEntity<?> debugUser(@RequestParam String email) {
-        Optional<User> userOp = userRepository.findByEmail(email);
-        if (userOp.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        User user = userOp.get();
-        Map<String, String> resp = new HashMap<>();
-        resp.put("email", user.getEmail());
-        resp.put("role", user.getRole());
-        resp.put("fullName", user.getFullName());
-        resp.put("passwordHash", user.getPassword());
-        // Debug: include reset token info to aid testing (development only)
-        resp.put("resetToken", user.getResetToken());
-        resp.put("resetTokenExpiry", user.getResetTokenExpiry() != null ? user.getResetTokenExpiry().toString() : null);
-        resp.put("resetOtp", user.getResetOtp());
-        resp.put("resetOtpExpiry", user.getResetOtpExpiry() != null ? user.getResetOtpExpiry().toString() : null);
-        return ResponseEntity.ok(resp);
+        return userRepository.findByEmail(email)
+                .map(user -> {
+                    Map<String, String> resp = new HashMap<>();
+                    resp.put("email", user.getEmail());
+                    resp.put("role", user.getRole());
+                    resp.put("fullName", user.getFullName());
+                    resp.put("passwordHash", user.getPassword());
+                    resp.put("resetToken", user.getResetToken());
+                    resp.put("resetOtp", user.getResetOtp());
+                    return ResponseEntity.ok(resp);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // Development-only endpoint to send a single test email via current SMTP configuration
     @PostMapping("/debug/send-test-email")
     public ResponseEntity<?> sendTestEmail(@RequestBody TestEmailRequest request) {
-        boolean ok = emailService.sendTestEmail(request.getEmail(), request.getSubject(), request.getMessage());
-        if (ok) {
-            return ResponseEntity.ok().body("Test email sent (check inbox)");
-        } else {
-            return ResponseEntity.status(500).body("Failed to send test email; check application logs for details");
-        }
+        boolean ok = emailService.sendTestEmail(
+                request.getEmail(),
+                request.getSubject(),
+                request.getMessage()
+        );
+        return ok
+                ? ResponseEntity.ok("Test email sent")
+                : ResponseEntity.status(500).body("Send email failed");
     }
 
-    @GetMapping("/debug/check-password")
-    public ResponseEntity<?> checkPassword(@RequestParam String email, @RequestParam String password) {
-        Optional<User> userOp = userRepository.findByEmail(email);
-        if (userOp.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        User user = userOp.get();
-        boolean matches = passwordEncoder.matches(password, user.getPassword());
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("email", email);
-        resp.put("matches", matches);
-        resp.put("storedHash", user.getPassword());
-        return ResponseEntity.ok(resp);
-    }
-
-    // Verify OTP sent to user's email. Returns reset token if OTP is valid.
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request) {
-        String token = userService.verifyOtp(request.getEmail(), request.getOtp());
+        String token = userService.verifyOtp(
+                request.getEmail(),
+                request.getOtp()
+        );
         if (token != null) {
-            Map<String, String> resp = new HashMap<>();
-            resp.put("token", token);
-            return ResponseEntity.ok(resp);
+            return ResponseEntity.ok(Map.of("token", token));
         }
         return ResponseEntity.badRequest().body("OTP không hợp lệ hoặc đã hết hạn.");
     }
