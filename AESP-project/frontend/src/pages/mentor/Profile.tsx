@@ -5,7 +5,6 @@ import {
   uploadAvatar,
   uploadCertificate
 } from "../../api/mentorApi";
-import { getMentorId } from "../../utils/auth";
 import {
   Input,
   Button,
@@ -32,9 +31,18 @@ type Skill = {
   name: string;
 };
 
-export default function Profile() {
-  const mentorId = getMentorId();
+type MentorProfile = {
+  id: number;
+  fullName: string;
+  email: string;
+  role: "MENTOR";
+  bio?: string;
+  avatarUrl?: string;
+  certificates?: string;
+  skills?: Skill[];
+};
 
+export default function Profile() {
   const [fullName, setFullName] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -47,24 +55,19 @@ export default function Profile() {
 
   /* ===== FETCH PROFILE ===== */
   const fetchProfile = async () => {
-    if (!mentorId) return;
-
     try {
-      const res = await getMentorProfile(mentorId);
-      const data = res.data;
+      const data = (await getMentorProfile()) as MentorProfile;
 
       setFullName(data.fullName ?? "");
       setBio(data.bio ?? "");
       setAvatarUrl(data.avatarUrl ?? "");
       setSkills(data.skills ?? []);
 
-      if (!data.certificates) {
-        setCertificates([]);
-      } else {
-        setCertificates(
-          data.certificates.split(",").map((c: string) => c.trim())
-        );
-      }
+      setCertificates(
+        data.certificates
+          ? data.certificates.split(",").map(c => c.trim())
+          : []
+      );
     } catch (err) {
       console.error(err);
       message.error("Lỗi tải hồ sơ mentor");
@@ -73,11 +76,10 @@ export default function Profile() {
 
   /* ===== SAVE PROFILE ===== */
   const saveProfile = async () => {
-    if (!mentorId) return;
     setLoading(true);
 
     try {
-      await updateMentorProfile(mentorId, {
+      await updateMentorProfile({
         fullName,
         bio,
         certificates: certificates.join(",")
@@ -99,8 +101,8 @@ export default function Profile() {
     }
 
     try {
-      const res = await uploadAvatar(mentorId!, selectedAvatar);
-      setAvatarUrl(res.data.avatarUrl);
+      const res = await uploadAvatar(selectedAvatar);
+      setAvatarUrl(res.avatarUrl);
       setSelectedAvatar(null);
       setPreview(null);
       message.success("🖼 Upload avatar thành công");
@@ -112,15 +114,11 @@ export default function Profile() {
 
   /* ===== UPLOAD CERTIFICATE ===== */
   const handleUploadCertificate = async (info: UploadChangeParam) => {
-    if (!mentorId || !info.file.originFileObj) return;
+    if (!info.file.originFileObj) return;
 
     try {
-      const res = await uploadCertificate(
-        mentorId,
-        info.file.originFileObj
-      );
-
-      setCertificates(res.data.certificates.split(","));
+      const res = await uploadCertificate(info.file.originFileObj);
+      setCertificates(res.certificates.split(","));
       message.success("📄 Upload chứng chỉ thành công");
     } catch (err) {
       console.error(err);
@@ -159,10 +157,7 @@ export default function Profile() {
               </Button>
             </Upload>
 
-            <Button
-              type="primary"
-              onClick={handleUploadAvatar}
-            >
+            <Button type="primary" onClick={handleUploadAvatar}>
               Cập nhật ảnh đại diện
             </Button>
           </Space>
@@ -186,31 +181,23 @@ export default function Profile() {
         />
       </Card>
 
-      {/* ===== SKILLS (ADMIN ASSIGNED) ===== */}
+      {/* ===== SKILLS ===== */}
       <Card title="Kỹ năng chuyên môn" style={{ marginBottom: 24 }}>
-        <Text type="secondary">
-          (Kỹ năng mentor)
-        </Text>
-
-        <div style={{ marginTop: 12 }}>
-          {skills.length === 0 ? (
-            <Text type="secondary">
-              Chưa có kỹ năng nào được gán
-            </Text>
-          ) : (
-            <Space wrap>
-              {skills.map((skill) => (
-                <Tag
-                  key={skill.id}
-                  color="blue"
-                  icon={<CheckCircleFilled />}
-                >
-                  {skill.name}
-                </Tag>
-              ))}
-            </Space>
-          )}
-        </div>
+        {skills.length === 0 ? (
+          <Text type="secondary">Chưa có kỹ năng</Text>
+        ) : (
+          <Space wrap>
+            {skills.map(skill => (
+              <Tag
+                key={skill.id}
+                color="blue"
+                icon={<CheckCircleFilled />}
+              >
+                {skill.name}
+              </Tag>
+            ))}
+          </Space>
+        )}
       </Card>
 
       {/* ===== CERTIFICATES ===== */}
@@ -221,11 +208,7 @@ export default function Profile() {
           <ul>
             {certificates.map((c, idx) => (
               <li key={idx}>
-                <a
-                  href={c}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a href={c} target="_blank" rel="noreferrer">
                   {c.split("/").pop()}
                 </a>
               </li>
@@ -244,7 +227,6 @@ export default function Profile() {
         </Upload>
       </Card>
 
-      {/* ===== SAVE ===== */}
       <Button
         type="primary"
         loading={loading}

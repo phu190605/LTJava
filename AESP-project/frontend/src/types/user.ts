@@ -1,7 +1,8 @@
+// frontend/src/types/user.ts
 export interface User {
   id: number;
-  name: string;
+  fullName: string;
   email: string;
-  role:  "MENTOR" | "LEARNER" | "ADMIN";
-  active: boolean;
+  role: "MENTOR" | "LEARNER" | "ADMIN";
+  token?: string;
 }

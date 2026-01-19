@@ -21,10 +21,8 @@ import {
   getPendingExercises,
   getMentorProfile,
 } from "../../api/mentorApi";
-import { getMentorId } from "../../utils/auth";
 
 export default function MentorDashboard() {
-  const mentorId = getMentorId();
   const navigate = useNavigate();
 
   const [mentorName, setMentorName] = useState<string>("");
@@ -33,29 +31,27 @@ export default function MentorDashboard() {
   const [pendingExercises, setPendingExercises] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!mentorId) return;
-
     (async () => {
       try {
-        // 🔹 LẤY TÊN MENTOR
-        const profileRes = await getMentorProfile(mentorId);
-        setMentorName(profileRes.data?.fullName || "");
+        const profile = await getMentorProfile();
+        setMentorName(profile?.fullName || "");
 
-        // 🔹 STATS (dùng cho feedback đã gửi)
-        const s = await getDashboardStats(mentorId);
-        setStats(s.data);
 
-        // 🔹 DATA THỰC TẾ
-        const a = await getPendingAssessments(mentorId);
-        setPendingAssessments(a.data || []);
+        const statsRes = await getDashboardStats();
+        setStats(statsRes.data);
 
-        const e = await getPendingExercises(mentorId);
-        setPendingExercises(e.data || []);
+        const assessRes = await getPendingAssessments();
+        setPendingAssessments(assessRes || []);
+
+        const exerciseRes = await getPendingExercises();
+        setPendingExercises(exerciseRes || []);
       } catch (err) {
         console.error(err);
       }
     })();
-  }, [mentorId]);
+  }, []);
+
+
 
   // 🔹 SỐ HỌC VIÊN PHỤ TRÁCH (tính từ bài chờ chấm)
   const studentCount =
@@ -155,7 +151,7 @@ export default function MentorDashboard() {
         </Col>
         <Col span={6}>
           {stat(
-            "Feedback đã gửi",
+            "Phản hồi đã gửi",
             stats?.completedFeedback ?? 0,
             <CheckCircleOutlined />,
             "#ecfdf5",
@@ -211,14 +207,14 @@ export default function MentorDashboard() {
               dataSource={pendingExercises}
               renderItem={(item) => (
                 <List.Item>
-                  <Tag color="cyan">Waiting</Tag>
+                  <Tag color="cyan">Bài đợi chấm</Tag>
                   <Button
                     type="primary"
                     onClick={() =>
                       navigate(`/mentor/feedback/${item.id}`)
                     }
                   >
-                    Feedback →
+                    Chấm bài →
                   </Button>
                 </List.Item>
               )}

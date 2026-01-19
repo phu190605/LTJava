@@ -31,13 +31,12 @@ export default function MentorLayout() {
 
   /* ===== LOAD MENTOR PROFILE ===== */
   useEffect(() => {
-    if (!mentorId) return;
-
     (async () => {
       try {
-        const res = await getMentorProfile(mentorId);
-        setFullName(res.data.fullName || "Mentor");
-        setAvatarUrl(res.data.avatarUrl || "");
+        const profile = await getMentorProfile();
+        setFullName(profile?.fullName || "Mentor");
+        setAvatarUrl((profile as any).avatarUrl || "");
+
       } catch (err) {
         console.error("Load mentor profile failed", err);
       } finally {
@@ -45,6 +44,7 @@ export default function MentorLayout() {
       }
     })();
   }, []);
+
 
   const menuItem = (
     key: string,
@@ -159,10 +159,10 @@ export default function MentorLayout() {
             border: "none",
           }}
           items={[
-            menuItem("/mentor", "Dashboard", <DashboardOutlined />, "/mentor"),
+            menuItem("/mentor", "Tổng quan", <DashboardOutlined />, "/mentor"),
             menuItem(
               "/mentor/feedback",
-              "Danh sách Feedback",
+              "Đánh giá và phản hồi",
               <FileTextOutlined />,
               "/mentor/feedback"
             ),

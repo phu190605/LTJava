@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getPendingAssessments } from "../../api/mentorApi";
-import { getMentorId } from "../../utils/auth";
 import { useNavigate } from "react-router-dom";
 import { Spin, Empty, Card, Typography, Button, Tag } from "antd";
 
@@ -9,20 +8,19 @@ const { Title, Text, Paragraph } = Typography;
 export default function AssessmentList() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const mentorId = getMentorId();
   const navigate = useNavigate();
 
   const fetchData = async () => {
-    if (!mentorId) return;
     setLoading(true);
     try {
-      const res = await getPendingAssessments(mentorId);
-      setData(res.data);
+      const res = await getPendingAssessments();
+      setData(res || []);
     } catch (err) {
       console.error("Assessment list error:", err);
     }
     setLoading(false);
   };
+
 
   useEffect(() => {
     fetchData();

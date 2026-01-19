@@ -41,18 +41,17 @@ const formatDateTime = (record: any) => {
 };
 
 export default function FeedbackList() {
-  const mentorId = getMentorId();
   const navigate = useNavigate();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!mentorId) return;
     setLoading(true);
-    getPendingExercises(mentorId)
-      .then(res => setData(res.data || []))
+    getPendingExercises()
+      .then(res => setData(res || []))
       .finally(() => setLoading(false));
-  }, [mentorId]);
+  }, []);
+
 
   const columns = [
     {

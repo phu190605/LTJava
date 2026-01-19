@@ -34,7 +34,7 @@ export default function Materials() {
   const mentorId = getMentorId();
 
   const [materials, setMaterials] = useState<any[]>([]);
-  const [mentorName, setMentorName] = useState<string>("");
+  const [mentorName, setMentorName] = useState<string>("Mentor");
   const [loading, setLoading] = useState(false);
 
   const [file, setFile] = useState<File | null>(null);
@@ -47,15 +47,13 @@ export default function Materials() {
 
     setLoading(true);
     try {
-      // ✅ profile đã là data (KHÔNG .data)
-      const profile = await getMentorProfile(mentorId);
-      const name = profile.fullName || "Mentor";
+      // ✅ axiosClient đã trả data
+      const profile = await getMentorProfile();
+      const name = profile?.fullName || "Mentor";
       setMentorName(name);
 
-      // ✅ materials đã là array
       const list = await getAllMaterials();
 
-      // gán mentorName thủ công cho UI
       const mapped = list.map((m: any) => ({
         ...m,
         mentorName:
@@ -102,7 +100,6 @@ export default function Materials() {
     return <CloudUploadOutlined />;
   };
 
-  // ================= TABLE =================
   const columns = [
     {
       title: "TIÊU ĐỀ",
@@ -197,7 +194,6 @@ export default function Materials() {
         </Row>
       </Card>
 
-      {/* SEARCH */}
       <Input
         prefix={<SearchOutlined />}
         placeholder="Tìm kiếm tài liệu..."
@@ -206,7 +202,6 @@ export default function Materials() {
         style={{ width: 260, marginBottom: 12 }}
       />
 
-      {/* TABLE */}
       <Card style={{ borderRadius: 16 }}>
         <Table
           rowKey="id"

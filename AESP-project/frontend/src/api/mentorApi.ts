@@ -1,5 +1,6 @@
 import axiosClient from "./axiosClient";
 import type { LearningMaterial } from "../types/mentor";
+import type { User } from "../types/user";
 
 /* ======================
    TYPES
@@ -16,64 +17,127 @@ export interface Mentor {
   skills?: Skill[];
 }
 
-export interface CreateMentorRequest {
-  fullName: string;
-  email: string;
-  password: string;
-}
-
 /* ======================
    📊 DASHBOARD
 ====================== */
-export const getDashboardStats = async (mentorId: string) => {
-  const res = await axiosClient.get(`/mentor/dashboard/${mentorId}`);
-  return res.data;
+export const getDashboardStats = async (): Promise<any> => {
+  return axiosClient.get("/mentor/dashboard");
 };
 
 /* ======================
    📝 ASSESSMENT
 ====================== */
-export const getPendingAssessments = async (mentorId: string) => {
-  const res = await axiosClient.get(
-    `/mentor/assessment/pending/${mentorId}`
-  );
-  return res.data;
+export const getPendingAssessments = async (): Promise<any[]> => {
+  return axiosClient.get("/mentor/assessment/pending");
 };
 
-export const getAssessmentDetail = async (id: string) => {
-  const res = await axiosClient.get(`/mentor/assessment/${id}`);
-  return res.data;
+export const getAssessmentDetail = async (id: string): Promise<any> => {
+  return axiosClient.get(`/mentor/assessment/${id}`);
 };
 
 export const submitAssessmentLevel = async (
   id: string,
   level: string,
   comment: string
-) => {
-  const res = await axiosClient.post(
-    `/mentor/assessment/${id}/assign`,
-    { level, comment }
-  );
-  return res.data;
+): Promise<any> => {
+  return axiosClient.post(`/mentor/assessment/${id}/assign`, {
+    level,
+    comment,
+  });
 };
 
 /* ======================
-   ADMIN – MENTOR
+   🎧 EXERCISE
+====================== */
+export const getPendingExercises = async (): Promise<any[]> => {
+  return axiosClient.get("/mentor/exercise/pending");
+};
+
+export const getExerciseDetail = async (id: string): Promise<any> => {
+  return axiosClient.get(`/mentor/exercise/${id}`);
+};
+
+export const submitExerciseFeedback = async (
+  id: string,
+  mistake: string,
+  correction: string,
+  tag: string,
+  time: number
+): Promise<any> => {
+  return axiosClient.post(`/mentor/exercise/${id}/feedback`, {
+    mistake,
+    correction,
+    tag,
+    time,
+  });
+};
+
+/* ======================
+   📂 MATERIALS
+====================== */
+export const getAllMaterials = async (): Promise<LearningMaterial[]> => {
+  return axiosClient.get("/mentor/materials");
+};
+
+export const uploadMaterial = async (
+  file: File,
+  title: string,
+  mentorId: number
+): Promise<any> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("title", title);
+  formData.append("mentorId", mentorId.toString());
+
+  return axiosClient.post("/mentor/materials", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+/* ======================
+   👤 PROFILE
+====================== */
+export const getMentorProfile = async (): Promise<User> => {
+  return axiosClient.get("/mentor/profile");
+};
+
+export const updateMentorProfile = async (data: any): Promise<User> => {
+  return axiosClient.put("/mentor/profile", data);
+};
+
+export const uploadAvatar = async (file: File): Promise<any> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return axiosClient.post("/mentor/profile/upload-avatar", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+export const uploadCertificate = async (file: File): Promise<any> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return axiosClient.post("/mentor/profile/upload-certificate", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+/* ======================
+   ADMIN – MENTOR (❌ KHÔNG ĐỤNG)
 ====================== */
 export const createMentor = async (
   data: CreateMentorRequest
 ): Promise<Mentor> => {
-  return await axiosClient.post("/admin/mentors", data);
+  return axiosClient.post("/admin/mentors", data);
 };
 
 export const getAllMentors = async (): Promise<Mentor[]> => {
-  return await axiosClient.get("/admin/mentors");
+  return axiosClient.get("/admin/mentors");
 };
 
 export const getAllSkills = async (): Promise<Skill[]> => {
-  return await axiosClient.get("/admin/skills");
+  return axiosClient.get("/admin/skills");
 };
-
 
 export const assignSkillsToMentor = async (
   mentorId: number,
@@ -96,112 +160,4 @@ export const removeSkillFromMentor = async (
   await axiosClient.delete(
     `/admin/mentors/${mentorId}/skills/${skillId}`
   );
-};
-
-/* ======================
-   🎧 EXERCISE
-====================== */
-export const getPendingExercises = async (mentorId: string) => {
-  const res = await axiosClient.get(
-    `/mentor/exercise/pending/${mentorId}`
-  );
-  return res.data;
-};
-
-export const getExerciseDetail = async (id: string) => {
-  const res = await axiosClient.get(`/mentor/exercise/${id}`);
-  return res.data;
-};
-
-export const getCompletedExercises = async (mentorId: string) => {
-  const res = await axiosClient.get(
-    `/mentor/exercise/completed/${mentorId}`
-  );
-  return res.data;
-};
-
-export const submitExerciseFeedback = async (
-  id: string,
-  mistake: string,
-  correction: string,
-  tag: string,
-  time: number
-) => {
-  const res = await axiosClient.post(
-    `/mentor/exercise/${id}/feedback`,
-    { mistake, correction, tag, time }
-  );
-  return res.data;
-};
-
-/* ======================
-   📂 MATERIALS
-====================== */
-export const getAllMaterials = async (): Promise<LearningMaterial[]> => {
-  const res = await axiosClient.get(`/mentor/materials`);
-  return res.data;
-};
-
-export const uploadMaterial = async (
-  file: File,
-  title: string,
-  mentorId: string
-) => {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("title", title);
-  formData.append("mentorId", mentorId);
-
-  const res = await axiosClient.post(
-    `/mentor/materials`,
-    formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
-  );
-
-  return res.data;
-};
-
-/* ======================
-   👤 PROFILE
-====================== */
-export const getMentorProfile = async (id: string) => {
-  const res = await axiosClient.get(`/mentor/profile/${id}`);
-  return res.data;
-};
-
-export const updateMentorProfile = async (id: string, data: any) => {
-  const res = await axiosClient.put(`/mentor/profile/${id}`, data);
-  return res.data;
-};
-
-export const uploadAvatar = async (
-  mentorId: string,
-  file: File
-) => {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const res = await axiosClient.post(
-    `/mentor/profile/upload-avatar/${mentorId}`,
-    formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
-  );
-
-  return res.data;
-};
-
-export const uploadCertificate = async (
-  mentorId: string,
-  file: File
-) => {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const res = await axiosClient.post(
-    `/mentor/profile/upload-certificate/${mentorId}`,
-    formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
-  );
-
-  return res.data;
 };
