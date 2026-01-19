@@ -4,7 +4,6 @@ import {
   Row,
   Col,
   List,
-  Tag,
   Button,
   Empty,
 } from "antd";
@@ -17,18 +16,19 @@ import {
 import { useNavigate } from "react-router-dom";
 import {
   getDashboardStats,
-  getPendingAssessments,
-  getPendingExercises,
   getMentorProfile,
 } from "../../api/mentorApi";
 
 export default function MentorDashboard() {
   const navigate = useNavigate();
 
-  const [mentorName, setMentorName] = useState<string>("");
-  const [stats, setStats] = useState<any>(null);
-  const [pendingAssessments, setPendingAssessments] = useState<any[]>([]);
-  const [pendingExercises, setPendingExercises] = useState<any[]>([]);
+  const [mentorName, setMentorName] = useState("");
+  const [stats, setStats] = useState<{
+    pending: number;
+    feedback: number;
+    students: number;
+    materials: number;
+  } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -36,28 +36,13 @@ export default function MentorDashboard() {
         const profile = await getMentorProfile();
         setMentorName(profile?.fullName || "");
 
-
-        const statsRes = await getDashboardStats();
-        setStats(statsRes.data);
-
-        const assessRes = await getPendingAssessments();
-        setPendingAssessments(assessRes || []);
-
-        const exerciseRes = await getPendingExercises();
-        setPendingExercises(exerciseRes || []);
+        const dashboard = await getDashboardStats();
+        setStats(dashboard);
       } catch (err) {
-        console.error(err);
+        console.error("Load mentor dashboard failed", err);
       }
     })();
   }, []);
-
-
-
-  // 🔹 SỐ HỌC VIÊN PHỤ TRÁCH (tính từ bài chờ chấm)
-  const studentCount =
-    pendingExercises.length > 0
-      ? new Set(pendingExercises.map(e => e.learnerId)).size
-      : stats?.studentCount ?? 0;
 
   const stat = (
     title: string,
@@ -134,7 +119,7 @@ export default function MentorDashboard() {
         <Col span={6}>
           {stat(
             "Chờ xếp lớp",
-            pendingAssessments.length,
+            stats?.pending ?? 0,
             <FileTextOutlined />,
             "#eef2ff",
             "#4f46e5"
@@ -143,7 +128,7 @@ export default function MentorDashboard() {
         <Col span={6}>
           {stat(
             "Bài chờ chấm",
-            pendingExercises.length,
+            stats?.pending ?? 0,
             <CustomerServiceOutlined />,
             "#fff7ed",
             "#f97316"
@@ -152,7 +137,7 @@ export default function MentorDashboard() {
         <Col span={6}>
           {stat(
             "Phản hồi đã gửi",
-            stats?.completedFeedback ?? 0,
+            stats?.feedback ?? 0,
             <CheckCircleOutlined />,
             "#ecfdf5",
             "#22c55e"
@@ -161,7 +146,7 @@ export default function MentorDashboard() {
         <Col span={6}>
           {stat(
             "Học viên phụ trách",
-            studentCount,
+            stats?.students ?? 0,
             <TeamOutlined />,
             "#f5f3ff",
             "#8b5cf6"
@@ -173,26 +158,7 @@ export default function MentorDashboard() {
       <Card style={{ marginTop: 24, borderRadius: 16 }} bodyStyle={{ padding: 0 }}>
         {sectionHeader("Bài test đầu vào cần xếp lớp", <FileTextOutlined />)}
         <div style={{ padding: 32 }}>
-          {pendingAssessments.length === 0 ? (
-            <Empty description="Hiện không có bài test nào cần xử lý" />
-          ) : (
-            <List
-              dataSource={pendingAssessments}
-              renderItem={(item) => (
-                <List.Item>
-                  <b>{item.learnerId}</b>
-                  <Button
-                    type="primary"
-                    onClick={() =>
-                      navigate(`/mentor/assessment/${item.id}`)
-                    }
-                  >
-                    Chấm bài
-                  </Button>
-                </List.Item>
-              )}
-            />
-          )}
+          <Empty description="Dữ liệu sẽ hiển thị khi có bài test cần xử lý" />
         </div>
       </Card>
 
@@ -200,26 +166,7 @@ export default function MentorDashboard() {
       <Card style={{ marginTop: 24, borderRadius: 16 }} bodyStyle={{ padding: 0 }}>
         {sectionHeader("Bài luyện tập cần feedback", <CustomerServiceOutlined />)}
         <div style={{ padding: 32 }}>
-          {pendingExercises.length === 0 ? (
-            <Empty description="Mọi phản hồi đều đã được hoàn thành!" />
-          ) : (
-            <List
-              dataSource={pendingExercises}
-              renderItem={(item) => (
-                <List.Item>
-                  <Tag color="cyan">Bài đợi chấm</Tag>
-                  <Button
-                    type="primary"
-                    onClick={() =>
-                      navigate(`/mentor/feedback/${item.id}`)
-                    }
-                  >
-                    Chấm bài →
-                  </Button>
-                </List.Item>
-              )}
-            />
-          )}
+          <Empty description="Mọi phản hồi đều đã được hoàn thành!" />
         </div>
       </Card>
 

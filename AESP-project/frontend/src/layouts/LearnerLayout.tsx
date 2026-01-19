@@ -60,7 +60,7 @@ const LearnerLayout: React.FC = () => {
         { key: '/my-courses', icon: <ReadOutlined />, label: 'Khoá học của tôi' },
         { key: '/setup', icon: <AimOutlined />, label: 'Mục tiêu & Lộ trình' },
         { key: '/schedule', icon: <CalendarOutlined />, label: 'Lịch học' },
-        { key: '/learner/learnmentor', icon: <TeamOutlined />, label: 'Học với Mentor' },
+        { key: '/learner/learnmentor', icon: <TeamOutlined />, label: 'Đăng ký mentor' },
 
         // --- THÊM MỤC NÀY ---
         {

@@ -1,7 +1,14 @@
 package com.aesp.backend.repository;
 
-import com.aesp.backend.entity.LearningMaterial;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface LearningMaterialRepository extends JpaRepository<LearningMaterial, String> {
+import com.aesp.backend.entity.LearningMaterial;
+
+public interface LearningMaterialRepository
+        extends JpaRepository<LearningMaterial, String> {
+
+    // ✅ QUERY TRỰC TIẾP THEO mentorId
+    List<LearningMaterial> findByMentorId(String mentorId);
 }

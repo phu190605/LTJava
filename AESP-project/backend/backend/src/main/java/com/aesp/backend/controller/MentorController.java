@@ -25,6 +25,7 @@ import com.aesp.backend.entity.LearningSession;
 import com.aesp.backend.entity.User;
 import com.aesp.backend.repository.DashboardResponse;
 import com.aesp.backend.repository.FeedbackRepository;
+import com.aesp.backend.repository.LearnerProfileRepository;
 import com.aesp.backend.repository.LearningMaterialRepository;
 import com.aesp.backend.repository.LearningSessionRepository;
 import com.aesp.backend.repository.UserRepository;
@@ -38,21 +39,24 @@ public class MentorController {
     private final FeedbackRepository feedbackRepo;
     private final LearningMaterialRepository materialRepo;
     private final UserRepository userRepo;
+    private final LearnerProfileRepository learnerProfileRepo; // ✅ THÊM
 
     public MentorController(
             LearningSessionRepository sessionRepo,
             FeedbackRepository feedbackRepo,
             LearningMaterialRepository materialRepo,
-            UserRepository userRepo
+            UserRepository userRepo,
+            LearnerProfileRepository learnerProfileRepo // ✅ THÊM
     ) {
         this.sessionRepo = sessionRepo;
         this.feedbackRepo = feedbackRepo;
         this.materialRepo = materialRepo;
         this.userRepo = userRepo;
+        this.learnerProfileRepo = learnerProfileRepo;
     }
 
     // ======================================================
-    // 🔐 HELPER: LẤY MENTOR TỪ JWT (AN TOÀN)
+    // 🔐 HELPER: LẤY MENTOR TỪ JWT
     // ======================================================
     private User getCurrentMentor() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -101,8 +105,7 @@ public class MentorController {
             Files.createDirectories(dir);
 
             String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path path = dir.resolve(filename);
-            file.transferTo(path);
+            file.transferTo(dir.resolve(filename));
 
             LearningMaterial m = new LearningMaterial();
             m.setMentorId(mentor.getId().toString());
@@ -134,24 +137,22 @@ public class MentorController {
     }
 
     // ================================
-    // 📊 DASHBOARD
+    // 📊 DASHBOARD (🔥 ĐÃ SỬA ĐÚNG)
     // ================================
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboard() {
-        String mentorId = getCurrentMentor().getId().toString();
+        User mentor = getCurrentMentor();
+        String mentorId = mentor.getId().toString();
 
         int pending = (int) sessionRepo.findByMentorId(mentorId)
                 .stream()
                 .filter(s -> !"DONE".equalsIgnoreCase(s.getStatus()))
                 .count();
 
-        int feedback = (int) feedbackRepo.findByMentorId(mentorId).size();
+        int feedback = feedbackRepo.findByMentorId(mentorId).size();
 
-        int students = (int) sessionRepo.findByMentorId(mentorId)
-                .stream()
-                .map(LearningSession::getLearnerId)
-                .distinct()
-                .count();
+        // ✅ ĐÚNG NGHIỆP VỤ: learner đã CHỌN mentor
+        int students = (int) learnerProfileRepo.countBySelectedMentor(mentor);
 
         int materials = (int) materialRepo.findAll()
                 .stream()
@@ -211,7 +212,6 @@ public class MentorController {
         }
     }
 
-    
     // ================================
     // 📜 CERTIFICATE
     // ================================

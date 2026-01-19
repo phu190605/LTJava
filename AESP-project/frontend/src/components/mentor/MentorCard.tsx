@@ -1,9 +1,10 @@
-import { Card, Tag, Button, message } from "antd";
+import { Card, Tag, Button, message, Space } from "antd";
 import type { Mentor } from "../../api/mentorPublicApi";
 import {
     selectMentor,
     clearSelectedMentor,
 } from "../../api/learnerMentorApi";
+import { useNavigate } from "react-router-dom";
 
 interface MentorCardProps {
     mentor: Mentor;
@@ -12,6 +13,8 @@ interface MentorCardProps {
 }
 
 const MentorCard = ({ mentor, selected, disabled }: MentorCardProps) => {
+    const navigate = useNavigate();
+
     const handleSelectMentor = async () => {
         try {
             await selectMentor(mentor.id);
@@ -30,6 +33,10 @@ const MentorCard = ({ mentor, selected, disabled }: MentorCardProps) => {
         } catch {
             message.error("Không thể huỷ mentor");
         }
+    };
+
+    const handleContinue = () => {
+        navigate("/learner/with-mentor");
     };
 
     return (
@@ -69,6 +76,7 @@ const MentorCard = ({ mentor, selected, disabled }: MentorCardProps) => {
                 </div>
             </div>
 
+            {/* ===== ACTION BUTTONS ===== */}
             {!selected && (
                 <Button
                     type="primary"
@@ -82,14 +90,23 @@ const MentorCard = ({ mentor, selected, disabled }: MentorCardProps) => {
             )}
 
             {selected && (
-                <Button
-                    danger
-                    block
-                    style={{ marginTop: 16 }}
-                    onClick={handleClearMentor}
-                >
-                    Đổi mentor
-                </Button>
+                <Space direction="vertical" style={{ width: "100%", marginTop: 16 }}>
+                    <Button
+                        type="primary"
+                        block
+                        onClick={handleContinue}
+                    >
+                        Tiếp tục
+                    </Button>
+
+                    <Button
+                        danger
+                        block
+                        onClick={handleClearMentor}
+                    >
+                        Đổi mentor
+                    </Button>
+                </Space>
             )}
         </Card>
     );

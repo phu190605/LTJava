@@ -32,7 +32,7 @@ const LearnMentorPage = () => {
     // ✅ Có gói mentor
     return (
         <div>
-            <Title level={3}>Học với Mentor</Title>
+            <Title level={3}>Đăng ký mentor </Title>
 
             {packageName && (
                 <Text type="secondary">

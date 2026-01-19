@@ -11,4 +11,5 @@ public interface LearnerProfileRepository extends JpaRepository<LearnerProfile, 
     Optional<LearnerProfile> findByUser_Id(Long userId);
 
     Optional<LearnerProfile> findByUser(User user);
+    long countBySelectedMentor(User mentor);
 }

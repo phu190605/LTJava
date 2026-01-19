@@ -47,11 +47,23 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
+
+                // ================= AUTH =================
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/public/mentors").permitAll()
+
+                // ================= STATIC FILES =================
+                .requestMatchers(
+                        "/avatars/**",
+                        "/materials/**",
+                        "/certificates/**"
+                ).permitAll()
+
+                // ================= ROLE =================
                 .requestMatchers("/api/mentor/**").hasRole("MENTOR")
                 .requestMatchers("/api/learner/**").hasRole("LEARNER")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
                 .anyRequest().authenticated()
             );
 
@@ -94,7 +106,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // ✅ FIX CHUẨN SPRING SECURITY 6+
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider =

@@ -30,6 +30,7 @@ import AIPracticePage from "./pages/AIPracticePage";
 import CheckoutPage from "./pages/CheckoutPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import LearnMentorPage from "./pages/learner/LearnMentorPage";
+import WithMentorPage from "./pages/learner/WithMentorPage";
 
 /* ===== MENTOR ===== */
 import MentorDashboard from "./pages/mentor/MentorDashboard";
@@ -58,6 +59,8 @@ function App() {
           <Route path="/checkout/:packageId" element={<CheckoutPage />} />
           <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/learner/learnmentor" element={<LearnMentorPage />} />
+          <Route path="/learner/with-mentor" element={<WithMentorPage />} />
+
         </Route>
 
         {/* ===== ADMIN ===== */}
