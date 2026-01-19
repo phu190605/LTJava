@@ -30,14 +30,25 @@ export default function MentorManager() {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
   const fetchMentors = async () => {
-    const res = (await getAllMentors()) as Mentor[];
-    setMentors(res);
+    try {
+      const data = await getAllMentors();
+      setMentors(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error(e);
+      setMentors([]);
+    }
   };
 
   const fetchSkills = async () => {
-    const res = (await getAllSkills()) as Skill[];
-    setSkills(res);
+    try {
+      const data = await getAllSkills();
+      setSkills(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error(e);
+      setSkills([]);
+    }
   };
+
 
   useEffect(() => {
     fetchMentors();

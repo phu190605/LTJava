@@ -1,86 +1,44 @@
 package com.aesp.backend.entity;
 
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table(name = "feedback")
 public class Feedback {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String sessionId;
-    private String mentorId;
+    @Column(name = "exercise_id")
+    private String exerciseId;
+
+    @Column(name = "learner_id")
     private String learnerId;
 
-    @Column(columnDefinition = "TEXT")
-    private String comment;
+    @Column(name = "mentor_id")
+    private String mentorId;
 
-    private int grammarScore;
-    private int pronunciationScore;
+    private String mistake;
 
-    private LocalDateTime timeStamp; // <-- fix: dùng LocalDateTime
+    private String correction;
 
-    // ===== Getters =====
-    public String getId() {
-        return id;
-    }
+    private String tag;
 
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    public String getMentorId() {
-        return mentorId;
-    }
-
-    public String getLearnerId() {
-        return learnerId;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public int getGrammarScore() {
-        return grammarScore;
-    }
-
-    public int getPronunciationScore() {
-        return pronunciationScore;
-    }
-
-    public LocalDateTime getTimeStamp() {
-        return timeStamp;
-    }
-
-    // ===== Setters =====
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
-    }
-
-    public void setMentorId(String mentorId) {
-        this.mentorId = mentorId;
-    }
-
-    public void setLearnerId(String learnerId) {
-        this.learnerId = learnerId;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public void setGrammarScore(int grammarScore) {
-        this.grammarScore = grammarScore;
-    }
-
-    public void setPronunciationScore(int pronunciationScore) {
-        this.pronunciationScore = pronunciationScore;
-    }
-
-    public void setTimeStamp(LocalDateTime timeStamp) {
-        this.timeStamp = timeStamp;
-    }
+    private int time;
 }

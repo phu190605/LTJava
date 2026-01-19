@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Input, Button, Typography, message, Row, Col, Divider, Steps, theme } from "antd";
-import { 
-  UserOutlined, LockOutlined, MailOutlined, SafetyCertificateOutlined, 
+import {
+  UserOutlined, LockOutlined, MailOutlined, SafetyCertificateOutlined,
   ArrowLeftOutlined, GoogleOutlined, FacebookFilled, EyeInvisibleOutlined, EyeTwoTone
 } from "@ant-design/icons";
 import axiosClient from "../api/axiosClient";
@@ -52,7 +52,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
   const [view, setView] = useState<AuthView>(initialView);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
-  
+
   // State luồng quên mật khẩu
   const [resetEmail, setResetEmail] = useState("");
   const [resetToken, setResetToken] = useState("");
@@ -75,9 +75,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
       const res = await axiosClient.post("/auth/login", values);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data));
+      if (res.data.role === "MENTOR") {
+        localStorage.setItem("mentorId", res.data.id);
+      }
       message.success("Chào mừng bạn quay trở lại!");
       onClose();
-      window.location.reload();
+      // Điều hướng theo role
+      if (res.data.role === "ADMIN") {
+        window.location.href = "/admin";
+      } else if (res.data.role === "MENTOR") {
+        window.location.href = "/mentor";
+      } else {
+        window.location.href = "/dashboard";
+      }
     } catch (error: any) {
       message.error(error.response?.data?.message || "Đăng nhập thất bại");
     }
@@ -196,15 +206,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
                   <Input prefix={<MailOutlined style={{ color: '#94A3B8' }} />} placeholder="Email của bạn" className="custom-input" style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }} />
                 </Form.Item>
                 <Form.Item name="password" rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}>
-                  <Input.Password 
-                    prefix={<LockOutlined style={{ color: '#94A3B8' }} />} 
-                    placeholder="Mật khẩu" 
+                  <Input.Password
+                    prefix={<LockOutlined style={{ color: '#94A3B8' }} />}
+                    placeholder="Mật khẩu"
                     className="custom-input"
                     iconRender={(visible) => (visible ? <EyeTwoTone twoToneColor={PRIMARY_COLOR} /> : <EyeInvisibleOutlined />)}
-                    style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }} 
+                    style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }}
                   />
                 </Form.Item>
-                
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, marginTop: -5 }}>
                   <Text type="secondary" style={{ fontSize: 13 }}>Ghi nhớ đăng nhập</Text>
                   <a onClick={() => setView("FORGOT_EMAIL")} style={{ color: PRIMARY_COLOR, fontWeight: 600, fontSize: 14 }}>Quên mật khẩu?</a>
@@ -275,9 +285,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
             {/* Header cho luồng Quên MK */}
             <div style={{ ...headerStyle, paddingBottom: 10 }}>
               <Title level={3} style={{ marginBottom: 20 }}>Khôi phục mật khẩu</Title>
-              <Steps 
-                current={currentStep} 
-                size="small" 
+              <Steps
+                current={currentStep}
+                size="small"
                 items={[
                   { title: 'Email' },
                   { title: 'OTP' },
@@ -291,10 +301,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
               {view === "FORGOT_EMAIL" && (
                 <Form layout="vertical" onFinish={handleSendOtp} size="large">
                   <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                     <div style={{ width: 60, height: 60, background: '#EFF6FF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
-                        <MailOutlined style={{ fontSize: 24, color: PRIMARY_COLOR }} />
-                     </div>
-                     <Text type="secondary">Nhập email đăng ký để nhận mã xác thực.</Text>
+                    <div style={{ width: 60, height: 60, background: '#EFF6FF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
+                      <MailOutlined style={{ fontSize: 24, color: PRIMARY_COLOR }} />
+                    </div>
+                    <Text type="secondary">Nhập email đăng ký để nhận mã xác thực.</Text>
                   </div>
                   <Form.Item name="email" rules={[{ required: true }, { type: 'email' }]}>
                     <Input placeholder="Email của bạn" className="custom-input" style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none', textAlign: 'center' }} />
@@ -307,21 +317,21 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
               {view === "VERIFY_OTP" && (
                 <Form layout="vertical" onFinish={handleVerifyOtp} size="large">
                   <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                     <div style={{ width: 60, height: 60, background: '#F0FDF4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
-                        <SafetyCertificateOutlined style={{ fontSize: 24, color: '#16A34A' }} />
-                     </div>
-                     <Text type="secondary">Nhập mã 6 số gửi tới <b>{resetEmail}</b></Text>
+                    <div style={{ width: 60, height: 60, background: '#F0FDF4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
+                      <SafetyCertificateOutlined style={{ fontSize: 24, color: '#16A34A' }} />
+                    </div>
+                    <Text type="secondary">Nhập mã 6 số gửi tới <b>{resetEmail}</b></Text>
                   </div>
                   <Form.Item name="otp" rules={[{ required: true }, { len: 6 }]}>
-                    <Input 
-                      placeholder="• • • • • •" 
-                      maxLength={6} 
+                    <Input
+                      placeholder="• • • • • •"
+                      maxLength={6}
                       className="custom-input"
-                      style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none', textAlign: 'center', fontSize: 24, letterSpacing: 8, fontWeight: 700 }} 
+                      style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none', textAlign: 'center', fontSize: 24, letterSpacing: 8, fontWeight: 700 }}
                     />
                   </Form.Item>
                   <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>Xác thực</Button>
-                  <Button type="link" onClick={() => handleSendOtp({email: resetEmail})} style={{ display: 'block', margin: '15px auto 0', color: '#64748B' }}>Gửi lại mã</Button>
+                  <Button type="link" onClick={() => handleSendOtp({ email: resetEmail })} style={{ display: 'block', margin: '15px auto 0', color: '#64748B' }}>Gửi lại mã</Button>
                 </Form>
               )}
 
@@ -329,10 +339,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
               {view === "RESET_PASSWORD" && (
                 <Form layout="vertical" onFinish={handleResetPassword} size="large">
                   <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                     <div style={{ width: 60, height: 60, background: '#FAF5FF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
-                        <LockOutlined style={{ fontSize: 24, color: '#9333EA' }} />
-                     </div>
-                     <Text type="secondary">Thiết lập mật khẩu mới cho tài khoản.</Text>
+                    <div style={{ width: 60, height: 60, background: '#FAF5FF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
+                      <LockOutlined style={{ fontSize: 24, color: '#9333EA' }} />
+                    </div>
+                    <Text type="secondary">Thiết lập mật khẩu mới cho tài khoản.</Text>
                   </div>
                   <Form.Item name="password" rules={[{ required: true }, { min: 6 }]}>
                     <Input.Password placeholder="Mật khẩu mới" className="custom-input" style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }} />
@@ -343,7 +353,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
                   <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>Hoàn tất</Button>
                 </Form>
               )}
-              
+
               <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => setView("LOGIN")} style={{ display: 'block', margin: '10px auto 0', color: '#64748B' }}>
                 Quay lại đăng nhập
               </Button>
@@ -370,9 +380,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
         maskClosable={false} // Bắt buộc bấm X để đóng, tránh đóng nhầm
         style={{ top: 20 }}
         modalRender={(modal) => (
-          <div style={{ 
-            borderRadius: '24px', 
-            overflow: 'hidden', 
+          <div style={{
+            borderRadius: '24px',
+            overflow: 'hidden',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             background: '#fff'
           }}>
@@ -381,19 +391,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
         )}
       >
         {/* Nút đóng Custom */}
-        <div 
-          onClick={onClose} 
-          style={{ 
+        <div
+          onClick={onClose}
+          style={{
             position: 'absolute', top: 15, right: 15, zIndex: 100, cursor: 'pointer',
             background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(4px)',
-            borderRadius: '50%', width: 32, height: 32, 
-            display: 'flex', alignItems: 'center', justifyContent: 'center', 
+            borderRadius: '50%', width: 32, height: 32,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 14, color: '#64748B', boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
           }}
         >
           ✕
         </div>
-        
+
         {renderContent()}
       </Modal>
     </>

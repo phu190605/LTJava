@@ -78,83 +78,83 @@ const SubscriptionPage: React.FC = () => {
 
             <Row gutter={[24, 24]} justify="center">
                 {packages
-                .filter(pkg => pkg.active !== false) //  QUAN TRỌNG: Lọc bỏ các gói đang ẩn
-                .map((pkg) => {
-                    const isCurrent = pkg.packageId === currentPackageId;
-                    const isPremium = pkg.price > 0; // Giả định gói trả phí là Premium
+                    .filter(pkg => pkg.active !== false) //  QUAN TRỌNG: Lọc bỏ các gói đang ẩn
+                    .map((pkg) => {
+                        const isCurrent = pkg.packageId === currentPackageId;
+                        const isPremium = pkg.price > 0; // Giả định gói trả phí là Premium
 
-                    // Parse features từ JSON string (để đồng bộ với cách lưu mới của Admin)
+                        // Parse features từ JSON string (để đồng bộ với cách lưu mới của Admin)
                         let featureList: string[] = [];
                         try {
                             featureList = JSON.parse(pkg.features);
                         } catch {
                             // Fallback nếu dữ liệu cũ không phải JSON
-                            featureList = [pkg.features]; 
+                            featureList = [pkg.features];
                         }
-                    return (
-                        <Col xs={24} md={8} key={pkg.packageId}>
-                            <Badge.Ribbon
-                                text={isCurrent ? "Đang dùng" : (isPremium ? "Phổ biến" : "Miễn phí")}
-                                color={isCurrent ? "green" : (isPremium ? "gold" : "blue")}
-                            >
-                                <Card
-                                    hoverable
-                                    style={{
-                                        height: '100%',
-                                        borderRadius: 12,
-                                        border: isCurrent ? '2px solid #52c41a' : (isPremium ? '1px solid #faad14' : '1px solid #f0f0f0'),
-                                        background: isPremium ? '#fffbe6' : '#fff'
-                                    }}
-                                    bodyStyle={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+                        return (
+                            <Col xs={24} md={8} key={pkg.packageId}>
+                                <Badge.Ribbon
+                                    text={isCurrent ? "Đang dùng" : (isPremium ? "Phổ biến" : "Miễn phí")}
+                                    color={isCurrent ? "green" : (isPremium ? "gold" : "blue")}
                                 >
-                                    <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                                        {isPremium ? <CrownFilled style={{ fontSize: 40, color: '#faad14' }} /> : <SketchOutlined style={{ fontSize: 40, color: '#1890ff' }} />}
-                                        <Title level={3} style={{ marginTop: 10 }}>{pkg.packageName}</Title>
-                                        <Title level={2} style={{ margin: 0, color: isPremium ? '#d48806' : '#000' }}>
-                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pkg.price)}
-                                        </Title>
-                                        <Text type="secondary">/ tháng</Text>
-                                    </div>
+                                    <Card
+                                        hoverable
+                                        style={{
+                                            height: '100%',
+                                            borderRadius: 12,
+                                            border: isCurrent ? '2px solid #52c41a' : (isPremium ? '1px solid #faad14' : '1px solid #f0f0f0'),
+                                            background: isPremium ? '#fffbe6' : '#fff'
+                                        }}
+                                        bodyStyle={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+                                    >
+                                        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                                            {isPremium ? <CrownFilled style={{ fontSize: 40, color: '#faad14' }} /> : <SketchOutlined style={{ fontSize: 40, color: '#1890ff' }} />}
+                                            <Title level={3} style={{ marginTop: 10 }}>{pkg.packageName}</Title>
+                                            <Title level={2} style={{ margin: 0, color: isPremium ? '#d48806' : '#000' }}>
+                                                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pkg.price)}
+                                            </Title>
+                                            <Text type="secondary">/ tháng</Text>
+                                        </div>
 
-                                    <List
-                                        size="small"
-                                        split={false}
-                                        dataSource={[
-                                            pkg.hasMentor ? "Có Mentor hỗ trợ 1-1" : "Không có Mentor",
-                                            "Lộ trình học cá nhân hóa",
-                                            "Truy cập không giới hạn bài học",
-                                            pkg.description
-                                        ]}
-                                        renderItem={item => (
-                                            <List.Item>
-                                                <CheckOutlined style={{ color: '#52c41a', marginRight: 8 }} /> {item}
-                                            </List.Item>
-                                        )}
-                                    />
+                                        <List
+                                            size="small"
+                                            split={false}
+                                            dataSource={[
+                                                pkg.hasMentor ? "Có Mentor hỗ trợ 1-1" : "Không có Mentor",
+                                                "Lộ trình học cá nhân hóa",
+                                                "Truy cập không giới hạn bài học",
+                                                pkg.description
+                                            ].filter(Boolean)}
+                                            renderItem={(item) => (
+                                                <List.Item>
+                                                    <CheckOutlined style={{ color: '#52c41a', marginRight: 8 }} /> {item}
+                                                </List.Item>
+                                            )}
+                                        />
 
-                                    <div style={{ marginTop: 'auto', paddingTop: 20 }}>
-                                        <Button
-                                            type={isCurrent ? "default" : "primary"}
-                                            block
-                                            size="large"
-                                            shape="round"
-                                            disabled={isCurrent}
-                                            style={{
-                                                background: isCurrent ? '#f6ffed' : (isPremium ? '#d48806' : '#1890ff'),
-                                                borderColor: isCurrent ? '#b7eb8f' : (isPremium ? '#d48806' : '#1890ff'),
-                                                color: isCurrent ? '#52c41a' : '#fff',
-                                                fontWeight: 'bold'
-                                            }}
-                                            onClick={() => navigate(`/checkout/${pkg.packageId}`)}
-                                        >
-                                            {isCurrent ? "Gói hiện tại" : "Nâng cấp ngay"}
-                                        </Button>
-                                    </div>
-                                </Card>
-                            </Badge.Ribbon>
-                        </Col>
-                    );
-                })}
+                                        <div style={{ marginTop: 'auto', paddingTop: 20 }}>
+                                            <Button
+                                                type={isCurrent ? "default" : "primary"}
+                                                block
+                                                size="large"
+                                                shape="round"
+                                                disabled={isCurrent}
+                                                style={{
+                                                    background: isCurrent ? '#f6ffed' : (isPremium ? '#d48806' : '#1890ff'),
+                                                    borderColor: isCurrent ? '#b7eb8f' : (isPremium ? '#d48806' : '#1890ff'),
+                                                    color: isCurrent ? '#52c41a' : '#fff',
+                                                    fontWeight: 'bold'
+                                                }}
+                                                onClick={() => navigate(`/checkout/${pkg.packageId}`)}
+                                            >
+                                                {isCurrent ? "Gói hiện tại" : "Nâng cấp ngay"}
+                                            </Button>
+                                        </div>
+                                    </Card>
+                                </Badge.Ribbon>
+                            </Col>
+                        );
+                    })}
             </Row>
         </div>
     );

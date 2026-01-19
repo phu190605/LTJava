@@ -33,6 +33,12 @@ public class LearnerProfile {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
+    // ===== MENTOR ĐƯỢC CHỌN =====
+    // Learner chỉ chọn 1 mentor
+    @ManyToOne
+    @JoinColumn(name = "mentor_id")
+    private User selectedMentor;
+
     // ------ Thông tin cá nhân ------
     @Column(name = "display_name")
     private String displayName;
@@ -110,6 +116,16 @@ public class LearnerProfile {
         this.user = user;
     }
 
+    /* ===== SELECTED MENTOR ===== */
+
+   
+    public User getSelectedMentor() {
+        return selectedMentor;
+    }
+
+    public void setSelectedMentor(User selectedMentor) {
+        this.selectedMentor = selectedMentor;
+    }
     public String getDisplayName() {
         return displayName;
     }
@@ -221,4 +237,5 @@ public class LearnerProfile {
     public void setInterests(List<ProfileInterest> interests) {
         this.interests = interests;
     }
+
 }

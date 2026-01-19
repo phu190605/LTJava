@@ -1,12 +1,22 @@
 package com.aesp.backend.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
@@ -21,44 +31,61 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    @JsonIgnore // Không trả password ra API để bảo mật
+    @JsonIgnore
     private String password;
 
-    // Phân quyền: "ADMIN", "MENTOR", "LEARNER"
     @Column(nullable = false)
     private String role;
 
-    @Column(nullable = false)
+    @Column(name = "full_name", nullable = false)
     private String fullName;
 
-    // Trạng thái kích hoạt (true/false)
     @Column(nullable = false)
     private boolean active = true;
 
-    // ===== MENTOR SKILLS (Quan hệ nhiều-nhiều) =====
+    @Column(name = "is_tested", nullable = false)
+    private boolean isTested = false;
+
+    @Column(name = "level", nullable = false)
+    private String level = "BEGINNER";
+
+    // ===== Mentor skills =====
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "mentor_skills",
-        joinColumns = @JoinColumn(name = "mentor_id"),
-        inverseJoinColumns = @JoinColumn(name = "skill_id")
+            name = "mentor_skills",
+            joinColumns = @JoinColumn(name = "mentor_id"),
+            inverseJoinColumns = @JoinColumn(name = "skill_id")
     )
     @JsonManagedReference
     private Set<Skill> skills = new HashSet<>();
 
-    // ===== PASSWORD RESET (TOKEN & OTP) =====
+    // ===== Profile =====
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
+    @Column(columnDefinition = "TEXT")
+    private String certificates;
+
+    // ===== Reset Token =====
+    @Column(name = "reset_token")
     private String resetToken;
+
+    @Column(name = "reset_token_expiry")
     private LocalDateTime resetTokenExpiry;
 
+    @Column(name = "reset_otp")
     private String resetOtp;
+
+    @Column(name = "reset_otp_expiry")
     private LocalDateTime resetOtpExpiry;
 
-    // ===== CONSTRUCTOR =====
     public User() {
-        // Constructor rỗng bắt buộc cho JPA
     }
 
-    // ===== GETTER & SETTER (VIẾT TAY) =====
-
+    // ===== GETTERS & SETTERS =====
     public Long getId() {
         return id;
     }
@@ -107,12 +134,52 @@ public class User {
         this.active = active;
     }
 
+    public boolean isTested() {
+        return isTested;
+    }
+
+    public void setTested(boolean tested) {
+        isTested = tested;
+    }
+
+    public String getLevel() {
+        return level;
+    }
+
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
     public Set<Skill> getSkills() {
         return skills;
     }
 
     public void setSkills(Set<Skill> skills) {
         this.skills = skills;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public String getCertificates() {
+        return certificates;
+    }
+
+    public void setCertificates(String certificates) {
+        this.certificates = certificates;
     }
 
     public String getResetToken() {

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { 
-    Row, Col, Card, Button, Typography, Modal, 
-    Form, Input, InputNumber, Switch, message, Popconfirm, List, Badge, Spin 
+import {
+    Row, Col, Card, Button, Typography, Modal,
+    Form, Input, InputNumber, Switch, message, Popconfirm, List, Badge, Spin
 } from 'antd';
-import { 
-    PlusOutlined, EditOutlined, DeleteOutlined, 
-    CheckOutlined, SketchOutlined, CrownFilled 
+import {
+    PlusOutlined, EditOutlined, DeleteOutlined,
+    CheckOutlined, SketchOutlined, CrownFilled
 } from '@ant-design/icons';
 import axiosClient from '../../api/axiosClient';
 
@@ -29,9 +29,9 @@ const PackageManager: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPackage, setEditingPackage] = useState<ServicePackage | null>(null);
-    
+
     // Khởi tạo Form instance
-    const [form] = Form.useForm(); 
+    const [form] = Form.useForm();
 
     // 1. Lấy dữ liệu
     useEffect(() => {
@@ -60,11 +60,11 @@ const PackageManager: React.FC = () => {
         } else {
             setEditingPackage(null);
             form.resetFields();
-            form.setFieldsValue({ 
-                hasMentor: false, 
-                active: true, 
+            form.setFieldsValue({
+                hasMentor: false,
+                active: true,
                 durationMonths: 1,
-                features: '["Tính năng cơ bản"]' 
+                features: '["Tính năng cơ bản"]'
             });
         }
     };
@@ -130,10 +130,10 @@ const PackageManager: React.FC = () => {
                     <Title level={2} style={{ margin: 0 }}>📦 Quản lý Gói Dịch Vụ</Title>
                     <Text type="secondary">Cấu hình các gói hiển thị bên trang Học viên</Text>
                 </div>
-                <Button 
-                    type="primary" 
-                    icon={<PlusOutlined />} 
-                    size="large" 
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    size="large"
                     onClick={() => handleOpenModal()}
                     style={{ borderRadius: 8, height: 45 }}
                 >
@@ -173,8 +173,8 @@ const PackageManager: React.FC = () => {
                                         }}
                                     >
                                         <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                                            {isPremium ? 
-                                                <CrownFilled style={{ fontSize: 40, color: '#faad14' }} /> : 
+                                            {isPremium ?
+                                                <CrownFilled style={{ fontSize: 40, color: '#faad14' }} /> :
                                                 <SketchOutlined style={{ fontSize: 40, color: '#1890ff' }} />
                                             }
                                             <Title level={3} style={{ marginTop: 10 }}>{pkg.packageName}</Title>
@@ -191,7 +191,7 @@ const PackageManager: React.FC = () => {
                                                 pkg.hasMentor ? "Có Mentor hỗ trợ 1-1" : "Không có Mentor",
                                                 ...featureList,
                                                 pkg.description
-                                            ]}
+                                            ].filter(Boolean)}
                                             renderItem={item => (
                                                 <List.Item>
                                                     <CheckOutlined style={{ color: '#52c41a', marginRight: 8 }} /> {item}
@@ -201,15 +201,15 @@ const PackageManager: React.FC = () => {
 
                                         {/* Actions cho Admin */}
                                         <div style={{ marginTop: 'auto', paddingTop: 20, display: 'flex', gap: 10, borderTop: '1px dashed #d9d9d9' }}>
-                                            <Button 
-                                                icon={<EditOutlined />} 
+                                            <Button
+                                                icon={<EditOutlined />}
                                                 style={{ flex: 1 }}
                                                 onClick={() => handleOpenModal(pkg)}
                                             >
                                                 Sửa
                                             </Button>
-                                            <Popconfirm 
-                                                title="Xóa gói này?" 
+                                            <Popconfirm
+                                                title="Xóa gói này?"
                                                 description="Hành động này không thể hoàn tác!"
                                                 onConfirm={() => handleDelete(pkg.packageId!)}
                                                 okText="Xóa"
@@ -239,9 +239,9 @@ const PackageManager: React.FC = () => {
             >
                 {/* QUAN TRỌNG: Gán form instance vào đây */}
                 <Form form={form} layout="vertical" onFinish={handleSave}>
-                    <Form.Item 
-                        name="packageName" 
-                        label="Tên gói" 
+                    <Form.Item
+                        name="packageName"
+                        label="Tên gói"
                         rules={[{ required: true, message: 'Nhập tên gói!' }]}
                     >
                         <Input placeholder="VD: Gói VIP" size="large" />
@@ -249,13 +249,13 @@ const PackageManager: React.FC = () => {
 
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item 
-                                name="price" 
-                                label="Giá (VND)" 
+                            <Form.Item
+                                name="price"
+                                label="Giá (VND)"
                                 rules={[{ required: true }]}
                             >
-                                <InputNumber 
-                                    style={{ width: '100%' }} 
+                                <InputNumber
+                                    style={{ width: '100%' }}
                                     formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                                     parser={value => value!.replace(/\$\s?|(,*)/g, '')}
                                     size="large"
@@ -263,9 +263,9 @@ const PackageManager: React.FC = () => {
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item 
-                                name="durationMonths" 
-                                label="Thời hạn (Tháng)" 
+                            <Form.Item
+                                name="durationMonths"
+                                label="Thời hạn (Tháng)"
                                 rules={[{ required: true }]}
                             >
                                 <InputNumber min={1} max={36} style={{ width: '100%' }} size="large" />
@@ -277,9 +277,9 @@ const PackageManager: React.FC = () => {
                         <Input.TextArea rows={2} />
                     </Form.Item>
 
-                    <Form.Item 
-                        name="features" 
-                        label="Các tính năng (JSON List)" 
+                    <Form.Item
+                        name="features"
+                        label="Các tính năng (JSON List)"
                         tooltip='Nhập dạng: ["Tính năng A", "Tính năng B"]'
                         rules={[{ required: true }]}
                     >

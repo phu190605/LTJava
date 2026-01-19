@@ -1,35 +1,156 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getSessionsByMentor } from "../../api/mentorSessionService";
+import { getPendingExercises } from "../../api/mentorApi";
+import { getMentorId } from "../../utils/auth";
+import {
+  Card,
+  Table,
+  Typography,
+  Tag,
+  Button,
+  Input,
+  Space,
+  Row,
+  Col,
+  Statistic
+} from "antd";
+import {
+  AudioOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  SearchOutlined
+} from "@ant-design/icons";
+
+const { Title, Text } = Typography;
+
+// ✅ HÀM FORMAT THỜI GIAN AN TOÀN
+const formatDateTime = (record: any) => {
+  const rawTime =
+    record.createdAt ||
+    record.submittedAt ||
+    record.created_at ||
+    record.submitTime;
+
+  if (!rawTime) return "Không xác định";
+
+  const date = new Date(rawTime);
+
+  if (isNaN(date.getTime())) return "Không xác định";
+
+  return date.toLocaleString("vi-VN");
+};
 
 export default function FeedbackList() {
-  const [sessions, setSessions] = useState<any[]>([]);
+  const mentorId = getMentorId();
   const navigate = useNavigate();
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getSessionsByMentor("mentor01").then(res => {
-      const pending = res.data.filter(
-        s => s.status === "WAITING"
-      );
-      setSessions(pending);
-    });
-  }, []);
+    if (!mentorId) return;
+    setLoading(true);
+    getPendingExercises(mentorId)
+      .then(res => setData(res.data || []))
+      .finally(() => setLoading(false));
+  }, [mentorId]);
+
+  const columns = [
+    {
+      title: "HỌC VIÊN",
+      render: (_: any, r: any) => (
+        <div>
+          <Text strong>
+            {r.learnerName || `ID: ${r.learnerId}`}
+          </Text>
+          <br />
+          <Text type="secondary">ID: {r.learnerId}</Text>
+        </div>
+      )
+    },
+    {
+      title: "LOẠI BÀI TẬP",
+      render: () => (
+        <Space>
+          <AudioOutlined />
+          Luyện tập phát âm
+        </Space>
+      )
+    },
+    {
+      title: "THỜI GIAN NỘP",
+      render: (_: any, r: any) => formatDateTime(r)
+    },
+    {
+      title: "TRẠNG THÁI",
+      render: () => <Tag color="orange">Chờ chấm</Tag>
+    },
+    {
+      title: "HÀNH ĐỘNG",
+      render: (_: any, r: any) => (
+        <Button
+          type="primary"
+          onClick={() => navigate(`/mentor/feedback/${r.id}`)}
+        >
+          Chấm bài
+        </Button>
+      )
+    }
+  ];
 
   return (
-    <div>
-      <h1>Chấm bài & sửa lỗi</h1>
+    <div style={{ padding: 24 }}>
+      <Title level={3}>✍️ Danh sách Feedback</Title>
 
-      {sessions.map(s => (
-        <div key={s.id}>
-          <b>Session:</b> {s.topic}
-          <br />
-          <button
-            onClick={() => navigate(`/mentor/feedback/${s.id}`)}
-          >
-            Chấm bài
-          </button>
-        </div>
-      ))}
+      {/* SEARCH BAR */}
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        <Input
+          prefix={<SearchOutlined />}
+          placeholder="Tìm kiếm học viên..."
+          style={{ width: 260 }}
+        />
+        <Button>Bộ lọc</Button>
+      </div>
+
+      {/* TABLE */}
+      <Card style={{ borderRadius: 16 }}>
+        <Table
+          rowKey="id"
+          columns={columns}
+          dataSource={data}
+          loading={loading}
+          pagination={{ pageSize: 4 }}
+        />
+      </Card>
+
+      {/* STATS */}
+      <Row gutter={16} style={{ marginTop: 24 }}>
+        <Col span={8}>
+          <Card style={{ borderRadius: 16 }}>
+            <Statistic
+              title="Đang chờ chấm"
+              value={data.length}
+              prefix={<ClockCircleOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card style={{ borderRadius: 16 }}>
+            <Statistic
+              title="Đã hoàn thành (Tuần này)"
+              value={45}
+              prefix={<CheckCircleOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card style={{ borderRadius: 16 }}>
+            <Statistic
+              title="Thời gian TB phản hồi"
+              value="4.2 giờ"
+            />
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 }

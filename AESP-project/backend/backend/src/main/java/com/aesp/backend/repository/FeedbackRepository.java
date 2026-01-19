@@ -1,13 +1,16 @@
 package com.aesp.backend.repository;
 
-import com.aesp.backend.entity.Feedback;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
 
-public interface FeedbackRepository
-        extends JpaRepository<Feedback, String> {
-    List<Feedback> findBySessionId(String sessionId);
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.aesp.backend.entity.Feedback;
+
+public interface FeedbackRepository extends JpaRepository<Feedback, String> {
+
+    // Lấy feedback theo exercise
+    List<Feedback> findByExerciseId(String exerciseId);
+
+    // Lấy feedback theo mentor
     List<Feedback> findByMentorId(String mentorId);
 }
-

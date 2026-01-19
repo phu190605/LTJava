@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { AudioOutlined } from '@ant-design/icons';
 import { Layout, Menu, Avatar, Typography, Space, theme, Dropdown } from 'antd';
+import { TeamOutlined } from '@ant-design/icons';
+
 // Import MenuProps để chuẩn TypeScript Antd v6
 import type { MenuProps } from 'antd';
 import {
@@ -42,7 +44,7 @@ const LearnerLayout: React.FC = () => {
         const handleUpdate = () => {
             fetchUserInfo(); // Gọi lại API để cập nhật Avatar mới ngay lập tức
         };
-        
+
         window.addEventListener('user-updated', handleUpdate);
 
         // 3. Dọn dẹp khi thoát trang (Bắt buộc để tránh lỗi)
@@ -58,6 +60,7 @@ const LearnerLayout: React.FC = () => {
         { key: '/my-courses', icon: <ReadOutlined />, label: 'Khoá học của tôi' },
         { key: '/setup', icon: <AimOutlined />, label: 'Mục tiêu & Lộ trình' },
         { key: '/schedule', icon: <CalendarOutlined />, label: 'Lịch học' },
+        { key: '/learner/learnmentor', icon: <TeamOutlined />, label: 'Học với Mentor' },
 
         // --- THÊM MỤC NÀY ---
         {

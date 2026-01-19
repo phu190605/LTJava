@@ -1,247 +1,223 @@
 import { useEffect, useState } from "react";
-import { getMaterials, uploadMaterial } from "../../api/mentorService";
-import type { LearningMaterial } from "../../types/mentor";
+import {
+  Card,
+  Typography,
+  Input,
+  Button,
+  Upload,
+  Table,
+  message,
+  Tag,
+  Space,
+  Row,
+  Col
+} from "antd";
+import {
+  UploadOutlined,
+  FilePdfOutlined,
+  FileWordOutlined,
+  FileExcelOutlined,
+  SearchOutlined,
+  CloudUploadOutlined
+} from "@ant-design/icons";
+import {
+  getAllMaterials,
+  uploadMaterial,
+  getMentorProfile
+} from "../../api/mentorApi";
+import { getMentorId } from "../../utils/auth";
+
+const { Title, Text } = Typography;
+const { Dragger } = Upload;
 
 export default function Materials() {
-  const [materials, setMaterials] = useState<LearningMaterial[]>([]);
+  const mentorId = getMentorId();
+
+  const [materials, setMaterials] = useState<any[]>([]);
+  const [mentorName, setMentorName] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
+  const [search, setSearch] = useState("");
+
+  // ================= FETCH DATA =================
+  const fetchMaterials = async () => {
+    if (!mentorId) return;
+
+    setLoading(true);
+    try {
+      // ✅ profile đã là data (KHÔNG .data)
+      const profile = await getMentorProfile(mentorId);
+      const name = profile.fullName || "Mentor";
+      setMentorName(name);
+
+      // ✅ materials đã là array
+      const list = await getAllMaterials();
+
+      // gán mentorName thủ công cho UI
+      const mapped = list.map((m: any) => ({
+        ...m,
+        mentorName:
+          String(m.mentorId) === String(mentorId)
+            ? name
+            : m.mentorName || "Mentor"
+      }));
+
+      setMaterials(mapped);
+    } catch (err) {
+      console.error(err);
+      message.error("Không thể tải danh sách tài liệu");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    loadMaterials();
+    fetchMaterials();
   }, []);
 
-  const loadMaterials = () => {
-    getMaterials().then(res => setMaterials(res.data));
-  };
-
-  const upload = async () => {
+  // ================= UPLOAD =================
+  const onUpload = async () => {
     if (!file || !title) {
-      alert("Enter title & choose file");
-      return;
+      return message.warning("Vui lòng nhập tiêu đề và chọn file");
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("title", title);
-
-    await uploadMaterial(formData);
-
-    setTitle("");
-    setFile(null);
-    loadMaterials();
+    try {
+      message.loading({ content: "Đang tải tài liệu...", key: "upload" });
+      await uploadMaterial(file, title, mentorId!);
+      message.success({ content: "Tải tài liệu thành công 🎉", key: "upload" });
+      setFile(null);
+      setTitle("");
+      fetchMaterials();
+    } catch {
+      message.error("Upload thất bại");
+    }
   };
 
+  const getFileIcon = (type: string) => {
+    if (type?.includes("pdf")) return <FilePdfOutlined style={{ color: "#ef4444" }} />;
+    if (type?.includes("doc")) return <FileWordOutlined style={{ color: "#2563eb" }} />;
+    if (type?.includes("xls")) return <FileExcelOutlined style={{ color: "#16a34a" }} />;
+    return <CloudUploadOutlined />;
+  };
+
+  // ================= TABLE =================
+  const columns = [
+    {
+      title: "TIÊU ĐỀ",
+      dataIndex: "title",
+      render: (t: string) => <Text strong>{t}</Text>
+    },
+    {
+      title: "LOẠI",
+      dataIndex: "type",
+      render: (t: string) => (
+        <Space>
+          {getFileIcon(t)}
+          <Tag>{t?.toUpperCase()}</Tag>
+        </Space>
+      )
+    },
+    {
+      title: "FILE",
+      render: (r: any) => (
+        <a href={r.fileUrl} target="_blank" rel="noreferrer">
+          ⬇ Tải xuống
+        </a>
+      )
+    },
+    {
+      title: "NGƯỜI ĐĂNG",
+      dataIndex: "mentorName"
+    }
+  ];
+
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
-      <div style={{ width: "100%", maxWidth: 800 }}>
-        <h1 style={{ fontSize: 24, marginBottom: 20 }}>
-          Kho tài liệu
-        </h1>
+    <div style={{ padding: 24 }}>
+      <Title level={3}>📚 Thư viện tài liệu</Title>
 
-        {/* UPLOAD FORM */}
-        <div
-          style={{
-            background: "#fff",
-            padding: 20,
-            borderRadius: 8,
-            marginBottom: 24,
-            boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-          }}
-        >
-          <h3 style={{ marginBottom: 12 }}>
-            Tải tài liệu mới lên
-          </h3>
+      {/* UPLOAD */}
+      <Card style={{ borderRadius: 16, marginBottom: 24 }}>
+        <Title level={5}>📤 Tải tài liệu mới</Title>
 
-          {/* TITLE */}
-          <input
-            placeholder="Title"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            style={{
-              width: "100%",
-              padding: 8,
-              marginBottom: 12,
-              border: "1px solid #d1d5db",
-              borderRadius: 4,
-              boxSizing: "border-box",
-            }}
-          />
-
-          {/* FILE PICKER */}
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "10px 12px",
-              border: "1px dashed #94a3b8",
-              borderRadius: 6,
-              cursor: "pointer",
-              background: "#f8fafc",
-              marginBottom: 12,
-            }}
-          >
-            <span
-              style={{
-                color: file ? "#0f172a" : "#64748b",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                maxWidth: "70%",
-              }}
-            >
-              {file
-                ? file.name
-                : "Chọn tệp (PDF, DOCX, MP3...)"}
-            </span>
-
-            <span
-              style={{
-                padding: "6px 12px",
-                background: "#2563eb",
-                color: "#fff",
-                borderRadius: 4,
-                fontSize: 13,
-              }}
-            >
-              Browse
-            </span>
-
-            <input
-              type="file"
-              hidden
-              onChange={e =>
-                setFile(e.target.files?.[0] || null)
-              }
+        <Row gutter={16}>
+          <Col span={12}>
+            <Text strong>Tiêu đề tài liệu</Text>
+            <Input
+              placeholder="Nhập tên tài liệu..."
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              style={{ marginTop: 8 }}
             />
-          </label>
 
-          {/* UPLOAD BUTTON */}
-          <button
-            onClick={upload}
-            style={{
-              padding: "8px 16px",
-              background: "#2563eb",
-              color: "#fff",
-              border: "none",
-              borderRadius: 4,
-              cursor: "pointer",
-            }}
-          >
-            Upload
-          </button>
-        </div>
-{/* MATERIAL LIST */}
-<div
-  style={{
-    background: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-  }}
->
-  <h3 style={{ marginBottom: 16 }}>
-    Tài liệu đã tải lên
-  </h3>
-
-  {materials.length === 0 ? (
-    <div style={{ color: "#64748b" }}>
-      Chưa có tài liệu nào
-    </div>
-  ) : (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
-      }}
-    >
-      {materials.map(m => (
-        <div
-          key={m.id}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: 12,
-            border: "1px solid #e5e7eb",
-            borderRadius: 6,
-            background: "#f8fafc",
-          }}
-        >
-          {/* LEFT */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 20,
+            <Upload
+              beforeUpload={f => {
+                setFile(f);
+                return false;
               }}
+              maxCount={1}
+              showUploadList={false}
             >
-              📄
-            </div>
+              <Button icon={<UploadOutlined />} style={{ marginTop: 16 }}>
+                Chọn file
+              </Button>
+            </Upload>
 
-            <div
-              style={{
-                overflow: "hidden",
+            {file && (
+              <Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+                📎 {file.name}
+              </Text>
+            )}
+
+            <Button
+              type="primary"
+              style={{ marginTop: 16 }}
+              onClick={onUpload}
+            >
+              ⬆ Tải lên ngay
+            </Button>
+          </Col>
+
+          <Col span={12}>
+            <Dragger
+              beforeUpload={f => {
+                setFile(f);
+                return false;
               }}
+              showUploadList={false}
             >
-              <div
-                style={{
-                  fontWeight: 500,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: 360,
-                }}
-              >
-                {m.title}
-              </div>
+              <p className="ant-upload-drag-icon">
+                <CloudUploadOutlined style={{ fontSize: 32 }} />
+              </p>
+              <p>Kéo & thả file vào đây hoặc click để chọn</p>
+              <Text type="secondary">Dung lượng tối đa: 10MB</Text>
+            </Dragger>
+          </Col>
+        </Row>
+      </Card>
 
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "#64748b",
-                }}
-              >
-                Uploaded file
-              </div>
-            </div>
-          </div>
+      {/* SEARCH */}
+      <Input
+        prefix={<SearchOutlined />}
+        placeholder="Tìm kiếm tài liệu..."
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        style={{ width: 260, marginBottom: 12 }}
+      />
 
-          {/* RIGHT */}
-          <a
-            href={m.fileUrl}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              padding: "6px 12px",
-              background: "#2563eb",
-              color: "#fff",
-              borderRadius: 4,
-              fontSize: 13,
-              textDecoration: "none",
-            }}
-          >
-            Open
-          </a>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
-        </div>
+      {/* TABLE */}
+      <Card style={{ borderRadius: 16 }}>
+        <Table
+          rowKey="id"
+          loading={loading}
+          dataSource={materials.filter(m =>
+            m.title?.toLowerCase().includes(search.toLowerCase())
+          )}
+          columns={columns}
+          pagination={{ pageSize: 5 }}
+        />
+      </Card>
     </div>
   );
 }

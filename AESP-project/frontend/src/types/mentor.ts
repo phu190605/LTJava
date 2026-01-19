@@ -1,36 +1,28 @@
-/* ================== LEARNING SESSION ================== */
+// Các session của mentor
 export interface LearningSession {
   id: string;
   learnerId: string;
-  topic: string;
+  mentorId: string;
   audioUrl: string;
-  status: string;
+  topic: string;
+  status: "WAITING" | "ACTIVE" | "FINISHED";
 }
 
-/* ================== MATERIAL ================== */
+// Feedback của mentor cho từng session
+export interface Feedback {
+  id?: string;
+  sessionId: string;
+  comment: string;
+  grammarScore: number;
+  pronunciationScore: number;
+  timeStamp: number; // mốc thời gian tính bằng giây
+}
+
+// Tài liệu học tập upload bởi mentor
 export interface LearningMaterial {
   id: string;
   title: string;
-  fileUrl: string;
-  type: string;
-}
-
-/* ================== MENTOR PROFILE ================== */
-export interface MentorProfile {
   mentorId: string;
-  fullName: string;
-  bio: string;
-  skills: string[];
-  certificates: string[];
-  avatarUrl?: string;
-}
-
-/* ================== ASSESSMENT & LEVELING ================== */
-export interface Assessment {
-  id: number;         
-  userId: number;      
-  score: number;      
-  feedback: string;    
-  audioUrl?: string;  
-  createdAt: string;  
+  type: "PDF" | "AUDIO";
+  fileUrl: string;
 }

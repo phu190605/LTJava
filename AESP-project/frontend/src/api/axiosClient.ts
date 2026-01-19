@@ -1,34 +1,33 @@
-import axios from 'axios';
+import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: 'http://localhost:8080/api', // Chú ý: Cổng 8080 hoặc 3307 tùy server bạn chạy
+  baseURL: "http://localhost:8080/api",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
-// Thêm token vào mọi request nếu có (để sau này gọi API bảo mật)
-axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// ===== REQUEST =====
+axiosClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-//  Interceptor RESPONSE (Bộ lọc kết quả)
-// Tác dụng: Tự động bóc vỏ 'data' ra trước khi trả về cho LoginPage
+// ===== RESPONSE (🔥 QUAN TRỌNG NHẤT) =====
 axiosClient.interceptors.response.use(
   (response) => {
-    // Nếu có data thì trả về data, giúp LoginPage gọi res.token là thấy ngay
-    if (response && response.data) {
-      return response.data;
-    }
-    return response;
+    // 👉 Trả thẳng JSON, KHÔNG phải AxiosResponse
+    return response.data;
   },
   (error) => {
-// SỬA: Dùng Promise.reject thay vì throw error để đúng chuẩn Axios
     return Promise.reject(error);
   }
 );
+
 export default axiosClient;

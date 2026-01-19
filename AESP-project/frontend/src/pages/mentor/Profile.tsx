@@ -1,97 +1,259 @@
 import { useEffect, useState } from "react";
-import { getProfile, updateProfile } from "../../api/mentorService";
+import {
+  getMentorProfile,
+  updateMentorProfile,
+  uploadAvatar,
+  uploadCertificate
+} from "../../api/mentorApi";
+import { getMentorId } from "../../utils/auth";
+import {
+  Input,
+  Button,
+  message,
+  Upload,
+  Card,
+  Avatar,
+  Tag,
+  Space,
+  Typography
+} from "antd";
+import {
+  UploadOutlined,
+  UserOutlined,
+  CheckCircleFilled
+} from "@ant-design/icons";
+import type { UploadChangeParam } from "antd/es/upload";
+
+const { Text, Title } = Typography;
+
+/* ===== TYPES ===== */
+type Skill = {
+  id: number;
+  name: string;
+};
 
 export default function Profile() {
-  const [profile, setProfile] = useState<any>({});
+  const mentorId = getMentorId();
+
+  const [fullName, setFullName] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [certificates, setCertificates] = useState<string[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
+
+  const [selectedAvatar, setSelectedAvatar] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  /* ===== FETCH PROFILE ===== */
+  const fetchProfile = async () => {
+    if (!mentorId) return;
+
+    try {
+      const res = await getMentorProfile(mentorId);
+      const data = res.data;
+
+      setFullName(data.fullName ?? "");
+      setBio(data.bio ?? "");
+      setAvatarUrl(data.avatarUrl ?? "");
+      setSkills(data.skills ?? []);
+
+      if (!data.certificates) {
+        setCertificates([]);
+      } else {
+        setCertificates(
+          data.certificates.split(",").map((c: string) => c.trim())
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      message.error("Lỗi tải hồ sơ mentor");
+    }
+  };
+
+  /* ===== SAVE PROFILE ===== */
+  const saveProfile = async () => {
+    if (!mentorId) return;
+    setLoading(true);
+
+    try {
+      await updateMentorProfile(mentorId, {
+        fullName,
+        bio,
+        certificates: certificates.join(",")
+      });
+
+      message.success("💾 Đã lưu thay đổi");
+    } catch (err) {
+      console.error(err);
+      message.error("Cập nhật thất bại");
+    }
+
+    setLoading(false);
+  };
+
+  /* ===== UPLOAD AVATAR ===== */
+  const handleUploadAvatar = async () => {
+    if (!selectedAvatar) {
+      return message.warning("Vui lòng chọn ảnh trước");
+    }
+
+    try {
+      const res = await uploadAvatar(mentorId!, selectedAvatar);
+      setAvatarUrl(res.data.avatarUrl);
+      setSelectedAvatar(null);
+      setPreview(null);
+      message.success("🖼 Upload avatar thành công");
+    } catch (err) {
+      console.error(err);
+      message.error("Upload avatar thất bại");
+    }
+  };
+
+  /* ===== UPLOAD CERTIFICATE ===== */
+  const handleUploadCertificate = async (info: UploadChangeParam) => {
+    if (!mentorId || !info.file.originFileObj) return;
+
+    try {
+      const res = await uploadCertificate(
+        mentorId,
+        info.file.originFileObj
+      );
+
+      setCertificates(res.data.certificates.split(","));
+      message.success("📄 Upload chứng chỉ thành công");
+    } catch (err) {
+      console.error(err);
+      message.error("Upload chứng chỉ thất bại");
+    }
+  };
 
   useEffect(() => {
-    getProfile("mentor01").then(res => setProfile(res.data));
+    fetchProfile();
   }, []);
 
-  const save = () => updateProfile(profile);
-
   return (
-<div
-  style={{
-    display: "flex",
-    justifyContent: "center",
-  }}
->
-  <div style={{ width: "100%", maxWidth: 500 }}>
-    <h1
-      style={{
-        fontSize: 24,
-        marginBottom: 24,
-        textAlign: "center",
-      }}
-    >
-      My Profile
-    </h1>
+    <div style={{ maxWidth: 920, margin: "0 auto", padding: 24 }}>
+      <Title level={3}>👤 Hồ sơ Mentor</Title>
 
-    <div
-      style={{
-        background: "#fff",
-        padding: 20,
-        borderRadius: 8,
-        boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-      }}
-    >
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ display: "block", marginBottom: 4 }}>
-          Full Name
-        </label>
-        <input
-          style={{
-            width: "100%",
-            padding: 8,
-            borderRadius: 4,
-            border: "1px solid #d1d5db",
-            boxSizing: "border-box",
-          }}
-          value={profile.fullName || ""}
-          onChange={e =>
-            setProfile({ ...profile, fullName: e.target.value })
-          }
+      {/* ===== AVATAR ===== */}
+      <Card title="Ảnh đại diện" style={{ marginBottom: 24 }}>
+        <Space align="center" size={24}>
+          <Avatar
+            size={120}
+            src={preview || avatarUrl || undefined}
+            icon={<UserOutlined />}
+          />
+
+          <Space direction="vertical">
+            <Upload
+              showUploadList={false}
+              beforeUpload={(file) => {
+                setSelectedAvatar(file);
+                setPreview(URL.createObjectURL(file));
+                return false;
+              }}
+            >
+              <Button icon={<UploadOutlined />}>
+                Chọn ảnh mới
+              </Button>
+            </Upload>
+
+            <Button
+              type="primary"
+              onClick={handleUploadAvatar}
+            >
+              Cập nhật ảnh đại diện
+            </Button>
+          </Space>
+        </Space>
+      </Card>
+
+      {/* ===== PERSONAL INFO ===== */}
+      <Card title="Thông tin cá nhân" style={{ marginBottom: 24 }}>
+        <Text strong>Họ và tên</Text>
+        <Input
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          style={{ marginBottom: 12 }}
         />
-      </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <label style={{ display: "block", marginBottom: 4 }}>
-          Bio
-        </label>
-        <textarea
-          style={{
-            width: "100%",
-            padding: 8,
-            borderRadius: 4,
-            border: "1px solid #d1d5db",
-            minHeight: 80,
-            boxSizing: "border-box",
-          }}
-          value={profile.bio || ""}
-          onChange={e =>
-            setProfile({ ...profile, bio: e.target.value })
-          }
+        <Text strong>Giới thiệu</Text>
+        <Input.TextArea
+          rows={4}
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
         />
-      </div>
+      </Card>
 
-      <div style={{ textAlign: "center" }}>
-        <button
-          onClick={save}
-          style={{
-            padding: "8px 24px",
-            background: "#2563eb",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-            cursor: "pointer",
-          }}
+      {/* ===== SKILLS (ADMIN ASSIGNED) ===== */}
+      <Card title="Kỹ năng chuyên môn" style={{ marginBottom: 24 }}>
+        <Text type="secondary">
+          (Kỹ năng mentor)
+        </Text>
+
+        <div style={{ marginTop: 12 }}>
+          {skills.length === 0 ? (
+            <Text type="secondary">
+              Chưa có kỹ năng nào được gán
+            </Text>
+          ) : (
+            <Space wrap>
+              {skills.map((skill) => (
+                <Tag
+                  key={skill.id}
+                  color="blue"
+                  icon={<CheckCircleFilled />}
+                >
+                  {skill.name}
+                </Tag>
+              ))}
+            </Space>
+          )}
+        </div>
+      </Card>
+
+      {/* ===== CERTIFICATES ===== */}
+      <Card title="Chứng chỉ" style={{ marginBottom: 24 }}>
+        {certificates.length === 0 ? (
+          <Text type="secondary">Chưa có chứng chỉ</Text>
+        ) : (
+          <ul>
+            {certificates.map((c, idx) => (
+              <li key={idx}>
+                <a
+                  href={c}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {c.split("/").pop()}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <Upload
+          showUploadList={false}
+          customRequest={() => { }}
+          onChange={handleUploadCertificate}
         >
-          Save
-        </button>
-      </div>
+          <Button icon={<UploadOutlined />}>
+            Thêm chứng chỉ
+          </Button>
+        </Upload>
+      </Card>
+
+      {/* ===== SAVE ===== */}
+      <Button
+        type="primary"
+        loading={loading}
+        onClick={saveProfile}
+        block
+        style={{ height: 44 }}
+      >
+        💾 Lưu tất cả thay đổi
+      </Button>
     </div>
-  </div>
-</div>
   );
 }

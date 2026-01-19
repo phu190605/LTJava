@@ -3,56 +3,63 @@ import { Form, Input, Button, message, Card } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import axiosClient from '../api/axiosClient';
 import { useNavigate } from 'react-router-dom';
+import type { LoginResponse } from '../types/auth';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
-  // Hàm chạy khi bấm nút Đăng nhập
   const onFinish = async (values: any) => {
     try {
-      // 1. Gọi API đăng nhập
-      // Lưu ý: Biến 'res' ở đây CHÍNH LÀ dữ liệu thật (do axiosClient đã xử lý)
-      const res: any = await axiosClient.post('/auth/login', {
-        email: values.email,
-        password: values.password,
-      });
+      // ✅ CAST KIỂU RÕ RÀNG CHO TYPESCRIPT
+      const data = (await axiosClient.post(
+        '/auth/login',
+        {
+          email: values.email,
+          password: values.password,
+        }
+      )) as LoginResponse;
 
-      console.log("Kết quả API trả về:", res); // Soi dữ liệu để kiểm tra
+      console.log('Kết quả API trả về:', data);
 
-      // 2. Kiểm tra và Lưu token
-      // ⚠️ SỬA QUAN TRỌNG: Thay response.data.token bằng res.token
-      if (res.token) {
-        localStorage.setItem('token', res.token);
-        // Lưu thông tin user (nếu cần dùng sau này)
-        localStorage.setItem('user', JSON.stringify(res));
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data));
 
         message.success('Đăng nhập thành công!');
 
-        // 3. Chuyển hướng (Cũng bỏ .data đi)
-        if (res.role === 'ADMIN') {
+        if (data.role === 'ADMIN') {
           navigate('/admin');
-        } else if (res.role === 'MENTOR') {
+        } else if (data.role === 'MENTOR') {
           navigate('/mentor');
         } else {
-          navigate('/dashboard'); // Mặc định là Learner
+          navigate('/dashboard'); // LEARNER
         }
       } else {
-        // Trường hợp API không lỗi nhưng không trả về token
-        message.error("Lỗi: Không nhận được Token từ server!");
+        message.error('Lỗi: Không nhận được token từ server!');
       }
-
     } catch (error: any) {
-      // 4. Xử lý lỗi
-      console.error("Lỗi đăng nhập:", error);
-      // Lấy thông báo lỗi từ backend trả về (nếu có)
-      const errorMsg = error.response?.data?.message || 'Đăng nhập thất bại!';
+      console.error('Lỗi đăng nhập:', error);
+
+      const errorMsg =
+        error?.response?.data ||
+        error?.message ||
+        'Đăng nhập thất bại!';
+
       message.error(errorMsg);
     }
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f0f2f5' }}>
-      <Card title="AESP - Đăng nhập" style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: '#f0f2f5',
+      }}
+    >
+      <Card title="AESP - Đăng nhập" style={{ width: 400 }}>
         <Form
           name="login"
           onFinish={onFinish}
@@ -70,7 +77,10 @@ const LoginPage: React.FC = () => {
             name="password"
             rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="Mật khẩu" />
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder="Mật khẩu"
+            />
           </Form.Item>
 
           <Form.Item>
@@ -83,7 +93,13 @@ const LoginPage: React.FC = () => {
             Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
           </div>
 
-          <div style={{ textAlign: 'center', borderTop: '1px solid #d9d9d9', paddingTop: 12 }}>
+          <div
+            style={{
+              textAlign: 'center',
+              borderTop: '1px solid #d9d9d9',
+              paddingTop: 12,
+            }}
+          >
             <a href="/admin-login">Đăng nhập Admin</a>
           </div>
         </Form>
