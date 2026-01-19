@@ -206,7 +206,7 @@ public class ProfileController {
     // 4. API CẬP NHẬT THÔNG TIN CÁ NHÂN (SETTINGS)
     // =========================================================================
 
-    @PutMapping("/update-info")
+    @PostMapping("/update-info")
     @Transactional
     public ResponseEntity<?> updatePersonalDetails(@RequestBody ProfileResponseRequest request) {
         User user = getCurrentUser();

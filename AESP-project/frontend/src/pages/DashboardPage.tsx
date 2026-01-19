@@ -83,7 +83,7 @@ const DashboardPage: React.FC = () => {
 
                     {/* Nút tắt để sửa hồ sơ */}
                     <Col>
-                        <Button ghost shape="round" onClick={() => navigate('/setup')}>
+                        <Button ghost shape="round" onClick={() => navigate('/settings')}>
                             Cập nhật hồ sơ
                         </Button>
                     </Col>

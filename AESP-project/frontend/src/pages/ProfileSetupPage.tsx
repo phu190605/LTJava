@@ -33,23 +33,34 @@ const ProfileSetupPage: React.FC = () => {
     }
   };
 
-  // 2. Gửi dữ liệu về Backend (Chỉ chứa thông tin học tập)
+  // 2. Gửi dữ liệu về Backend (Xử lý Logic điều hướng Mới)
   const handleFinalSubmit = async (finalData: any) => {
     try {
       setLoading(true);
+      // finalData: Dữ liệu từ component PreferenceSetup gửi ra (Bao gồm packageId, price...)
       const allData = { ...formData, ...finalData };
 
       console.log("DỮ LIỆU SETUP GỬI ĐI:", allData);
 
-      // Gọi API setup (Đã bỏ qua displayName/phone trong Backend)
+      // Gọi API setup để lưu thông tin vào DB trước
       await axiosClient.post('/profile/setup', allData);
 
-      message.success("Thiết lập lộ trình thành công!");
-
-      // Chuyển hướng về Dashboard sau 1 giây
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000);
+      // --- LOGIC ĐIỀU HƯỚNG MỚI ---
+      // Kiểm tra xem gói vừa chọn có phải gói trả phí không (price > 0)
+      if (finalData.price > 0 && finalData.packageId) {
+        message.info("Vui lòng thanh toán để kích hoạt lộ trình!");
+        
+        // Chuyển sang trang Checkout kèm ID gói
+        setTimeout(() => {
+          navigate(`/checkout/${finalData.packageId}`);
+        }, 1000);
+      } else {
+        // Nếu là gói miễn phí (hoặc không có giá) -> Vào thẳng Dashboard
+        message.success("Thiết lập lộ trình thành công!");
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
+      }
 
     } catch (error: any) {
       console.error(error);
