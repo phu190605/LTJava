@@ -1,17 +1,16 @@
 package com.aesp.backend.dto.request;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 public class PaymentHistoryResponse {
     private Long id;
     private String packageName;
     private BigDecimal amount;
-    private LocalDateTime date;
+    private String date;
     private String status; // "SUCCESS" hoặc "FAILED"
 
     // Constructor
-    public PaymentHistoryResponse(Long id, String packageName, BigDecimal amount, LocalDateTime date, String status) {
+    public PaymentHistoryResponse(Long id, String packageName, BigDecimal amount, String date, String status) {
         this.id = id;
         this.packageName = packageName;
         this.amount = amount;
@@ -44,11 +43,11 @@ public class PaymentHistoryResponse {
         this.amount = amount;
     }
 
-    public LocalDateTime getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(LocalDateTime date) {
+    public void setDate(String date) {
         this.date = date;
     }
 
