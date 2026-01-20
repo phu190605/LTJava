@@ -53,6 +53,7 @@ const SpeakingTest = () => {
     const [aiResult, setAiResult] = useState<any | null>(null); // Lưu kết quả AI tổng hợp
     const [fillAnswers, setFillAnswers] = useState<Record<number, string>>({});
     const [fillCorrect, setFillCorrect] = useState<Record<number, boolean>>({});
+    const [fillScore, setFillScore] = useState<Record<number, number>>({}); // 1: đúng, 0: sai
     const navigate = useNavigate();
 
     // Fetch questions from backend
@@ -123,21 +124,10 @@ const SpeakingTest = () => {
 
 
     const submitAllAndFinish = async () => {
-        // 1. Kiểm tra các câu điền từ
-        for (let i = 0; i < texts.length; i++) {
-            if (texts[i].type === "fill") {
-                if (!fillCorrect[i + 1]) {
-                    alert("Bạn cần hoàn thành đúng tất cả các câu điền từ!");
-                    return;
-                }
-            }
-        }
-
-        // 2. Kiểm tra ghi âm đủ chưa
+        // Không bắt buộc đúng hết fill mới cho submit
+        // 1. Kiểm tra ghi âm đủ chưa
         const readCount = texts.filter(t => t.type === "read").length;
-        // Lấy danh sách các bài đã làm có kết quả AI
         const completedParts = Object.values(tempResults).filter(res => res && res.aiResult).length;
-
         if (completedParts < readCount) {
             alert(`Bạn cần ghi âm đủ ${readCount} phần đọc (Hiện tại: ${completedParts}/${readCount}).`);
             return;
@@ -145,11 +135,11 @@ const SpeakingTest = () => {
 
         setIsProcessing(true);
         try {
-            // --- TÍNH ĐIỂM TRỰC TIẾP (FIX LỖI NỘP BÀI) ---
+            // --- TÍNH ĐIỂM ---
             let totalScore = 0;
             let feedbacks: string[] = [];
 
-            // Duyệt qua tất cả kết quả đã lưu trong tempResults (Bất kể thứ tự)
+            // Điểm speaking (AI)
             Object.values(tempResults).forEach((partData) => {
                 if (partData && partData.aiResult) {
                     totalScore += partData.aiResult.overallScore || 0;
@@ -157,39 +147,46 @@ const SpeakingTest = () => {
                 }
             });
 
-            // Tính điểm trung bình
-            const avgScore = Math.round(totalScore / (readCount || 1));
+            // Điểm fill-in-the-blank
+            let fillTotal = 0;
+            let fillCount = 0;
+            texts.forEach((t, idx) => {
+                if (t.type === "fill") {
+                    fillTotal += fillScore[idx + 1] === 1 ? 10 : 0; // đúng +10, sai +0
+                    fillCount++;
+                }
+            });
+
+            // Tổng điểm = điểm speaking trung bình + điểm fill
+            const avgSpeaking = Math.round(totalScore / (readCount || 1));
+            const totalFinal = avgSpeaking + fillTotal;
 
             // Phân level
             let mainLevel = "A1";
-            if (avgScore >= 85) mainLevel = "C1";
-            else if (avgScore >= 70) mainLevel = "B2";
-            else if (avgScore >= 50) mainLevel = "B1";
-            else if (avgScore >= 30) mainLevel = "A2";
+            if (totalFinal >= 95) mainLevel = "C1";
+            else if (totalFinal >= 80) mainLevel = "B2";
+            else if (totalFinal >= 60) mainLevel = "B1";
+            else if (totalFinal >= 40) mainLevel = "A2";
 
             const mainFeedback = feedbacks.length > 0 ? feedbacks[0] : "Cần luyện tập thêm.";
-            setAiResult({ avgScore, mainLevel, mainFeedback });
+            setAiResult({ avgScore: totalFinal, mainLevel, mainFeedback });
 
-            // 3. Gửi kết quả lên Profile
-            console.log("Đang gửi kết quả:", { mainLevel, avgScore });
-
+            // Gửi kết quả lên Profile
             await axiosClient.post('/profile/setup', {
                 currentLevel: mainLevel,
-                assessmentScore: avgScore,
+                assessmentScore: totalFinal,
                 dailyTime: 20,
                 interestTopicIds: [],
                 mainGoalId: null,
                 packageId: null
             });
 
-            // Chuyển trang sau 1.5 giây
             setTimeout(() => {
                 navigate("/setup");
             }, 1500);
 
         } catch (err: any) {
             console.error("CHI TIẾT LỖI:", err);
-            // Hiển thị lỗi cụ thể nếu có
             const msg = err.response?.data?.message || err.message || "Lỗi không xác định";
             alert(`Có lỗi xảy ra: ${msg}`);
         } finally {
@@ -286,11 +283,13 @@ const SpeakingTest = () => {
                             e.preventDefault();
                             const userAns = (fillAnswers[currentPart] || '').trim().toLowerCase();
                             const correctAns = texts[currentPart - 1].answer.trim().toLowerCase();
-                            setFillCorrect(prev => ({ ...prev, [currentPart]: userAns === correctAns }));
-                            if (userAns === correctAns) {
-                                alert('Chính xác!');
+                            const isCorrect = userAns === correctAns;
+                            setFillCorrect(prev => ({ ...prev, [currentPart]: isCorrect }));
+                            setFillScore(prev => ({ ...prev, [currentPart]: isCorrect ? 1 : 0 }));
+                            if (isCorrect) {
+                                alert('Chính xác! +10 điểm');
                             } else {
-                                alert('Sai, hãy thử lại!');
+                                alert('Sai! -0 điểm. Bạn vẫn có thể tiếp tục.');
                             }
                         }}
                     >
@@ -324,7 +323,7 @@ const SpeakingTest = () => {
                             type="submit"
                             className="btn-next"
                             style={{ marginTop: 16 }}
-                            disabled={fillCorrect[currentPart]}
+                        // Cho phép kiểm tra lại nhiều lần, không disable
                         >
                             Kiểm tra
                         </button>
