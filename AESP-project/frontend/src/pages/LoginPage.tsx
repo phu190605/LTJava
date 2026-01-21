@@ -1,3 +1,4 @@
+/* uth.edu package */
 import React from 'react';
 import { Form, Input, Button, message, Card } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
@@ -20,12 +21,21 @@ const LoginPage: React.FC = () => {
       // 2. Kiểm tra và Lưu dữ liệu
       if (res.token) {
         localStorage.setItem('token', res.token);
-        // Lưu toàn bộ object user bao gồm cả isTested, isSetupComplete và level
+        
+        // --- PHẦN QUAN TRỌNG ĐỂ HIỆN TÊN "PHU" ---
+        // Backend Java thường trả về field là fullName hoặc full_name. 
+        // Chúng ta lấy cả 2 trường hợp để chắc chắn không bị sót.
+        const realName = res.fullName || res.full_name || res.username || "Học viên";
+        localStorage.setItem('fullName', realName);
+        localStorage.setItem('userId', res.userId || res.id);
+        // ----------------------------------------
+
+        // Lưu toàn bộ object user để dùng cho các mục đích khác
         localStorage.setItem('user', JSON.stringify(res));
 
         message.success('Đăng nhập thành công!');
 
-        // 3. LOGIC ĐIỀU HƯỚNG THÔNG MINH (ĐÃ MERGE IS_SETUP_COMPLETE)
+        // 3. LOGIC ĐIỀU HƯỚNG THÔNG MINH
         if (res.role === 'ADMIN') {
           navigate('/admin');
         } else if (res.role === 'MENTOR') {
@@ -33,17 +43,14 @@ const LoginPage: React.FC = () => {
         } else {
           // KIỂM TRA TRẠNG THÁI TEST ĐẦU VÀO
           if (res.isTested !== true) {
-            // Nếu chưa làm bài test -> Bắt đi làm bài test trước
             navigate('/speaking-test');
           } 
           // KIỂM TRA TRẠNG THÁI SETUP MỤC TIÊU & LỘ TRÌNH
           else if (res.isSetupComplete === true) {
-            // Nếu đã xong cả test và setup -> Vào thẳng Dashboard
-            message.info("Chào mừng quay trở lại!");
+            message.info(`Chào mừng ${realName} quay trở lại!`);
             navigate('/dashboard'); 
           } 
           else {
-            // Nếu đã test nhưng chưa setup lộ trình -> Vào trang Setup
             navigate('/setup');
           }
         }

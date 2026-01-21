@@ -9,6 +9,7 @@ import org.springframework.web.socket.WebSocketSession;
 @NoArgsConstructor
 public class PeerUserSession {
     private String userId;
+    private String fullName; // Thêm trường tên để hiển thị (ví dụ: "phu")
     private String level;
     private String topic;
     private WebSocketSession session;
@@ -20,6 +21,15 @@ public class PeerUserSession {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    // Getter và Setter cho fullName
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     // Getter và Setter cho level

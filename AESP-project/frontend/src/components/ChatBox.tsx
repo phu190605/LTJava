@@ -1,27 +1,29 @@
-/* uth.edu package */
+
 import { Input, List, Typography, Card } from "antd";
 import { useState, useEffect, useRef } from "react";
 
 const { Text } = Typography;
 
+// Định nghĩa lại cấu trúc Message để chứa cả ID và Name
 type Message = {
-  sender: string;
+  sender: string;     // Đây là ID để máy tính so sánh (ví dụ: "1")
+  senderName?: string; // Đây là tên từ SQL để hiển thị (ví dụ: "phu")
   content: string;
 };
 
 export default function ChatBox({
   messages,
-  currentUser,
+  currentUser, // ID của người dùng hiện tại
   onSend
 }: {
   messages: Message[];
-  currentUser: string; // Đây là Full Name (ví dụ: "phu1") truyền từ PeerRoom
+  currentUser: string; 
   onSend: (content: string) => void;
 }) {
   const [text, setText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Tự động cuộn xuống dưới cùng khi có tin nhắn mới để dễ theo dõi
+  // Tự động cuộn xuống dưới cùng khi có tin nhắn mới
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -31,9 +33,8 @@ export default function ChatBox({
   return (
     <Card 
       title="💬 Chat Room" 
-      bodyStyle={{ padding: "10px", display: "flex", flexDirection: "column", height: "400px" }}
+      styles={{ body: { padding: "10px", display: "flex", flexDirection: "column", height: "400px" } }}
     >
-      {/* Vùng danh sách tin nhắn có thể cuộn */}
       <div 
         ref={scrollRef} 
         style={{ flex: 1, overflowY: "auto", marginBottom: "10px", paddingRight: "5px" }}
@@ -42,8 +43,8 @@ export default function ChatBox({
           dataSource={messages}
           split={false}
           renderItem={(item) => {
-            // Kiểm tra xem người gửi có phải là mình không dựa trên Full Name
-            const isMe = item.sender === currentUser;
+            // --- LOGIC QUAN TRỌNG: So sánh dựa trên ID ---
+            const isMe = String(item.sender) === String(currentUser);
 
             return (
               <List.Item
@@ -60,7 +61,7 @@ export default function ChatBox({
                     textAlign: isMe ? "right" : "left"
                   }}
                 >
-                  {/* 🔹 ĐÂY LÀ CỘT HIỂN THỊ FULL NAME LẤY TỪ SQL */}
+                  {/* HIỂN THỊ TÊN NGƯỜI GỬI (LẤY TỪ SQL) */}
                   <div
                     style={{
                       fontSize: 11,
@@ -70,7 +71,9 @@ export default function ChatBox({
                       padding: isMe ? "0 4px 0 0" : "0 0 0 4px"
                     }}
                   >
-                    {isMe ? "Bạn" : item.sender}
+                    {/* Nếu là mình thì hiện "Bạn", nếu là đối phương thì hiện tên thật (senderName) 
+                        Nếu senderName trống thì mới dùng ID (item.sender) làm dự phòng */}
+                    {isMe ? "Bạn" : (item.senderName || item.sender)}
                   </div>
 
                   <div
@@ -93,7 +96,6 @@ export default function ChatBox({
         />
       </div>
 
-      {/* Ô nhập tin nhắn */}
       <Input.Search
         placeholder="Nhập tin nhắn..."
         enterButton="Gửi"

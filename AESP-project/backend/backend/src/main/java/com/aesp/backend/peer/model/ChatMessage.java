@@ -1,3 +1,4 @@
+
 package com.aesp.backend.peer.model;
 
 import lombok.AllArgsConstructor;
@@ -35,10 +36,17 @@ public class ChatMessage implements Serializable {
     private String type;
 
     /**
-     * userId của người gửi
+     * userId của người gửi (Thường là ID từ Database - dùng để so sánh logic)
      * - System message dùng: "SERVER"
      */
     private String sender;
+
+    /**
+     * Tên hiển thị của người gửi (Ví dụ: "phu")
+     * Được lấy từ cột full_name trong Database. 
+     * Frontend sẽ dùng trường này để hiển thị lên màn hình thay vì dùng ID.
+     */
+    private String senderName;
 
     /**
      * Nội dung:

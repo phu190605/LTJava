@@ -1,3 +1,4 @@
+/* uth.edu package */
 package com.aesp.backend.peer.handler;
 
 import com.aesp.backend.peer.model.ChatMessage;
@@ -60,8 +61,10 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
     private void handleJoin(WebSocketSession session, ChatMessage msg) throws Exception {
         System.out.println("Topic nhận được: " + msg.getContent());
 
+        // Sử dụng msg.getSenderName() để lưu vào session
         PeerUserSession user = new PeerUserSession(
                 msg.getSender(),
+                msg.getSenderName(), // QUAN TRỌNG: Lưu tên thật vào session
                 "BASIC",
                 msg.getContent(),
                 session
@@ -73,6 +76,7 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
             ChatMessage matched = new ChatMessage(
                     "MATCHED",
                     "SERVER",
+                    null, // senderName
                     "Matched successfully",
                     room.getRoomId(),
                     null
@@ -83,6 +87,7 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
                 topicSuggestion = new ChatMessage(
                         "TOPIC_SUGGESTION",
                         "SERVER",
+                        null,
                         topicService.randomTopic(),
                         room.getRoomId(),
                         null
@@ -91,7 +96,8 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
                 topicSuggestion = new ChatMessage(
                         "TOPIC_SUGGESTION",
                         "SERVER",
-                        "Default topic",
+                        null,
+                        "Hãy chia sẻ về sở thích của bạn.",
                         room.getRoomId(),
                         null
                 );
@@ -110,7 +116,8 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
             ChatMessage waiting = new ChatMessage(
                     "WAITING",
                     "SERVER",
-                    "Waiting...",
+                    null,
+                    "Đang tìm kiếm đối tác...",
                     room.getRoomId(),
                     null
             );
@@ -122,11 +129,21 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
         Room room = matchService.findRoomById(msg.getRoomId());
         if (room == null) return;
 
+        // --- TỰ ĐỘNG ĐIỀN TÊN NGƯỜI GỬI ĐỂ TRÁNH LỖI NULL ---
+        PeerUserSession senderSession = room.getParticipants().stream()
+                .filter(p -> p.getUserId().equals(msg.getSender()))
+                .findFirst()
+                .orElse(null);
+
+        if (senderSession != null) {
+            msg.setSenderName(senderSession.getFullName());
+        }
+        // ---------------------------------------------------
+
+        String chatJson = objectMapper.writeValueAsString(msg);
         for (PeerUserSession p : room.getParticipants()) {
             if (p.getSession().isOpen()) {
-                p.getSession().sendMessage(
-                        new TextMessage(objectMapper.writeValueAsString(msg))
-                );
+                p.getSession().sendMessage(new TextMessage(chatJson));
             }
         }
     }
@@ -140,16 +157,16 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
         ChatMessage notify = new ChatMessage(
                 "ROOM_FINISHED",
                 "SERVER",
+                null,
                 "Cuộc trò chuyện đã kết thúc",
                 room.getRoomId(),
                 null
         );
 
+        String notifyJson = objectMapper.writeValueAsString(notify);
         for (PeerUserSession p : room.getParticipants()) {
             if (p.getSession().isOpen()) {
-                p.getSession().sendMessage(
-                        new TextMessage(objectMapper.writeValueAsString(notify))
-                );
+                p.getSession().sendMessage(new TextMessage(notifyJson));
             }
         }
 
@@ -168,19 +185,19 @@ public class PeerWebSocketHandler extends TextWebSocketHandler {
         ChatMessage offline = new ChatMessage(
                 "USER_OFFLINE",
                 "SERVER",
+                null,
                 "Đối phương đã rời phòng",
                 room.getRoomId(),
                 null
         );
 
         try {
+            String offlineJson = objectMapper.writeValueAsString(offline);
             for (PeerUserSession p : room.getParticipants()) {
                 if (p.getSession().isOpen()
-                        && !p.getSession().equals(session)) {
+                        && !p.getSession().getId().equals(session.getId())) {
 
-                    p.getSession().sendMessage(
-                            new TextMessage(objectMapper.writeValueAsString(offline))
-                    );
+                    p.getSession().sendMessage(new TextMessage(offlineJson));
                 }
             }
         } catch (Exception ignored) {}

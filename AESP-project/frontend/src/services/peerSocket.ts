@@ -1,3 +1,4 @@
+/* uth.edu package */
 let socket: WebSocket | null = null;
 
 export function connectPeerSocket(onMessage: (msg: any) => void) {
@@ -20,18 +21,26 @@ export function getPeerSocket(): WebSocket {
   return socket;
 }
 
-export function joinRoom(userId: string, topic: string) {
+/**
+ * Gửi yêu cầu JOIN kèm theo fullName thực tế từ SQL để Server lưu vào Session
+ */
+export function joinRoom(userId: string, topic: string, fullName: string) {
   socket?.send(JSON.stringify({
     type: "JOIN",
     sender: userId,
+    senderName: fullName, // Sử dụng fullName lấy từ SQL thay vì mặc định
     content: topic
   }));
 }
 
-export function sendChat(userId: string, roomId: string, content: string) {
+/**
+ * Gửi tin nhắn CHAT kèm theo fullName thực tế
+ */
+export function sendChat(userId: string, roomId: string, content: string, fullName: string) {
   socket?.send(JSON.stringify({
     type: "CHAT",
     sender: userId,
+    senderName: fullName, // Đảm bảo Backend nhận được tên thật để hiển thị cho đối phương
     roomId,
     content
   }));
