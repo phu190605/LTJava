@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +28,7 @@ public class AuthController {
     UserRepository userRepository;
 
     @Autowired
-    LearnerProfileRepository learnerProfileRepository; // Thêm repository để check profile
+    LearnerProfileRepository learnerProfileRepository;
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -36,6 +37,36 @@ public class AuthController {
     JwtUtils jwtUtils;
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
+    /**
+     * API MỚI MERGE: Lấy thông tin người dùng hiện tại qua Token
+     * Giúp Frontend (PreferenceSetup.tsx) lấy được trình độ level (A1, A2...)
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(401).body("Error: Không tìm thấy thông tin người dùng (Token không hợp lệ)!");
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
+        response.put("email", user.getEmail());
+        response.put("fullName", user.getFullName());
+        response.put("role", user.getRole());
+        response.put("isTested", user.isTested());
+        // Trả về level để Frontend đồng bộ (Sửa lỗi undefined level)
+        response.put("level", user.getLevel() != null ? user.getLevel() : "A1");
+
+        // Kiểm tra thêm trạng thái setup từ profile
+        boolean isSetupComplete = false;
+        Optional<LearnerProfile> profileOp = learnerProfileRepository.findByUser_Id(user.getId());
+        if (profileOp.isPresent()) {
+            isSetupComplete = profileOp.get().isSetupComplete();
+        }
+        response.put("isSetupComplete", isSetupComplete);
+
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody SignupRequest request) {
@@ -65,7 +96,6 @@ public class AuthController {
             if (passMatches) {
                 String token = jwtUtils.generateToken(user.getEmail());
                 
-                // KIỂM TRA TRẠNG THÁI SETUP MỤC TIÊU/LỘ TRÌNH
                 boolean isSetupComplete = false;
                 Optional<LearnerProfile> profileOp = learnerProfileRepository.findByUser_Id(user.getId());
                 if (profileOp.isPresent()) {
@@ -79,7 +109,6 @@ public class AuthController {
                 response.put("fullName", user.getFullName());
                 response.put("isTested", user.isTested());
                 response.put("level", user.getLevel());
-                // TRẢ VỀ TRẠNG THÁI SETUP ĐỂ FRONTEND ĐIỀU HƯỚNG
                 response.put("isSetupComplete", isSetupComplete); 
 
                 return ResponseEntity.ok(response);

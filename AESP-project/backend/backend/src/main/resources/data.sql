@@ -1,9 +1,52 @@
 USE aesp;
 
 -- ================================
--- 1. TEST QUESTIONS
+-- 1. TOPICS (Sở thích & Chủ đề quan tâm)
 -- ================================
+INSERT INTO `topics` (`topic_id`, `topic_name`, `topic_code`, `description`, `icon_url`, `category`)
+SELECT 1,'Nấu ăn & Ẩm thực','COOKING','Công thức món ăn, nhà hàng','/icons/topics/cooking.png','GENERAL'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='COOKING');
 
+INSERT INTO `topics` (`topic_id`, `topic_name`, `topic_code`, `description`, `icon_url`, `category`)
+SELECT 2,'Nhiếp ảnh','PHOTO','Góc chụp, ánh sáng, chỉnh ảnh','/icons/topics/camera.png','GENERAL'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='PHOTO');
+
+INSERT INTO `topics` (`topic_id`, `topic_name`, `topic_code`, `description`, `icon_url`, `category`)
+SELECT 3,'Thể thao','SPORTS','Bóng đá, Gym, Yoga','/icons/topics/sports.png','GENERAL'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='SPORTS');
+
+INSERT INTO `topics` (`topic_id`, `topic_name`, `topic_code`, `description`, `icon_url`, `category`)
+SELECT 4,'Làm vườn','GARDEN','Cây cảnh, thiên nhiên','/icons/topics/garden.png','GENERAL'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='GARDEN');
+
+INSERT INTO `topics` (`topic_id`, `topic_name`, `topic_code`, `description`, `icon_url`, `category`)
+SELECT 5,'Leo núi & Dã ngoại','HIKING','Cắm trại, sinh tồn','/icons/topics/hiking.png','GENERAL'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='HIKING');
+
+INSERT INTO `topics` (`topic_id`, `topic_name`, `topic_code`, `description`, `icon_url`, `category`)
+SELECT 6,'Âm nhạc','MUSIC','Nhạc cụ, ca sĩ, lời bài hát','/icons/topics/music.png','GENERAL'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='MUSIC');
+
+INSERT INTO `topics` (`topic_id`, `topic_name`, `topic_code`, `description`, `icon_url`, `category`)
+SELECT 7,'Yoga','YOGA','Thiền, tư thế, sức khỏe','/icons/topics/yoga.png','GENERAL'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='YOGA');
+
+INSERT INTO `topics` (`topic_id`, `topic_name`, `topic_code`, `description`, `icon_url`, `category`)
+SELECT 8,'Gym & Thể hình','FITNESS','Bài tập, dinh dưỡng','/icons/topics/fitness.png','GENERAL'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='FITNESS');
+
+INSERT INTO `topics` (`topic_id`, `topic_name`, `topic_code`, `description`, `icon_url`, `category`)
+SELECT 9,'Công nghệ thông tin','TECH','Lập trình, phần mềm, AI','/icons/topics/tech.png','SPECIALIZED'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='TECH');
+
+INSERT INTO `topics` (`topic_id`, `topic_name`, `topic_code`, `description`, `icon_url`, `category`)
+SELECT 10,'Tài chính & Kinh doanh','FINANCE','Đầu tư, chứng khoán, kế toán','/icons/topics/finance.png','SPECIALIZED'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='FINANCE');
+
+
+-- ================================
+-- 2. TEST QUESTIONS (Câu hỏi kiểm tra trình độ)
+-- ================================
 INSERT INTO test_questions (type, level, content, answer)
 SELECT 'read','A1','"Tom has a red ball." What color is Tom''s ball?','red'
 WHERE NOT EXISTS (SELECT 1 FROM test_questions WHERE content='"Tom has a red ball." What color is Tom''s ball?');
@@ -37,11 +80,9 @@ SELECT 'read','B2','"Although tired, she finished her homework before midnight."
 WHERE NOT EXISTS (SELECT 1 FROM test_questions WHERE content='"Although tired, she finished her homework before midnight." When did she finish her homework?');
 
 
-
 -- ================================
--- 2. LEARNER GOALS
+-- 3. LEARNER GOALS (Mục tiêu học tập)
 -- ================================
-
 INSERT INTO learner_goals (goal_id, goal_name, goal_code, description, icon_url)
 SELECT 1,'Phát triển sự nghiệp','CAREER','Thăng tiến, phỏng vấn, môi trường công sở','/icons/goals/career.png'
 WHERE NOT EXISTS (SELECT 1 FROM learner_goals WHERE goal_code='CAREER');
@@ -67,37 +108,9 @@ SELECT 6,'Sở thích cá nhân','HOBBY','Xem phim, nghe nhạc, học cho vui',
 WHERE NOT EXISTS (SELECT 1 FROM learner_goals WHERE goal_code='HOBBY');
 
 
-
 -- ================================
--- 3. TOPICS
+-- 4. SERVICE PACKAGES (Gói cước dịch vụ)
 -- ================================
-
-INSERT INTO topics (topic_id, topic_name, topic_code, description, icon_url, category)
-SELECT 1,'Nấu ăn & Ẩm thực','COOKING','Công thức món ăn, nhà hàng','/icons/topics/cooking.png','GENERAL'
-WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='COOKING');
-
-INSERT INTO topics (topic_id, topic_name, topic_code, description, icon_url, category)
-SELECT 2,'Nhiếp ảnh','PHOTO','Góc chụp, ánh sáng, chỉnh ảnh','/icons/topics/camera.png','GENERAL'
-WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='PHOTO');
-
-INSERT INTO topics (topic_id, topic_name, topic_code, description, icon_url, category)
-SELECT 3,'Thể thao','SPORTS','Bóng đá, Gym, Yoga','/icons/topics/sports.png','GENERAL'
-WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='SPORTS');
-
-INSERT INTO topics (topic_id, topic_name, topic_code, description, icon_url, category)
-SELECT 9,'Công nghệ thông tin','TECH','Lập trình, phần mềm, AI','/icons/topics/tech.png','SPECIALIZED'
-WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='TECH');
-
-INSERT INTO topics (topic_id, topic_name, topic_code, description, icon_url, category)
-SELECT 10,'Tài chính & Kinh doanh','FINANCE','Đầu tư, chứng khoán, kế toán','/icons/topics/finance.png','SPECIALIZED'
-WHERE NOT EXISTS (SELECT 1 FROM topics WHERE topic_code='FINANCE');
-
-
-
--- ================================
--- 4. SERVICE PACKAGES
--- ================================
-
 INSERT INTO service_packages (package_id, package_name, has_mentor, price, duration_months, description, features)
 SELECT 1,'Gói Cơ Bản',0,299000,1,'Cơ bản - 299k/Tháng',
 '["Truy cập dashboard","AI Practice không giới hạn","Chấm điểm phát âm tự động","Lộ trình cá nhân hóa cơ bản"]'
@@ -114,11 +127,9 @@ SELECT 3,'Gói Cao Cấp',1,999000,1,'Cao cấp - 999k/Tháng',
 WHERE NOT EXISTS (SELECT 1 FROM service_packages WHERE package_id=3);
 
 
-
 -- ================================
--- 5. CHALLENGES
+-- 5. CHALLENGES (Thử thách hàng ngày)
 -- ================================
-
 INSERT INTO challenges (title, description, type, target_value, xp_reward)
 SELECT 'Khởi động ngày mới','Luyện nói đủ 5 phút để làm nóng cơ miệng','SPEAKING_TIME',5,20
 WHERE NOT EXISTS (SELECT 1 FROM challenges WHERE title='Khởi động ngày mới');

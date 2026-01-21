@@ -40,6 +40,28 @@ public class ProfileController {
     @Autowired
     private SpeechAssessmentRepository speechAssessmentRepo;
 
+    /**
+     * Lấy User hiện tại một cách an toàn
+     */
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UsernameNotFoundException("Chưa đăng nhập");
+        }
+        
+        Object principal = authentication.getPrincipal();
+        
+        // Nếu Principal là đối tượng User (do JwtAuthenticationFilter nạp vào)
+        if (principal instanceof User) {
+            return (User) principal;
+        }
+        
+        // Nếu Principal chỉ là String email (phương án dự phòng)
+        String currentEmail = authentication.getName();
+        return userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + currentEmail));
+    }
+
     private ProficiencyLevel mapLevelCodeToEnum(String levelCode) {
         if (levelCode == null) return null;
         return switch (levelCode.toUpperCase()) {
@@ -48,13 +70,6 @@ public class ProfileController {
             case "B2" -> ProficiencyLevel.ADVANCED;
             default -> null;
         };
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = authentication.getName();
-        return userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + currentEmail));
     }
 
     @GetMapping("/goals")
@@ -70,6 +85,76 @@ public class ProfileController {
     @GetMapping("/packages")
     public ResponseEntity<List<ServicePackage>> getAllPackages() {
         return ResponseEntity.ok(packageRepo.findAll());
+    }
+
+    @PostMapping("/setup")
+    @Transactional
+    public ResponseEntity<?> setupProfile(@RequestBody ProfileResponseRequest request) {
+        try {
+            User user = getCurrentUser();
+            
+            // Tìm profile theo ID của user để đảm bảo tính nhất quán
+            LearnerProfile profile = profileRepository.findByUser_Id(user.getId())
+                                    .orElse(new LearnerProfile());
+
+            profile.setUser(user);
+            profile.setCurrentLevelCode(request.getCurrentLevel());
+            profile.setProficiencyLevel(mapLevelCodeToEnum(request.getCurrentLevel()));
+            profile.setDailyLearningGoalMinutes(request.getDailyTime());
+            profile.setSetupComplete(true); 
+
+            // Thiết lập chế độ học dựa trên trình độ
+            if ("A1".equals(request.getCurrentLevel()) || "A2".equals(request.getCurrentLevel())) {
+                profile.setLearningMode(LearnerProfile.LearningMode.FULL_SENTENCE);
+            } else {
+                profile.setLearningMode(LearnerProfile.LearningMode.KEY_PHRASE);
+            }
+
+            // Gán mục tiêu
+            if (request.getMainGoalId() != null) {
+                goalRepo.findById(request.getMainGoalId()).ifPresent(profile::setMainGoal);
+            }
+            
+            // Gán gói dịch vụ
+            if (request.getPackageId() != null) {
+                packageRepo.findById(request.getPackageId()).ifPresent(profile::setCurrentPackage);
+            }
+
+            // Xử lý sở thích
+            if (request.getInterestTopicIds() != null) {
+                if (profile.getInterests() == null) {
+                    profile.setInterests(new ArrayList<>());
+                } else {
+                    profile.getInterests().clear();
+                }
+
+                for (Integer topicId : request.getInterestTopicIds()) {
+                    topicRepo.findById(topicId).ifPresent(topic -> {
+                        ProfileInterest pi = new ProfileInterest();
+                        pi.setProfile(profile);
+                        pi.setTopic(topic);
+                        profile.getInterests().add(pi);
+                    });
+                }
+            }
+
+            profileRepository.save(profile);
+
+            // Lưu điểm số kiểm tra nói ban đầu (nếu có)
+            if (request.getAssessmentScore() != null) {
+                SpeakingResult result = new SpeakingResult();
+                result.setUserId(user.getId());
+                result.setPartNumber(1);
+                result.setScore(request.getAssessmentScore().intValue());
+                result.setFeedback("Initial speaking test");
+                result.setCreatedAt(LocalDateTime.now());
+                speakingResultService.saveSpeakingResult(result);
+            }
+
+            return ResponseEntity.ok("Thiết lập hồ sơ thành công!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi setup: " + e.getMessage());
+        }
     }
 
     @GetMapping("/me")
@@ -106,75 +191,11 @@ public class ProfileController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/setup")
-    @Transactional
-    public ResponseEntity<?> setupProfile(@RequestBody ProfileResponseRequest request) {
-        try {
-            User user = getCurrentUser();
-            LearnerProfile profile = profileRepository.findByUser(user).orElse(new LearnerProfile());
-
-            profile.setUser(user);
-            profile.setCurrentLevelCode(request.getCurrentLevel());
-            profile.setProficiencyLevel(mapLevelCodeToEnum(request.getCurrentLevel()));
-            profile.setDailyLearningGoalMinutes(request.getDailyTime());
-            profile.setSetupComplete(true); 
-
-            if ("A1".equals(request.getCurrentLevel()) || "A2".equals(request.getCurrentLevel())) {
-                profile.setLearningMode(LearnerProfile.LearningMode.FULL_SENTENCE);
-            } else {
-                profile.setLearningMode(LearnerProfile.LearningMode.KEY_PHRASE);
-            }
-
-            if (request.getMainGoalId() != null) {
-                goalRepo.findById(request.getMainGoalId()).ifPresent(profile::setMainGoal);
-            }
-            if (request.getPackageId() != null) {
-                packageRepo.findById(request.getPackageId()).ifPresent(profile::setCurrentPackage);
-            }
-
-            if (request.getInterestTopicIds() != null) {
-                if (profile.getInterests() == null) {
-                    profile.setInterests(new ArrayList<>());
-                } else {
-                    profile.getInterests().clear();
-                }
-
-                for (Integer topicId : request.getInterestTopicIds()) {
-                    topicRepo.findById(topicId).ifPresent(topic -> {
-                        ProfileInterest pi = new ProfileInterest();
-                        pi.setProfile(profile);
-                        pi.setTopic(topic);
-                        profile.getInterests().add(pi);
-                    });
-                }
-            }
-
-            profileRepository.save(profile);
-
-            if (request.getAssessmentScore() != null) {
-                SpeakingResult result = new SpeakingResult();
-                result.setUserId(user.getId());
-                result.setPartNumber(1);
-                result.setScore(request.getAssessmentScore().intValue());
-                result.setFeedback("Initial speaking test");
-                result.setCreatedAt(LocalDateTime.now());
-                speakingResultService.saveSpeakingResult(result);
-            }
-
-            return ResponseEntity.ok("Thiết lập hồ sơ thành công!");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi setup: " + e.getMessage());
-        }
-    }
-
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboardData(@RequestHeader("Authorization") String token) {
         try {
-            String email = jwtUtils.getEmailFromToken(token.substring(7));
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User không tồn tại"));
-
-            LearnerProfile profile = profileRepository.findByUser(user).orElse(null);
+            User user = getCurrentUser();
+            LearnerProfile profile = profileRepository.findByUser_Id(user.getId()).orElse(null);
             DashboardResponse res = new DashboardResponse();
 
             if (profile == null) {
@@ -190,7 +211,6 @@ public class ProfileController {
             res.setCurrentLevel(profile.getCurrentLevelCode());
             res.setDailyGoalMinutes(profile.getDailyLearningGoalMinutes());
 
-            // Lấy dữ liệu theo Order By CreatedAt DESC như bạn đã sửa trong Repository
             List<SpeechAssessment> assessments = speechAssessmentRepo.findByUserIdOrderByCreatedAtDesc(user.getId());
             
             // Heatmap
@@ -201,7 +221,7 @@ public class ProfileController {
                 ));
             res.setHeatMapData(heatMapData);
 
-            // Trends - Đảo ngược lại để hiển thị từ cũ đến mới trên biểu đồ
+            // Trends
             List<SpeechAssessment> trendData = new ArrayList<>(assessments);
             Collections.reverse(trendData);
 
@@ -209,7 +229,6 @@ public class ProfileController {
             res.setFluencyScores(trendData.stream().map(SpeechAssessment::getFluencyScore).collect(Collectors.toList()));
             res.setTrendLabels(trendData.stream().map(a -> a.getCreatedAt().toLocalDate().toString()).collect(Collectors.toList()));
             
-            // Tổng số từ
             int totalWords = assessments.stream()
                 .mapToInt(a -> a.getWordDetails() != null ? a.getWordDetails().size() : 0).sum();
             res.setTotalWordsLearned(totalWords);

@@ -36,8 +36,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // 1. Cho phép Login/Register truy cập không cần token
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/auth/login", 
+                                "/api/auth/register", 
+                                "/api/auth/admin/login"
+                        ).permitAll()
+
+                        // 2. BẮT BUỘC API /me phải có token để lấy dữ liệu User (Sửa lỗi 401)
+                        .requestMatchers("/api/auth/me").authenticated()
+
+                        // 3. Các tài nguyên khác cho phép truy cập tự do (hoặc giữ nguyên cấu trúc của bạn)
+                        .requestMatchers(
                                 "/error",
                                 "/ws/**",
                                 "/peer/**",
@@ -50,8 +60,10 @@ public class SecurityConfig {
                                 "/api/test-questions/**",
                                 "/api/gamification/stats/**",
                                 "/api/gamification/challenges/**",
-                                "/api/gamification/simulate-speaking")
-                        .permitAll()
+                                "/api/gamification/simulate-speaking"
+                        ).permitAll()
+                        
+                        // 4. Các API profile còn lại bắt buộc đăng nhập
                         .requestMatchers("/api/profile/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -63,8 +75,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
-        configuration.setAllowedOriginPatterns(Arrays.asList("*")); // Cho phép mọi domain (có thể chỉnh lại cho
-                                                                    // production)
+        // Cho phép frontend từ localhost:5173 truy cập
+        configuration.setAllowedOriginPatterns(Arrays.asList("*")); 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setExposedHeaders(Arrays.asList("Authorization"));

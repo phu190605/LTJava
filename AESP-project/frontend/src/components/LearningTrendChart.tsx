@@ -47,4 +47,4 @@ const LearningTrendChart: React.FC<Props> = ({ pronunciation, fluency, labels })
     );
 };
 
-export default LearningTrendChart; // BẮT BUỘC PHẢI CÓ DÒNG NÀY
+export default LearningTrendChart; 
