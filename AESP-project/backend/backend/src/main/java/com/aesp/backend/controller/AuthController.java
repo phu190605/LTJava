@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,7 +28,6 @@ import com.aesp.backend.repository.UserRepository;
 import com.aesp.backend.security.JwtUtils;
 import com.aesp.backend.service.EmailService;
 import com.aesp.backend.service.IUserService;
-import com.aesp.backend.dto.response.LoginResponse;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -58,11 +58,7 @@ public class AuthController {
         if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest().body("Email đã tồn tại!");
         }
-        if (request.getRole() != null && !"LEARNER".equalsIgnoreCase(request.getRole())) {
-            return ResponseEntity.badRequest().body("Error: Chỉ admin mới được tạo tài khoản mentor!");
-        }
 
-        // Tạo user mới
         User user = new User();
         user.setEmail(request.getEmail());
         user.setFullName(request.getFullName());
@@ -74,7 +70,7 @@ public class AuthController {
         return ResponseEntity.ok("Đăng ký thành công!");
     }
 
-    // API ĐĂNG NHẬP
+    // ================= ĐĂNG NHẬP (DÙNG CHO ADMIN / MENTOR / LEARNER) =================
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 

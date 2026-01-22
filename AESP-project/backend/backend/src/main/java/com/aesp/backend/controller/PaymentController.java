@@ -5,7 +5,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.aesp.backend.dto.request.PaymentHistoryResponse;
 import com.aesp.backend.entity.PaymentHistory;
@@ -13,11 +16,9 @@ import com.aesp.backend.entity.User;
 import com.aesp.backend.repository.PaymentHistoryRepository;
 import com.aesp.backend.repository.UserRepository;
 import com.aesp.backend.security.JwtUtils;
-import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("/api/payment")
-@CrossOrigin("*") // Thêm dòng này để tránh lỗi CORS chặn Frontend
 public class PaymentController {
 
     @Autowired
@@ -38,35 +39,17 @@ public class PaymentController {
             // 2. Lấy danh sách từ DB
             List<PaymentHistory> historyList = paymentRepository.findByUserOrderByPaymentDateDesc(user);
 
-            // 3. Chuyển đổi sang DTO (CÓ KIỂM TRA NULL ĐỂ TRÁNH LỖI 500)
-            List<PaymentHistoryResponse> response = historyList.stream().map(h -> {
-                String pkgName = "Gói không xác định";
-                if (h.getServicePackage() != null) {
-                    pkgName = h.getServicePackage().getPackageName();
-                }
-
-                String statusStr = "UNKNOWN";
-                if (h.getStatus() != null) {
-                    statusStr = h.getStatus().toString();
-                }
-
-                String dateStr = "";
-                if (h.getPaymentDate() != null) {
-                    dateStr = h.getPaymentDate().toString();
-                }
-
-                return new PaymentHistoryResponse(
-                        h.getPaymentId(),
-                        pkgName,
-                        h.getAmount(),
-                        dateStr, // Truyền String vào
-                        statusStr
-                );
-            }).collect(Collectors.toList());
+            // 3. Chuyển đổi sang DTO
+            List<PaymentHistoryResponse> response = historyList.stream().map(h -> new PaymentHistoryResponse(
+                    h.getPaymentId(),
+                    h.getServicePackage().getPackageName(),
+                    h.getAmount(),
+                    h.getPaymentDate(),
+                    h.getStatus().toString())).collect(Collectors.toList());
 
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
-            e.printStackTrace(); // In lỗi ra console để bạn nhìn thấy
             return ResponseEntity.badRequest().body("Lỗi lấy lịch sử: " + e.getMessage());
         }
     }
