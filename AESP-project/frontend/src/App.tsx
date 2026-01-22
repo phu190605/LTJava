@@ -1,9 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import LandingPage from "./pages/LandingPage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/Register";
-import AdminLoginPage from "./pages/AdminLoginPage";
 
 /* ===== LAYOUT ===== */
 import AdminLayout from "./layouts/AdminLayout";
@@ -22,13 +18,6 @@ import AdminReportPage from "./pages/admin/AdminReport";
 
 /* ===== LEARNER ===== */
 import DashboardPage from "./pages/DashboardPage";
-import ProfileSetupPage from "./pages/ProfileSetupPage";
-import SettingsPage from "./pages/SettingsPage";
-import PaymentHistoryPage from "./pages/PaymentHistoryPage";
-import SubscriptionPage from "./pages/SubscriptionPage";
-import AIPracticePage from "./pages/AIPracticePage";
-import CheckoutPage from "./pages/CheckoutPage";
-import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import LearnMentorPage from "./pages/learner/LearnMentorPage";
 import WithMentorPage from "./pages/learner/WithMentorPage";
 
@@ -38,6 +27,28 @@ import FeedbackList from "./pages/mentor/FeedbackList";
 import Materials from "./pages/mentor/Materials";
 import MentorProfile from "./pages/mentor/Profile";
 
+/* ===== AUTH & PUBLIC PAGES ===== */
+import LoginPage from './pages/LoginPage';
+import SpeakingTest from './pages/SpeakingTest';
+import AdminLoginPage from './pages/AdminLoginPage';
+import LandingPage from './pages/LandingPage'; // <--- Import trang mới
+import ProfileSetupPage from './pages/ProfileSetupPage'; // trang thiết lập hồ sơ, mục tiu
+import SettingsPage from './pages/SettingsPage'; // trang cài đặt tài khoản
+import PaymentHistoryPage from './pages/PaymentHistoryPage'; //  trang lịch sử thanh toán
+import SubscriptionPage from './pages/SubscriptionPage'; // trang Quản lý gói học
+import AIPracticePage from './pages/AIPracticePage'; //  trang Luyện nói AI 1-1
+import CheckoutPage from './pages/CheckoutPage';// trang Thanh toán
+import PaymentSuccessPage from './pages/PaymentSuccessPage';// trang Kết quả thanh toán
+import TestSpeechPage from './pages/TestSpeechPage';
+import PeerFindPage from './pages/PeerFindPage';
+import PeerRoomPage from './pages/PeerRoomPage';
+import CreateRoomPage from './pages/CreateRoomPage';
+import PracticeRoomPage from './pages/PracticeRoomPage';
+import GamificationDashboard from './pages/GamificationDashboard';
+
+
+
+
 function App() {
   return (
     <BrowserRouter>
@@ -46,7 +57,6 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/admin-login" element={<AdminLoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
 
         {/* ===== LEARNER ===== */}
         <Route element={<LearnerLayout />}>
@@ -82,6 +92,20 @@ function App() {
           <Route path="materials" element={<Materials />} />
           <Route path="profile" element={<MentorProfile />} />
         </Route>
+
+        {/* Các route giữ chỗ (Placeholder) cho Menu đỡ lỗi */}
+        <Route path="/my-courses" element={<div>Trang Khóa học (Đang phát triển)</div>} />
+        <Route path="/schedule" element={<div>Trang Lịch học (Đang phát triển)</div>} />
+
+        {/* Trang nội bộ: Phải đăng nhập mới vào được (Đã xử lý trong MainLayout) */}
+        <Route path="/speaking-test" element={<SpeakingTest />} />
+        <Route path="/test-speech" element={<TestSpeechPage />} />
+        <Route path="/peer/find" element={<PeerFindPage />} />
+        <Route path="/peer/create" element={<CreateRoomPage />} />
+        <Route path="/peer/room/:roomId" element={<PeerRoomPage />} />
+        <Route path="/practice" element={<PracticeRoomPage />} />
+        {/* Route cho GamificationDashboard */}
+        <Route path="/gamification" element={<GamificationDashboard />} />
       </Routes>
     </BrowserRouter>
   );

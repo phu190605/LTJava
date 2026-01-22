@@ -85,6 +85,7 @@ public class LearnerProfile {
 
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProfileInterest> interests;
+    private ProficiencyLevel proficiencyLevel;
 
     // Enum cho Learning Mode
     public enum LearningMode {
@@ -99,7 +100,6 @@ public class LearnerProfile {
     }
 
     // ============= GETTERS & SETTERS =============
-
     public Long getProfileId() {
         return profileId;
     }
@@ -118,7 +118,6 @@ public class LearnerProfile {
 
     /* ===== SELECTED MENTOR ===== */
 
-   
     public User getSelectedMentor() {
         return selectedMentor;
     }
@@ -238,4 +237,11 @@ public class LearnerProfile {
         this.interests = interests;
     }
 
+    public ProficiencyLevel getProficiencyLevel() {
+        return proficiencyLevel;
+    }
+
+    public void setProficiencyLevel(ProficiencyLevel proficiencyLevel) {
+        this.proficiencyLevel = proficiencyLevel;
+    }
 }

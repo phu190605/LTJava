@@ -3,6 +3,9 @@ package com.aesp.backend.dto.request;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ProfileResponseRequest {
 
     // ============= FIELDS =============

@@ -137,7 +137,7 @@ public class MentorController {
     }
 
     // ================================
-    // 📊 DASHBOARD (🔥 ĐÃ SỬA ĐÚNG)
+    // DASHBOARD 
     // ================================
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboard() {
@@ -151,7 +151,7 @@ public class MentorController {
 
         int feedback = feedbackRepo.findByMentorId(mentorId).size();
 
-        // ✅ ĐÚNG NGHIỆP VỤ: learner đã CHỌN mentor
+        //learner đã CHỌN mentor
         int students = (int) learnerProfileRepo.countBySelectedMentor(mentor);
 
         int materials = (int) materialRepo.findAll()

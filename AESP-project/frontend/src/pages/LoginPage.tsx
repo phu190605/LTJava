@@ -10,56 +10,48 @@ const LoginPage: React.FC = () => {
 
   const onFinish = async (values: any) => {
     try {
-      // ✅ CAST KIỂU RÕ RÀNG CHO TYPESCRIPT
-      const data = (await axiosClient.post(
-        '/auth/login',
-        {
-          email: values.email,
-          password: values.password,
-        }
-      )) as LoginResponse;
+      // 1. Gọi API đăng nhập
+      // Lưu ý: Biến 'res' ở đây CHÍNH LÀ dữ liệu thật (do axiosClient đã xử lý)
+      const res: any = await axiosClient.post('/auth/login', {
+        email: values.email,
+        password: values.password,
+      });
 
-      console.log('Kết quả API trả về:', data);
+      console.log("Kết quả API trả về:", res); // Soi dữ liệu để kiểm tra
 
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data));
+      // 2. Kiểm tra và Lưu token
+      // ⚠️ SỬA QUAN TRỌNG: Thay response.data.token bằng res.token
+      if (res.token) {
+        localStorage.setItem('token', res.token);
+        // Lưu thông tin user (nếu cần dùng sau này)
+        localStorage.setItem('user', JSON.stringify(res));
 
         message.success('Đăng nhập thành công!');
 
-        if (data.role === 'ADMIN') {
+        // 3. Chuyển hướng (Cũng bỏ .data đi)
+        if (res.role === 'ADMIN') {
           navigate('/admin');
-        } else if (data.role === 'MENTOR') {
+        } else if (res.role === 'MENTOR') {
           navigate('/mentor');
         } else {
-          navigate('/dashboard'); // LEARNER
+          navigate('/speaking-test'); // Mặc định: chuyển đến speaking-test
         }
       } else {
-        message.error('Lỗi: Không nhận được token từ server!');
+        // Trường hợp API không lỗi nhưng không trả về token
+        message.error("Lỗi: Không nhận được Token từ server!");
       }
     } catch (error: any) {
-      console.error('Lỗi đăng nhập:', error);
-
-      const errorMsg =
-        error?.response?.data ||
-        error?.message ||
-        'Đăng nhập thất bại!';
-
+      // 4. Xử lý lỗi
+      console.error("Lỗi đăng nhập:", error);
+      // Lấy thông báo lỗi từ backend trả về (nếu có)
+      const errorMsg = error.response?.data?.message || 'Đăng nhập thất bại!';
       message.error(errorMsg);
     }
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: '#f0f2f5',
-      }}
-    >
-      <Card title="AESP - Đăng nhập" style={{ width: 400 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f0f2f5' }}>
+      <Card title="AESP - Đăng nhập" style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
         <Form
           name="login"
           onFinish={onFinish}

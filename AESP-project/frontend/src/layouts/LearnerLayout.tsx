@@ -88,7 +88,7 @@ const LearnerLayout: React.FC = () => {
     // Menu Dropdown User (Góc phải trên)
     const userMenuItems: MenuProps['items'] = [
         { key: '/settings', label: 'Hồ sơ cá nhân', icon: <UserOutlined /> },
-        { key: '/subscription', label: 'Nâng cấp VIP', icon: <CrownOutlined style={{ color: '#faad14' }} /> }, // Thêm cả vào đây cho tiện
+        { key: '/subscription', label: 'Nâng cấp VIP', icon: <CrownOutlined style={{ color: '#faad14' }} /> },
         { type: 'divider' },
         { key: '/', label: 'Đăng xuất', icon: <LogoutOutlined />, danger: true }
     ];

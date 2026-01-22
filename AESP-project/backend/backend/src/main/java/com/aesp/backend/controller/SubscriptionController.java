@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Calendar;
 import java.util.Map;
+import java.math.BigDecimal;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,14 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.aesp.backend.dto.request.UpgradeRequest;
-import com.aesp.backend.entity.PaymentHistory;
-import com.aesp.backend.entity.LearnerProfile;
-import com.aesp.backend.entity.User;
-import com.aesp.backend.entity.ServicePackage;
-import com.aesp.backend.repository.ServicePackageRepository;
-import com.aesp.backend.repository.LearnerProfileRepository;
-import com.aesp.backend.repository.UserRepository;
-import com.aesp.backend.repository.PaymentHistoryRepository;
+import com.aesp.backend.entity.*;
+import com.aesp.backend.repository.*;
 import com.aesp.backend.security.JwtUtils;
 
 @RestController
@@ -28,16 +23,12 @@ public class SubscriptionController {
 
     @Autowired
     private ServicePackageRepository packageRepo;
-
     @Autowired
     private LearnerProfileRepository profileRepo;
-
     @Autowired
     private UserRepository userRepo;
-
     @Autowired
     private PaymentHistoryRepository paymentRepo;
-
     @Autowired
     private JwtUtils jwtUtils;
 
@@ -50,10 +41,8 @@ public class SubscriptionController {
     // 2. API Nâng cấp gói (Giả lập thanh toán thành công ngay lập tức)
     @PostMapping("/upgrade")
     @Transactional
-    public ResponseEntity<?> upgradePackage(
-            @RequestHeader("Authorization") String token,
-            @RequestBody UpgradeRequest request
-    ) {
+    public ResponseEntity<?> upgradePackage(@RequestHeader("Authorization") String token,
+            @RequestBody UpgradeRequest request) {
         try {
             // A. Lấy User từ Token
             String email = jwtUtils.getEmailFromToken(token.substring(7));

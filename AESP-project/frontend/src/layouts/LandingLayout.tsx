@@ -1,7 +1,6 @@
 import React from 'react';
 import { Layout, Button, Menu } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { RocketFilled } from '@ant-design/icons';
 
 const { Header, Content, Footer } = Layout;
 
