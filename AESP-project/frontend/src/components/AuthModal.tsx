@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import type { LoginResponse } from "../types/auth";
 import { Modal, Form, Input, Button, Typography, message, Row, Col, Divider, Steps, theme } from "antd";
 import {
   UserOutlined, LockOutlined, MailOutlined, SafetyCertificateOutlined,
@@ -68,28 +69,37 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
     }
   }, [isOpen, initialView, form]);
 
-  // --- API HANDLERS (Giữ nguyên logic cũ) ---
+  // --- API HANDLERS ---
   const handleLogin = async (values: any) => {
     setLoading(true);
     try {
-      const res = await axiosClient.post("/auth/login", values);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data));
-      if (res.data.role === "MENTOR") {
-        localStorage.setItem("mentorId", res.data.id);
+      const res = (await axiosClient.post(
+        "/auth/login",
+        values
+      )) as LoginResponse;
+
+      if (res.role === "ADMIN") {
+        window.location.href = "/";
+        message.error("Sai mật khẩu hoặc email");
+        return;
       }
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("user", JSON.stringify(res));
+
+      if (res.role === "MENTOR") {
+        localStorage.setItem("mentorId", String(res.id));
+      }
+
       message.success("Chào mừng bạn quay trở lại!");
       onClose();
-      // Điều hướng theo role
-      if (res.data.role === "ADMIN") {
-        window.location.href = "/admin";
-      } else if (res.data.role === "MENTOR") {
+
+      if (res.role === "MENTOR") {
         window.location.href = "/mentor";
       } else {
         window.location.href = "/dashboard";
       }
     } catch (error: any) {
-      message.error(error.response?.data?.message || "Đăng nhập thất bại");
+      message.error(error?.response?.data || "Đăng nhập thất bại");
     }
     setLoading(false);
   };

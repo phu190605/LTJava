@@ -186,7 +186,7 @@ export default function MentorLayout() {
         <div
           onClick={() => {
             localStorage.clear();
-            navigate("/login");
+            navigate("/");
           }}
           style={{
             position: "absolute",

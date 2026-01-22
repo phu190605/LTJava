@@ -73,13 +73,13 @@ const LearnerLayout: React.FC = () => {
         { key: '/payment-history', icon: <HistoryOutlined />, label: 'Lịch sử thanh toán' },
         { type: 'divider' as const },
         { key: '/settings', icon: <SettingOutlined />, label: 'Cài đặt' },
-        { key: '/login', icon: <LogoutOutlined />, label: 'Đăng xuất', danger: true },
+        { key: '/', icon: <LogoutOutlined />, label: 'Đăng xuất', danger: true },
     ];
 
     const handleMenuClick = ({ key }: { key: string }) => {
-        if (key === '/login') {
+        if (key === '/') {
             localStorage.removeItem('token');
-            navigate('/login');
+            navigate('/');
         } else {
             navigate(key);
         }
@@ -90,7 +90,7 @@ const LearnerLayout: React.FC = () => {
         { key: '/settings', label: 'Hồ sơ cá nhân', icon: <UserOutlined /> },
         { key: '/subscription', label: 'Nâng cấp VIP', icon: <CrownOutlined style={{ color: '#faad14' }} /> }, // Thêm cả vào đây cho tiện
         { type: 'divider' },
-        { key: '/login', label: 'Đăng xuất', icon: <LogoutOutlined />, danger: true }
+        { key: '/', label: 'Đăng xuất', icon: <LogoutOutlined />, danger: true }
     ];
 
     return (
