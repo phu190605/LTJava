@@ -38,8 +38,14 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
+    /**
+     * ===================== MAIN SECURITY FILTER CHAIN =====================
+     * ✔ CHỈ 1 FILTER CHAIN
+     * ✔ GỘP RULE CỦA FILE CŨ
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
@@ -50,6 +56,24 @@ public class SecurityConfig {
 
                 // ================= AUTH =================
                 .requestMatchers("/api/auth/**").permitAll()
+
+                // ================= PUBLIC / NO AUTH =================
+                .requestMatchers(
+                        "/error",
+                        "/ws/**",
+                        "/api/chat/**",
+                        "/api/speech/**",
+                        "/api/sentences/**",
+                        "/api/profile/goals",
+                        "/api/profile/topics",
+                        "/api/profile/packages",
+                        "/api/test-questions/**",
+                        "/api/gamification/stats/**",
+                        "/api/gamification/challenges/**",
+                        "/api/gamification/simulate-speaking"
+                ).permitAll()
+
+                // ================= PUBLIC GET =================
                 .requestMatchers(HttpMethod.GET, "/api/public/mentors").permitAll()
 
                 // ================= STATIC FILES =================
@@ -64,6 +88,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/learner/**").hasRole("LEARNER")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
+                // ================= DEFAULT =================
                 .anyRequest().authenticated()
             );
 
@@ -74,6 +99,8 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+    // ===================== CORS =====================
 
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
@@ -95,6 +122,13 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsFilter corsFilter() {
+        return new CorsFilter(corsConfigurationSource());
+    }
+
+    // ===================== AUTH =====================
+
+    @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authConfig
     ) throws Exception {
@@ -102,48 +136,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/error",
-                                "/ws/**",
-                                "/api/chat/**",
-                                "/api/speech/**",
-                                "/api/sentences/**",
-                                "/api/profile/goals",
-                                "/api/profile/topics",
-                                "/api/profile/packages",
-                                "/api/test-questions/**",
-                                "/api/gamification/stats/**",
-                                "/api/gamification/challenges/**",
-                                "/api/gamification/simulate-speaking")
-                        .permitAll()
-                        .requestMatchers("/api/profile/**").authenticated()
-                        .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
-        public DaoAuthenticationProvider authenticationProvider() {
+    public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider =
                 new DaoAuthenticationProvider(userService);
-
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
 
     @Bean
-    public CorsFilter corsFilter() {
-        return new CorsFilter(corsConfigurationSource());
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ServicePackage {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "package_id")
@@ -40,6 +41,13 @@ public class ServicePackage {
 
     @Column(columnDefinition = "json")
     private String features;
+
+    // ================== ✅ THÊM MỚI ==================
+    @Column(name = "active")
+    private Boolean active;
+    // ==================================================
+
+    // ===== EXISTING GETTERS / SETTERS (GIỮ NGUYÊN) =====
 
     public Integer getPackageId() {
         return packageId;
@@ -95,5 +103,15 @@ public class ServicePackage {
 
     public void setFeatures(String features) {
         this.features = features;
+    }
+
+    // ================== ✅ THÊM CHO CONTROLLER ==================
+
+    public Boolean isActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }
