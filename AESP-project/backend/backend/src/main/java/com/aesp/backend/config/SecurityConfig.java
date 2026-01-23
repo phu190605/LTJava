@@ -70,11 +70,13 @@ public class SecurityConfig {
                         "/api/test-questions/**",
                         "/api/gamification/stats/**",
                         "/api/gamification/challenges/**",
-                        "/api/gamification/simulate-speaking"
+                        "/api/gamification/simulate-speaking",
+                        "/api/public/**"
                 ).permitAll()
 
                 // ================= PUBLIC GET =================
                 .requestMatchers(HttpMethod.GET, "/api/public/mentors").permitAll()
+                .requestMatchers( "/api/public/policies/**").permitAll()
 
                 // ================= STATIC FILES =================
                 .requestMatchers(

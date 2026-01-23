@@ -7,6 +7,9 @@ import {
 } from "@ant-design/icons";
 import axiosClient from "../api/axiosClient";
 import logoImg from '../assets/images/logo.png'; // Đảm bảo đường dẫn đúng
+import { Checkbox, Spin } from "antd";
+import { getPolicyByType } from "../api/policyService";
+import type { SystemPolicy } from "../api/policyService";
 
 const { Title, Text } = Typography;
 
@@ -34,10 +37,21 @@ const cssStyles = `
     border-color: ${PRIMARY_COLOR} !important;
     box-shadow: 0 0 0 4px rgba(43, 77, 255, 0.1) !important;
   }
-  .ant-modal-content {
+  .auth-modal .ant-modal-content {
     padding: 0 !important;
-    border-radius: 24px !important;
+    border-radius: 24px;
     overflow: hidden;
+  }
+  .policy-modal .ant-modal-content {
+  padding: 24px !important;
+  border-radius: 16px !important;
+  overflow: visible !important;
+  }
+
+.policy-modal .ant-modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
   }
 `;
 
@@ -53,6 +67,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
   const [view, setView] = useState<AuthView>(initialView);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  /* ===== POLICY STATE ===== */
+  const [openPolicy, setOpenPolicy] = useState(false);
+  const [policyType, setPolicyType] = useState<"TERMS" | "PRIVACY">("TERMS");
+  const [policyCache, setPolicyCache] = useState<
+    Record<string, SystemPolicy>
+  >({});
+  const [policy, setPolicy] = useState<SystemPolicy | null>(null);
+  const [loadingPolicy, setLoadingPolicy] = useState(false);
 
   // State luồng quên mật khẩu
   const [resetEmail, setResetEmail] = useState("");
@@ -63,11 +85,34 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
     if (isOpen) {
       setView(initialView);
       form.resetFields();
+      setOpenPolicy(false);
       setResetEmail("");
       setResetToken("");
       setCurrentStep(0);
     }
   }, [isOpen, initialView, form]);
+  /* ================== POLICY HANDLER ================== */
+  const handleOpenPolicy = async (type: "TERMS" | "PRIVACY") => {
+    setPolicyType(type);
+    setOpenPolicy(true);
+
+  
+    if (policyCache[type]) {
+      setPolicy(policyCache[type]);
+      return;
+    }
+
+    setLoadingPolicy(true);
+    try {
+      const data = await getPolicyByType(type); 
+      setPolicy(data);
+      setPolicyCache((prev) => ({ ...prev, [type]: data }));
+    } catch (e) {
+      message.error("Không tải được chính sách");
+    } finally {
+      setLoadingPolicy(false);
+    }
+  };
 
   // --- API HANDLERS ---
   const handleLogin = async (values: any) => {
@@ -273,7 +318,30 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
                 <Form.Item name="password" rules={[{ required: true, message: "Nhập mật khẩu" }, { min: 6 }]}>
                   <Input.Password prefix={<LockOutlined style={{ color: '#94A3B8' }} />} placeholder="Mật khẩu" className="custom-input" style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }} />
                 </Form.Item>
-
+                <Form.Item name="agreePolicy" valuePropName="checked" rules={[{ validator: (_, value) => value ? Promise.resolve() : Promise.reject( new Error("Bạn phải đồng ý với điều khoản sử dụng")),},]} shouldUpdate>
+                  <Checkbox style={{ fontSize: 13 }}>
+                    Tôi đồng ý với{" "}
+  <a
+    onClick={(e) => {
+      e.preventDefault();
+      handleOpenPolicy("TERMS");
+    }}
+    style={{ color: PRIMARY_COLOR, fontWeight: 600 }}
+  >
+    Điều khoản sử dụng
+  </a>
+  {" "}và{" "}
+  <a
+    onClick={(e) => {
+      e.preventDefault();
+      handleOpenPolicy("PRIVACY");
+    }}
+    style={{ color: PRIMARY_COLOR, fontWeight: 600 }}
+  >
+    Chính sách bảo mật
+  </a>
+</Checkbox>
+                </Form.Item>
                 <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>
                   Đăng ký miễn phí
                 </Button>
@@ -378,6 +446,31 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
 
   return (
     <>
+      {/* ===== POLICY MODAL ===== */}
+      <Modal
+      open={openPolicy}
+      onCancel={() => setOpenPolicy(false)}
+      footer={null}
+      width={720}
+      centered
+      zIndex={2000}
+      wrapClassName="policy-modal"
+      title={
+      policyType === "TERMS"
+      ? `Điều khoản sử dụng (${policy?.version})`
+      : `Chính sách bảo mật (${policy?.version})`
+      }
+      >
+      {loadingPolicy ? (
+        <div style={{ textAlign: "center", padding: 40 }}>
+        <Spin />
+      </div>
+      ) : (
+      <Typography.Paragraph style={{ whiteSpace: "pre-line" }}>
+        {policy?.content}
+      </Typography.Paragraph>
+      )}
+      </Modal>
       <style>{cssStyles}</style>
       <Modal
         open={isOpen}
@@ -389,6 +482,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
         closable={false}
         maskClosable={false} // Bắt buộc bấm X để đóng, tránh đóng nhầm
         style={{ top: 20 }}
+        wrapClassName="auth-modal"
         modalRender={(modal) => (
           <div style={{
             borderRadius: '24px',
