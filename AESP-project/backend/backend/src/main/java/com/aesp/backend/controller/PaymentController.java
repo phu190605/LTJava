@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.aesp.backend.dto.request.PaymentHistoryResponse;
+import com.aesp.backend.dto.response.PaymentHistoryResponse;
 import com.aesp.backend.entity.PaymentHistory;
 import com.aesp.backend.entity.User;
 import com.aesp.backend.repository.PaymentHistoryRepository;

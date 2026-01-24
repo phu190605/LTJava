@@ -1,6 +1,6 @@
 package com.aesp.backend.controller;
 
-import com.aesp.backend.dto.request.DashboardResponse;
+import com.aesp.backend.dto.response.DashboardResponse;
 import com.aesp.backend.dto.request.ProfileResponseRequest;
 import com.aesp.backend.entity.*;
 import com.aesp.backend.repository.*;

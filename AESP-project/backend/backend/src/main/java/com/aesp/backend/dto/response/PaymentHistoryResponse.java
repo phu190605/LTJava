@@ -1,4 +1,4 @@
-package com.aesp.backend.dto.request;
+package com.aesp.backend.dto.response;
 
 import java.math.BigDecimal;
 
