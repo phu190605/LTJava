@@ -3,6 +3,7 @@ import { Button, Row, Col, Card, Typography, Avatar, Tag, Space } from 'antd';
 import { CheckCircleFilled, AudioOutlined, RobotOutlined, UsergroupAddOutlined, StarFilled, PlayCircleFilled, ThunderboltFilled, GlobalOutlined, AimOutlined } from '@ant-design/icons';
 // import { useNavigate } from 'react-router-dom'; // Không cần dùng navigate nữa
 import logoImg from '../assets/images/logo.png';
+import localImage from '../assets/images/image.png';
 import AuthModal from '../components/AuthModal'; // Đảm bảo đường dẫn đúng
 
 const { Title, Paragraph, Text } = Typography;
@@ -247,11 +248,7 @@ const LandingPage: React.FC = () => {
             <Col xs={24} md={12} style={{ display: 'flex', justifyContent: 'center', perspective: '1000px' }}>
               <div style={{ position: 'relative', animation: 'float 6s ease-in-out infinite', transformStyle: 'preserve-3d' }}>
                 <div style={{ padding: 20, background: 'rgba(255,255,255,0.4)', borderRadius: 50, backdropFilter: 'blur(30px)', border: '1px solid rgba(255,255,255,0.8)', boxShadow: softShadow }}>
-                  <img 
-                    src="https://img.freepik.com/free-photo/medium-shot-woman-holding-smartphone_23-2149008678.jpg"
-                    alt="Học tiếng Anh trên điện thoại" 
-                    style={{ width: '100%', maxWidth: 550, borderRadius: '40px', transform: 'translateZ(20px)' }} 
-                  />
+                  <img alt="Học tiếng Anh trên điện thoại" src={localImage} style={{ width: '100%', maxWidth: 550, borderRadius: '40px', transform: 'translateZ(20px)' }} />
                 </div>
                 <Card 
                   style={{ position: 'absolute', top: 60, left: -50, width: 200, borderRadius: 20, boxShadow: hoverShadow, border: 'none', transform: 'translateZ(50px)' }}

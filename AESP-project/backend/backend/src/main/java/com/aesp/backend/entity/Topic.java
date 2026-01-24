@@ -18,13 +18,21 @@ import lombok.NoArgsConstructor;
 public class Topic {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "topic_id")
+    private Long topicId;
 
-    @Column(nullable = false, unique = true)
-    private String name; // Ví dụ: "Daily Life"
-    
-    private String slug; // Ví dụ: "daily-life"
-    
+    @Column(name = "topic_name", nullable = false, unique = true)
+    private String topicName;
+
+    @Column(name = "topic_code", nullable = false, unique = true)
+    private String topicCode;
+
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(name = "icon_url")
+    private String iconUrl;
+
+    @Column(name = "category")
+    private String category;
 }

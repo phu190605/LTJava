@@ -9,5 +9,6 @@ import com.aesp.backend.entity.Topic;
 
 @Repository
 public interface TopicRepository extends JpaRepository<Topic, Long> {
-    Optional<Topic> findByName(String name);
+    Optional<Topic> findByTopicName(String topicName);
+    Optional<Topic> findByTopicCode(String topicCode);
 }

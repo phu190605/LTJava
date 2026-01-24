@@ -213,21 +213,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
                 <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>
                   Đăng nhập
                 </Button>
-
-                <Divider style={{ margin: '25px 0', color: '#94A3B8', fontSize: 13 }}>Hoặc tiếp tục với</Divider>
-
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Button block style={btnSocialStyle} icon={<GoogleOutlined style={{ color: '#EA4335', fontSize: 18 }} />}>
-                      Google
-                    </Button>
-                  </Col>
-                  <Col span={12}>
-                    <Button block style={btnSocialStyle} icon={<FacebookFilled style={{ color: '#1877F2', fontSize: 18 }} />}>
-                      Facebook
-                    </Button>
-                  </Col>
-                </Row>
               </Form>
               <div style={{ textAlign: 'center', marginTop: 25 }}>
                 <Text style={{ color: '#64748B' }}>Chưa có tài khoản? </Text>

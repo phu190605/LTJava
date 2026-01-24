@@ -11,11 +11,11 @@ import com.aesp.backend.entity.Sentence;
 
 @Repository
 public interface SentenceRepository extends JpaRepository<Sentence, Long> {
-    // Lấy ngẫu nhiên 1 câu theo Topic name và Level
+    // Lấy ngẫu nhiên 1 câu theo Topic name/code và Level
     @Query(value = "SELECT s.* FROM sentences s " +
-                   "JOIN topics t ON s.topic_id = t.id " +
-                   "WHERE t.name = :topicName AND s.level = :level " +
+                   "JOIN topics t ON s.topic_id = t.topic_id " +
+                   "WHERE (t.topic_name = :topic OR t.topic_code = :topic) AND s.level = :level " +
                    "ORDER BY RAND() LIMIT 1", nativeQuery = true)
-    Optional<Sentence> findRandomSentence(@Param("topicName") String topicName, 
+    Optional<Sentence> findRandomSentence(@Param("topic") String topic, 
                                           @Param("level") String level);
 }

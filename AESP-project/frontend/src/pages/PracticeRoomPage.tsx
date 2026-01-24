@@ -87,10 +87,12 @@ type Message = {
 };
 
 interface Topic {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
+    topicId: number;
+    topicName: string;
+    topicCode: string;
+    description: string;
+    iconUrl: string;
+    category: string;
 }
 
 export default function PracticeRoomPage() {
@@ -112,6 +114,7 @@ export default function PracticeRoomPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoModeRef = useRef(false); 
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<'BEGINNER' | 'INTERMEDIATE'>('BEGINNER');
 
   // Khởi tạo và tải danh sách Topic
   useEffect(() => {
@@ -139,7 +142,7 @@ export default function PracticeRoomPage() {
         setMessages([]); // Clear màn hình để load
         
         // SỬA: Dùng axiosClient thay vì fetch để đồng bộ auth header
-        axiosClient.get(`/chat-history/${selectedTopic.id}`)
+        axiosClient.get(`/chat-history/${selectedTopic.topicId}`)
             .then(res => {
                 const data = res.data;
                 if (Array.isArray(data) && data.length > 0) {
@@ -150,16 +153,16 @@ export default function PracticeRoomPage() {
                     }));
                     setMessages(mappedMessages);
                 } else {
-                    setMessages([{ id: 'welcome', from: 'system', text: `Bắt đầu luyện tập chủ đề: ${selectedTopic.name}` }]);
+                    setMessages([{ id: 'welcome', from: 'system', text: `Bắt đầu luyện tập chủ đề: ${selectedTopic.topicName}` }]);
                 }
             })
             .catch(err => console.error("Lỗi tải lịch sử chat:", err));
         
         setTargetSentence(''); // Reset câu mẫu
     }
-  }, [selectedTopic]);
+  }, [selectedTopic, selectedLevel]);
 
-  // Auto scroll xuống cuối
+        // axiosClient.get(`/chat-history/${selectedTopic.topicId}`) // <-- Remove stray statement
   useEffect(() => {
     if (scrollRef.current) {
         scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -171,9 +174,9 @@ export default function PracticeRoomPage() {
       if (!selectedTopic) return;
       try {
           await axiosClient.post('/chat-history', {
-              topicId: selectedTopic.id,
-              text: text,
-              sender: sender
+            topicId: selectedTopic.topicId,
+            text: text,
+            sender: sender
           });
       } catch (e) {
           console.error("Lỗi lưu tin nhắn:", e);
@@ -184,9 +187,9 @@ export default function PracticeRoomPage() {
   const handleClearHistory = async () => {
       if (!selectedTopic) return;
       try {
-          await axiosClient.delete(`/chat-history/${selectedTopic.id}`);
-          setMessages([]); 
-          message.success("Đã xóa lịch sử trò chuyện!");
+        await axiosClient.delete(`/chat-history/${selectedTopic.topicId}`);
+        setMessages([]); 
+        message.success("Đã xóa lịch sử trò chuyện!");
       } catch (e) {
           console.error(e);
           message.error("Lỗi khi xóa lịch sử.");
@@ -206,16 +209,35 @@ export default function PracticeRoomPage() {
 
   const getSampleSentence = async () => {
     const typingId = 'typing';
-    setMessages(prev => [...prev, { id: typingId, from: 'system', text: 'Đang tạo mẫu câu mới...' }]);
+    setMessages(prev => prev.some(m => m.id === typingId) ? prev : [...prev, { id: typingId, from: 'system', text: 'Đang tạo mẫu câu mới...' }]);
     setLastAssessment(null);
     try {
-        const res = await axiosClient.get('/sentences/practice', {
-            params: { topic: selectedTopic?.name || 'Daily Life', level: 'BEGINNER', forceAI: false, excludedSentences: sentenceHistory.join('|||') }
+        let res = await axiosClient.get('/sentences/practice', {
+            params: { topic: selectedTopic?.topicName || 'Daily Life', level: selectedLevel, forceAI: false, excludedSentences: sentenceHistory.join('|||') }
         });
+        // Nếu không có câu trả về, thử gọi lại với forceAI=true
+        if (!res.data?.sentence) {
+            res = await axiosClient.get('/sentences/practice', {
+                params: { topic: selectedTopic?.topicName || 'Daily Life', level: selectedLevel, forceAI: true, excludedSentences: sentenceHistory.join('|||') }
+            });
+        }
         setMessages(prev => prev.filter(m => m.id !== typingId));
-        setTargetSentence(res.data.sentence);
-        setSentenceHistory(prev => [...prev, res.data.sentence]);
-        speak(res.data.sentence);
+        if (res.data?.sentence) {
+            setTargetSentence(res.data.sentence);
+            setSentenceHistory(prev => [...prev, res.data.sentence]);
+            // Nếu đang ở chế độ rảnh tay, tạm tắt micro khi AI đọc
+            if (autoModeRef.current) {
+                setRecording(false);
+                speak(res.data.sentence, () => {
+                    // Sau khi đọc xong mới bật lại micro
+                    if (autoModeRef.current) setTimeout(() => startLiveRecognition(), 300);
+                });
+            } else {
+                speak(res.data.sentence);
+            }
+        } else {
+            message.error("Không lấy được câu mẫu.");
+        }
     } catch (e) {
         setMessages(prev => prev.filter(m => m.id !== typingId));
         message.error("Không lấy được câu mẫu.");
@@ -231,10 +253,10 @@ export default function PracticeRoomPage() {
     saveMessageToDB(content, 'user');
 
     const typingId = 'typing-ai';
-    setMessages(prev => [...prev, { id: typingId, from: 'system', text: 'AI đang suy nghĩ...' }]);
+    setMessages(prev => prev.some(m => m.id === typingId) ? prev : [...prev, { id: typingId, from: 'system', text: 'AI đang suy nghĩ...' }]);
 
     try {
-      const topicContext = selectedTopic ? `[Topic: ${selectedTopic.name}] ` : "";
+      const topicContext = selectedTopic ? `[Topic: ${selectedTopic.topicName}] ` : "";
       const res = await axiosClient.post('/chat/ask', { message: `${topicContext} ${content}` });
       setMessages(prev => prev.filter(m => m.id !== typingId));
       const aiText = res.data;
@@ -333,16 +355,28 @@ export default function PracticeRoomPage() {
                     <Select
                         className="w-full"
                         suffixIcon={<ChevronDown size={14} color="#4F46E5" />}
-                        value={selectedTopic?.id}
+                        value={selectedTopic?.topicId}
                         placeholder="Chọn chủ đề"
                         onChange={(value) => {
-                            const found = topics.find(t => t.id === value);
+                            const found = topics.find(t => t.topicId === value);
                             setSelectedTopic(found || null);
                         }}
-                        options={topics.map(t => ({ value: t.id, label: t.name }))}
+                        options={topics.map(t => ({ value: t.topicId, label: t.topicName }))}
                     />
                 </div>
-
+                <div style={{ marginBottom: 20 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginBottom: 8, display: 'block', textTransform: 'uppercase' }}>Cấp độ (Level)</label>
+                     <Select
+                         className="w-full"
+                         suffixIcon={<ChevronDown size={14} color="#4F46E5" />}
+                         value={selectedLevel}
+                         onChange={setSelectedLevel}
+                         options={[
+                         { value: 'BEGINNER', label: 'Cơ bản (Beginner)' },
+                           { value: 'INTERMEDIATE', label: 'Trung cấp (Intermediate)' }
+                         ]}
+                       />
+                     </div>
                 <div style={{ flex: 1 }}>
                      {lastAssessment && (
                         <div style={{ background: 'white', borderRadius: 16, padding: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
@@ -385,7 +419,7 @@ export default function PracticeRoomPage() {
                 }}>
                     <div className="hidden md:block">
                         <h3 style={{ margin: 0, fontWeight: 700, color: '#334155' }}>
-                            {selectedTopic ? selectedTopic.name : 'Tự do'}
+                            {selectedTopic ? selectedTopic.topicName : 'Tự do'}
                         </h3>
                         <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>
                             {selectedTopic ? selectedTopic.description : 'Chọn chủ đề để lưu lịch sử'}
