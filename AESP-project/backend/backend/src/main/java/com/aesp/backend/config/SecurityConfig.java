@@ -17,8 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import com.aesp.backend.security.JwtAuthenticationFilter;
 import com.aesp.backend.service.UserService;
@@ -38,26 +38,23 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-    /**
-     * ===================== MAIN SECURITY FILTER CHAIN =====================
-     * ✔ CHỈ 1 FILTER CHAIN
-     * ✔ GỘP RULE CỦA FILE CŨ
-     */
+    // ===================== MAIN SECURITY =====================
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
 
-                // ================= AUTH =================
+                // ========= AUTH =========
                 .requestMatchers("/api/auth/**").permitAll()
 
-                // ================= PUBLIC / NO AUTH =================
+                // ========= PUBLIC =========
                 .requestMatchers(
                         "/error",
                         "/ws/**",
@@ -68,36 +65,33 @@ public class SecurityConfig {
                         "/api/profile/topics",
                         "/api/profile/packages",
                         "/api/test-questions/**",
-                        "/api/gamification/stats/**",
-                        "/api/gamification/challenges/**",
-                        "/api/gamification/simulate-speaking",
+                        "/api/gamification/**",
                         "/api/public/**"
                 ).permitAll()
 
-                // ================= PUBLIC GET =================
+                // ========= PUBLIC GET =========
                 .requestMatchers(HttpMethod.GET, "/api/public/mentors").permitAll()
-                .requestMatchers( "/api/public/policies/**").permitAll()
+                .requestMatchers("/api/public/policies/**").permitAll()
 
-                // ================= STATIC FILES =================
+                // ========= STATIC FILE =========
                 .requestMatchers(
                         "/avatars/**",
                         "/materials/**",
                         "/certificates/**"
                 ).permitAll()
 
-                // ================= ROLE =================
+                // ========= ROLE =========
                 .requestMatchers("/api/mentor/**").hasRole("MENTOR")
                 .requestMatchers("/api/learner/**").hasRole("LEARNER")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // ================= DEFAULT =================
                 .anyRequest().authenticated()
-            );
-
-        http.addFilterBefore(
+            )
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
-        );
+            );
 
         return http.build();
     }
@@ -105,11 +99,14 @@ public class SecurityConfig {
     // ===================== CORS =====================
 
     @Bean
-    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(
-                Arrays.asList("http://localhost:5173", "http://localhost:3000")
+                Arrays.asList(
+                        "http://localhost:5173",
+                        "http://localhost:3000"
+                )
         );
         config.setAllowedMethods(
                 Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")
@@ -118,29 +115,26 @@ public class SecurityConfig {
                 Arrays.asList("Authorization", "Content-Type", "Cache-Control")
         );
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
-    }
-
-    @Bean
-    public CorsFilter corsFilter() {
-        return new CorsFilter(corsConfigurationSource());
     }
 
     // ===================== AUTH =====================
 
     @Bean
     public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration authConfig
+            AuthenticationConfiguration config
     ) throws Exception {
-        return authConfig.getAuthenticationManager();
+        return config.getAuthenticationManager();
     }
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider(userService);
+                new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }

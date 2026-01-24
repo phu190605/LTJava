@@ -26,3 +26,4 @@ export interface LearningMaterial {
   type: "PDF" | "AUDIO";
   fileUrl: string;
 }
+
