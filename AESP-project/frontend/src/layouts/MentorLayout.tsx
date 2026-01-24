@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import { Layout, Menu, Avatar, Spin } from "antd";
 import {
   DashboardOutlined,
@@ -7,36 +8,30 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { getRole, getMentorId } from "../utils/auth";
 import { getMentorProfile } from "../api/mentorApi";
-
 const { Sider, Content } = Layout;
-
 export default function MentorLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const mentorId = getMentorId();
-
   const [fullName, setFullName] = useState<string>("Mentor");
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
-  /* ===== AUTH CHECK ===== */
+  // ===== AUTH CHECK =====
   useEffect(() => {
     if (getRole() !== "MENTOR") {
       navigate("/mentor", { replace: true });
     }
   }, []);
 
-  /* ===== LOAD MENTOR PROFILE ===== */
+  // ===== LOAD MENTOR PROFILE =====
   useEffect(() => {
     (async () => {
       try {
         const profile = await getMentorProfile();
         setFullName(profile?.fullName || "Mentor");
         setAvatarUrl((profile as any).avatarUrl || "");
-
       } catch (err) {
         console.error("Load mentor profile failed", err);
       } finally {
@@ -44,7 +39,6 @@ export default function MentorLayout() {
       }
     })();
   }, []);
-
 
   const menuItem = (
     key: string,
@@ -161,6 +155,12 @@ export default function MentorLayout() {
           items={[
             menuItem("/mentor", "Tổng quan", <DashboardOutlined />, "/mentor"),
             menuItem(
+              "/mentor/placement-review",
+              "Đánh giá & xếp lớp",
+              <FileTextOutlined />,
+              "/mentor/placement-review"
+            ),
+            menuItem(
               "/mentor/feedback",
               "Đánh giá và phản hồi",
               <FileTextOutlined />,
@@ -178,7 +178,6 @@ export default function MentorLayout() {
               <UserOutlined />,
               "/mentor/profile"
             ),
-
           ]}
         />
 
@@ -220,3 +219,4 @@ export default function MentorLayout() {
     </Layout>
   );
 }
+

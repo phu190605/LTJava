@@ -81,8 +81,7 @@ public class MentorController {
 
     @PostMapping("/sessions")
     public ResponseEntity<LearningSession> createSession(
-            @RequestBody LearningSession session
-    ) {
+            @RequestBody LearningSession session) {
         if (session.getId() == null) {
             session.setId(UUID.randomUUID().toString());
         }
@@ -96,8 +95,7 @@ public class MentorController {
     @PostMapping("/materials")
     public ResponseEntity<?> uploadMaterial(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("title") String title
-    ) {
+            @RequestParam("title") String title) {
         try {
             User mentor = getCurrentMentor();
 
@@ -115,7 +113,7 @@ public class MentorController {
             String type = file.getContentType() == null ? "" : file.getContentType().toLowerCase();
             m.setType(type.contains("pdf") ? "PDF"
                     : type.contains("audio") ? "AUDIO"
-                    : "OTHER");
+                            : "OTHER");
 
             return ResponseEntity.ok(materialRepo.save(m));
 
@@ -132,12 +130,11 @@ public class MentorController {
                 materialRepo.findAll()
                         .stream()
                         .filter(m -> mentorId.equals(m.getMentorId()))
-                        .toList()
-        );
+                        .toList());
     }
 
     // ================================
-    // DASHBOARD 
+    // DASHBOARD
     // ================================
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboard() {
@@ -151,7 +148,7 @@ public class MentorController {
 
         int feedback = feedbackRepo.findByMentorId(mentorId).size();
 
-        //learner đã CHỌN mentor
+        // learner đã CHỌN mentor
         int students = (int) learnerProfileRepo.countBySelectedMentor(mentor);
 
         int materials = (int) materialRepo.findAll()
@@ -160,8 +157,7 @@ public class MentorController {
                 .count();
 
         return ResponseEntity.ok(
-                new DashboardResponse(pending, feedback, students, materials)
-        );
+                new DashboardResponse(pending, feedback, students, materials));
     }
 
     // ================================
@@ -170,7 +166,8 @@ public class MentorController {
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile() {
         User u = getCurrentMentor();
-        if (u.getCertificates() == null) u.setCertificates("");
+        if (u.getCertificates() == null)
+            u.setCertificates("");
         return ResponseEntity.ok(u);
     }
 
@@ -178,9 +175,12 @@ public class MentorController {
     public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> req) {
         User u = getCurrentMentor();
 
-        if (req.containsKey("fullName")) u.setFullName((String) req.get("fullName"));
-        if (req.containsKey("bio")) u.setBio((String) req.get("bio"));
-        if (req.containsKey("avatarUrl")) u.setAvatarUrl((String) req.get("avatarUrl"));
+        if (req.containsKey("fullName"))
+            u.setFullName((String) req.get("fullName"));
+        if (req.containsKey("bio"))
+            u.setBio((String) req.get("bio"));
+        if (req.containsKey("avatarUrl"))
+            u.setAvatarUrl((String) req.get("avatarUrl"));
         if (req.containsKey("certificates")) {
             String c = (String) req.get("certificates");
             u.setCertificates(c == null ? "" : c.trim());
@@ -236,5 +236,37 @@ public class MentorController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
+    }
+    // ================================
+    // 🏆 PLACEMENT TEST EVALUATION (MENTOR)
+    // ================================
+
+    // 1. Lấy danh sách learner đã test đầu vào
+    @GetMapping("/placement-results")
+    public ResponseEntity<?> getPlacementResults() {
+        var testedLearners = learnerProfileRepo.findAll()
+                .stream()
+                .filter(p -> p.getAssessmentScore() != null)
+                .filter(p -> p.getCurrentPackage() != null && Boolean.TRUE.equals(p.getCurrentPackage().getHasMentor()))
+                .toList();
+        System.out.println("Tested learners: " + testedLearners.size());
+        testedLearners.forEach(l -> System.out.println(l.getUser() != null ? l.getUser().getFullName() : "null user"));
+        return ResponseEntity.ok(testedLearners);
+    }
+
+    // 2. Mentor đánh giá/xếp lớp cho learner
+    @PostMapping("/placement-evaluate")
+    public ResponseEntity<?> evaluatePlacement(
+            @RequestParam Long learnerId,
+            @RequestParam String newLevel,
+            @RequestParam(required = false) String mentorNote) {
+        var profile = learnerProfileRepo.findByUser_Id(learnerId)
+                .orElseThrow(() -> new RuntimeException("Learner not found"));
+        profile.setCurrentLevelCode(newLevel);
+        if (mentorNote != null) {
+            profile.setMentorNote(mentorNote); // Thêm field mentorNote vào entity nếu muốn lưu nhận xét
+        }
+        learnerProfileRepo.save(profile);
+        return ResponseEntity.ok("Đã cập nhật xếp lớp cho học viên.");
     }
 }

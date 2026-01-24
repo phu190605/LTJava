@@ -31,6 +31,9 @@ public class SpeakingResult {
     @Column(columnDefinition = "TEXT")
     private String feedback;
 
+    @Column(name = "audio_path")
+    private String audioPath;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -74,6 +77,14 @@ public class SpeakingResult {
 
     public void setFeedback(String feedback) {
         this.feedback = feedback;
+    }
+
+    public String getAudioPath() {
+        return audioPath;
+    }
+
+    public void setAudioPath(String audioPath) {
+        this.audioPath = audioPath;
     }
 
     public LocalDateTime getCreatedAt() {

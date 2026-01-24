@@ -14,10 +14,9 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import {
-  getDashboardStats,
-  getMentorProfile,
-} from "../../api/mentorApi";
+
+import MentorPlacementPanel from "./MentorPlacementPanel";
+import { getDashboardStats, getMentorProfile } from "../../api/mentorApi";
 
 export default function MentorDashboard() {
   const navigate = useNavigate();
@@ -154,13 +153,9 @@ export default function MentorDashboard() {
         </Col>
       </Row>
 
+
       {/* ASSESSMENTS */}
-      <Card style={{ marginTop: 24, borderRadius: 16 }} bodyStyle={{ padding: 0 }}>
-        {sectionHeader("Bài test đầu vào cần xếp lớp", <FileTextOutlined />)}
-        <div style={{ padding: 32 }}>
-          <Empty description="Dữ liệu sẽ hiển thị khi có bài test cần xử lý" />
-        </div>
-      </Card>
+      <MentorPlacementPanel />
 
       {/* EXERCISES */}
       <Card style={{ marginTop: 24, borderRadius: 16 }} bodyStyle={{ padding: 0 }}>

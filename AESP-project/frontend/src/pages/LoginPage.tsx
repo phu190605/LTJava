@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { Form, Input, Button, message, Card } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import axiosClient from '../api/axiosClient';
 import { useNavigate } from 'react-router-dom';
 import type { LoginResponse } from '../types/auth';
+import { checkHasTested } from '../api/userTestApi';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -34,7 +36,18 @@ const LoginPage: React.FC = () => {
         } else if (res.role === 'MENTOR') {
           navigate('/mentor');
         } else {
-          navigate('/speaking-test'); // Mặc định: chuyển đến speaking-test
+          // LEARNER: kiểm tra đã test đầu vào chưa
+          try {
+            const hasTested = await checkHasTested();
+            if (hasTested) {
+              navigate('/dashboard');
+            } else {
+              navigate('/speaking-test');
+            }
+          } catch (e) {
+            // Nếu lỗi API, fallback về speaking-test
+            navigate('/speaking-test');
+          }
         }
       } else {
         // Trường hợp API không lỗi nhưng không trả về token

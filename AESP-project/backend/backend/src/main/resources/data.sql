@@ -1,3 +1,4 @@
+-- Active: 1768031295604@@127.0.0.1@3307
 -- ================= SKILLS =================
 CREATE TABLE IF NOT EXISTS skills (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -15,7 +16,7 @@ INSERT IGNORE INTO skills (name) VALUES
 ('Writing');
 
 -- ================= TEST QUESTIONS =================
-INSERT INTO test_questions (type, level, content, answer) VALUES
+INSERT IGNORE INTO test_questions (type, level, content, answer) VALUES
 ('read', 'A1', '"Tom has a red ball." What color is Tom''s ball?', 'red'),
 ('read', 'A2', '"Mary eats breakfast at 7 o''clock." When does Mary eat breakfast?', '7 o''clock'),
 ('fill', 'A1', 'The sun rises in the ___.', 'east'),

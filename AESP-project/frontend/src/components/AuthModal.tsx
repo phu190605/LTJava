@@ -6,6 +6,8 @@ import {
   ArrowLeftOutlined, GoogleOutlined, FacebookFilled, EyeInvisibleOutlined, EyeTwoTone
 } from "@ant-design/icons";
 import axiosClient from "../api/axiosClient";
+import { checkHasTested } from "../api/userTestApi";
+import { useNavigate } from "react-router-dom";
 import logoImg from '../assets/images/logo.png'; // Đảm bảo đường dẫn đúng
 import { Checkbox, Spin } from "antd";
 import { getPolicyByType } from "../api/policyService";
@@ -67,6 +69,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
   const [view, setView] = useState<AuthView>(initialView);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const navigate = useNavigate();
   /* ===== POLICY STATE ===== */
   const [openPolicy, setOpenPolicy] = useState(false);
   const [policyType, setPolicyType] = useState<"TERMS" | "PRIVACY">("TERMS");
@@ -96,7 +99,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
     setPolicyType(type);
     setOpenPolicy(true);
 
-  
+
     if (policyCache[type]) {
       setPolicy(policyCache[type]);
       return;
@@ -104,7 +107,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
 
     setLoadingPolicy(true);
     try {
-      const data = await getPolicyByType(type); 
+      const data = await getPolicyByType(type);
       setPolicy(data);
       setPolicyCache((prev) => ({ ...prev, [type]: data }));
     } catch (e) {
@@ -141,7 +144,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
       if (res.role === "MENTOR") {
         window.location.href = "/mentor";
       } else {
-        window.location.href = "/dashboard";
+        // Kiểm tra đã test đầu vào chưa
+        try {
+          const hasTested = await checkHasTested();
+          if (hasTested) {
+            navigate("/dashboard");
+          } else {
+            navigate("/speaking-test");
+          }
+        } catch (e) {
+          // fallback nếu lỗi API
+          navigate("/dashboard");
+        }
       }
     } catch (error: any) {
       message.error(error?.response?.data || "Đăng nhập thất bại");
@@ -318,29 +332,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
                 <Form.Item name="password" rules={[{ required: true, message: "Nhập mật khẩu" }, { min: 6 }]}>
                   <Input.Password prefix={<LockOutlined style={{ color: '#94A3B8' }} />} placeholder="Mật khẩu" className="custom-input" style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }} />
                 </Form.Item>
-                <Form.Item name="agreePolicy" valuePropName="checked" rules={[{ validator: (_, value) => value ? Promise.resolve() : Promise.reject( new Error("Bạn phải đồng ý với điều khoản sử dụng")),},]} shouldUpdate>
+                <Form.Item name="agreePolicy" valuePropName="checked" rules={[{ validator: (_, value) => value ? Promise.resolve() : Promise.reject(new Error("Bạn phải đồng ý với điều khoản sử dụng")), },]} shouldUpdate>
                   <Checkbox style={{ fontSize: 13 }}>
                     Tôi đồng ý với{" "}
-  <a
-    onClick={(e) => {
-      e.preventDefault();
-      handleOpenPolicy("TERMS");
-    }}
-    style={{ color: PRIMARY_COLOR, fontWeight: 600 }}
-  >
-    Điều khoản sử dụng
-  </a>
-  {" "}và{" "}
-  <a
-    onClick={(e) => {
-      e.preventDefault();
-      handleOpenPolicy("PRIVACY");
-    }}
-    style={{ color: PRIMARY_COLOR, fontWeight: 600 }}
-  >
-    Chính sách bảo mật
-  </a>
-</Checkbox>
+                    <a
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleOpenPolicy("TERMS");
+                      }}
+                      style={{ color: PRIMARY_COLOR, fontWeight: 600 }}
+                    >
+                      Điều khoản sử dụng
+                    </a>
+                    {" "}và{" "}
+                    <a
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleOpenPolicy("PRIVACY");
+                      }}
+                      style={{ color: PRIMARY_COLOR, fontWeight: 600 }}
+                    >
+                      Chính sách bảo mật
+                    </a>
+                  </Checkbox>
                 </Form.Item>
                 <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>
                   Đăng ký miễn phí
@@ -448,28 +462,28 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
     <>
       {/* ===== POLICY MODAL ===== */}
       <Modal
-      open={openPolicy}
-      onCancel={() => setOpenPolicy(false)}
-      footer={null}
-      width={720}
-      centered
-      zIndex={2000}
-      wrapClassName="policy-modal"
-      title={
-      policyType === "TERMS"
-      ? `Điều khoản sử dụng (${policy?.version})`
-      : `Chính sách bảo mật (${policy?.version})`
-      }
+        open={openPolicy}
+        onCancel={() => setOpenPolicy(false)}
+        footer={null}
+        width={720}
+        centered
+        zIndex={2000}
+        wrapClassName="policy-modal"
+        title={
+          policyType === "TERMS"
+            ? `Điều khoản sử dụng (${policy?.version})`
+            : `Chính sách bảo mật (${policy?.version})`
+        }
       >
-      {loadingPolicy ? (
-        <div style={{ textAlign: "center", padding: 40 }}>
-        <Spin />
-      </div>
-      ) : (
-      <Typography.Paragraph style={{ whiteSpace: "pre-line" }}>
-        {policy?.content}
-      </Typography.Paragraph>
-      )}
+        {loadingPolicy ? (
+          <div style={{ textAlign: "center", padding: 40 }}>
+            <Spin />
+          </div>
+        ) : (
+          <Typography.Paragraph style={{ whiteSpace: "pre-line" }}>
+            {policy?.content}
+          </Typography.Paragraph>
+        )}
       </Modal>
       <style>{cssStyles}</style>
       <Modal

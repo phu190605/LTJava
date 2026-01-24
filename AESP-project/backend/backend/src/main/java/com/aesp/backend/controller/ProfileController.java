@@ -112,8 +112,7 @@ public class ProfileController {
         response.setCurrentLevel(profile.getCurrentLevelCode());
         response.setDailyTime(profile.getDailyLearningGoalMinutes());
         response.setLearningMode(
-                profile.getLearningMode() != null ? profile.getLearningMode().name() : null
-        );
+                profile.getLearningMode() != null ? profile.getLearningMode().name() : null);
         response.setAssessmentScore(profile.getAssessmentScore());
 
         if (profile.getMainGoal() != null) {
@@ -125,8 +124,7 @@ public class ProfileController {
                     profile.getInterests()
                             .stream()
                             .map(i -> i.getTopic().getTopicName())
-                            .collect(Collectors.toList())
-            );
+                            .collect(Collectors.toList()));
         }
 
         return ResponseEntity.ok(response);
@@ -146,13 +144,20 @@ public class ProfileController {
                     .orElse(new LearnerProfile());
 
             profile.setUser(user);
-            profile.setCurrentLevelCode(request.getCurrentLevel());
             profile.setDailyLearningGoalMinutes(request.getDailyTime());
 
-            if ("A1".equals(request.getCurrentLevel()) || "A2".equals(request.getCurrentLevel())) {
-                profile.setLearningMode(LearnerProfile.LearningMode.FULL_SENTENCE);
-            } else {
-                profile.setLearningMode(LearnerProfile.LearningMode.KEY_PHRASE);
+            // Nếu request có assessmentScore > 0 thì cập nhật vào profile
+            if (request.getAssessmentScore() != null) {
+                profile.setAssessmentScore(request.getAssessmentScore());
+                // Chỉ set level khi đã test đầu vào
+                if (request.getCurrentLevel() != null) {
+                    profile.setCurrentLevelCode(request.getCurrentLevel());
+                    if ("A1".equals(request.getCurrentLevel()) || "A2".equals(request.getCurrentLevel())) {
+                        profile.setLearningMode(LearnerProfile.LearningMode.FULL_SENTENCE);
+                    } else {
+                        profile.setLearningMode(LearnerProfile.LearningMode.KEY_PHRASE);
+                    }
+                }
             }
 
             if (request.getMainGoalId() != null) {
@@ -252,8 +257,7 @@ public class ProfileController {
             res.setFullName(
                     profile.getDisplayName() != null && !profile.getDisplayName().isEmpty()
                             ? profile.getDisplayName()
-                            : user.getFullName()
-            );
+                            : user.getFullName());
 
             res.setAvatarUrl(profile.getAvatarUrl());
             res.setCurrentLevel(profile.getCurrentLevelCode());
@@ -261,8 +265,7 @@ public class ProfileController {
             res.setMainGoal(
                     profile.getMainGoal() != null
                             ? profile.getMainGoal().getGoalName()
-                            : "Chưa đặt mục tiêu"
-            );
+                            : "Chưa đặt mục tiêu");
 
             res.setDailyGoalMinutes(profile.getDailyLearningGoalMinutes());
             res.setLearnedMinutes(0);
@@ -272,15 +275,13 @@ public class ProfileController {
                         profile.getInterests()
                                 .stream()
                                 .map(i -> i.getTopic().getTopicName())
-                                .collect(Collectors.toList())
-                );
+                                .collect(Collectors.toList()));
             }
 
             if (profile.getCurrentPackage() != null) {
                 res.setPackageName(profile.getCurrentPackage().getPackageName());
                 res.setHasMentor(
-                        Boolean.TRUE.equals(profile.getCurrentPackage().getHasMentor())
-                );
+                        Boolean.TRUE.equals(profile.getCurrentPackage().getHasMentor()));
             } else {
                 res.setPackageName("Free Tier");
                 res.setHasMentor(false);
@@ -299,5 +300,20 @@ public class ProfileController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi dashboard: " + e.getMessage());
         }
+    }
+
+    // =========================================================
+    // 6. KIỂM TRA ĐÃ TEST ĐẦU VÀO CHƯA
+    // =========================================================
+    @GetMapping("/has-tested")
+    public ResponseEntity<?> hasTested() {
+        User user = getCurrentUser();
+        LearnerProfile profile = profileRepo.findByUser_Id(user.getId())
+                .orElse(null);
+        boolean hasTested = false;
+        if (profile != null && profile.getAssessmentScore() != null && profile.getAssessmentScore() > 0) {
+            hasTested = true;
+        }
+        return ResponseEntity.ok(java.util.Collections.singletonMap("hasTested", hasTested));
     }
 }

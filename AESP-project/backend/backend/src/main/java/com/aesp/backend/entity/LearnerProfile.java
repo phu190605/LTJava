@@ -37,6 +37,7 @@ public class LearnerProfile {
     // Learner chỉ chọn 1 mentor
     @ManyToOne
     @JoinColumn(name = "mentor_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private User selectedMentor;
 
     // ------ Thông tin cá nhân ------
@@ -73,6 +74,7 @@ public class LearnerProfile {
 
     @ManyToOne
     @JoinColumn(name = "current_package_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private ServicePackage currentPackage;
 
     @Enumerated(EnumType.STRING)
@@ -81,9 +83,11 @@ public class LearnerProfile {
 
     @ManyToOne
     @JoinColumn(name = "main_goal_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private LearnerGoal mainGoal;
 
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<ProfileInterest> interests;
     private ProficiencyLevel proficiencyLevel;
 
@@ -125,6 +129,7 @@ public class LearnerProfile {
     public void setSelectedMentor(User selectedMentor) {
         this.selectedMentor = selectedMentor;
     }
+
     public String getDisplayName() {
         return displayName;
     }
@@ -243,5 +248,17 @@ public class LearnerProfile {
 
     public void setProficiencyLevel(ProficiencyLevel proficiencyLevel) {
         this.proficiencyLevel = proficiencyLevel;
+    }
+
+    // Nhận xét/xếp lớp của mentor
+    @Column(name = "mentor_note", length = 1000)
+    private String mentorNote;
+
+    public String getMentorNote() {
+        return mentorNote;
+    }
+
+    public void setMentorNote(String mentorNote) {
+        this.mentorNote = mentorNote;
     }
 }

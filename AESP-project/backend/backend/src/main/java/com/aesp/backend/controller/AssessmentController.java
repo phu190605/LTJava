@@ -13,14 +13,14 @@ import java.util.Map;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/mentor/assessments")
+@RequestMapping({ "/api/mentor/assessments", "/api/mentor/assessment" })
 public class AssessmentController {
 
     private final SpeakingResultRepository speakingRepo;
     private final SpeakingService speakingService;
 
     public AssessmentController(SpeakingResultRepository speakingRepo,
-                                SpeakingService speakingService) {
+            SpeakingService speakingService) {
         this.speakingRepo = speakingRepo;
         this.speakingService = speakingService;
     }
@@ -62,8 +62,7 @@ public class AssessmentController {
         result.setFeedback(
                 result.getFeedback()
                         + "\n[Mentor Comment]: " + dto.getMentorComment()
-                        + "\n[Final Level]: " + finalLevel
-        );
+                        + "\n[Final Level]: " + finalLevel);
 
         speakingRepo.save(result);
 

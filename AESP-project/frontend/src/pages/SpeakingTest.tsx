@@ -1,6 +1,7 @@
-import { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import axiosClient from "../api/axiosClient";
 import "../styles/speaking-test.css";
+import { useNavigate, useLocation } from "react-router-dom";
 
 
 
@@ -33,16 +34,11 @@ interface AssessmentResult {
 }
 
 interface PartResult {
-    audioFile: File;
+    audioFile?: File;
     previewUrl: string;
     aiResult?: AssessmentResult;
 }
 
-
-import { useNavigate } from "react-router-dom";
-
-
-import { useEffect } from "react";
 
 const SpeakingTest = () => {
     const [texts, setTexts] = useState<any[]>([]);
@@ -55,17 +51,47 @@ const SpeakingTest = () => {
     const [fillCorrect, setFillCorrect] = useState<Record<number, boolean>>({});
     const [fillScore, setFillScore] = useState<Record<number, number>>({}); // 1: đúng, 0: sai
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Lấy userId từ query string nếu có
+    const userId = (() => {
+        const params = new URLSearchParams(location.search);
+        return params.get("userId");
+    })();
 
     // Fetch questions from backend
     useEffect(() => {
         axiosClient.get('/test-questions').then(res => {
             if (Array.isArray(res)) {
-                setTexts(shuffleArray(res));
+                setTexts(res); // Không shuffle để không bị tăng số lượng câu hỏi
             } else {
                 setTexts([]);
             }
         }).catch(() => setTexts([]));
     }, []);
+
+    // Nếu có userId (mentor review), fetch kết quả speaking test của user đó
+    useEffect(() => {
+        if (!userId) return;
+        axiosClient.get(`/speaking/results?userId=${userId}`).then(res => {
+            // Debug log dữ liệu trả về để kiểm tra trường audioUrl, partNumber, ...
+            console.log("[DEBUG] speaking results API:", res);
+            if (Array.isArray(res)) {
+                const mapped: Record<number, PartResult> = {};
+                res.forEach((item: any) => {
+                    mapped[item.partNumber] = {
+                        audioFile: undefined,
+                        previewUrl: item.audioUrl,
+                        aiResult: item.aiResult
+                    };
+                });
+                setTempResults(mapped);
+            }
+        });
+    }, [userId]);
+
+    // Nếu là chế độ mentor review (có userId), disable ghi âm/nộp bài
+    const isReviewMode = !!userId;
 
     const TOTAL_PARTS = texts.length;
 
@@ -171,6 +197,25 @@ const SpeakingTest = () => {
             const mainFeedback = feedbacks.length > 0 ? feedbacks[0] : "Cần luyện tập thêm.";
             setAiResult({ avgScore: totalFinal, mainLevel, mainFeedback });
 
+            // Gửi từng kết quả speaking lên backend
+            // Lấy userId hiện tại (nếu có), nếu không thì lấy từ localStorage hoặc context
+            let currentUserId = userId;
+            if (!currentUserId) {
+                // Thử lấy từ localStorage nếu có lưu
+                currentUserId = localStorage.getItem("userId");
+            }
+            // Gửi từng part speaking
+            for (const [partNumber, partData] of Object.entries(tempResults)) {
+                if (partData && partData.aiResult) {
+                    await axiosClient.post('/speaking/results', {
+                        userId: Number(currentUserId), // Đảm bảo là số
+                        partNumber: Number(partNumber),
+                        score: Math.round(partData.aiResult.overallScore), // Đảm bảo là số nguyên
+                        feedback: partData.aiResult.feedback || "",
+                    });
+                }
+            }
+
             // Gửi kết quả lên Profile
             await axiosClient.post('/profile/setup', {
                 currentLevel: mainLevel,
@@ -234,19 +279,26 @@ const SpeakingTest = () => {
                     </div>
                     <div className="record-box">
                         <p>{isRecording ? "Đang ghi âm..." : "Nhấn nút để bắt đầu đọc"}</p>
-                        <button
-                            className={`record-btn ${isRecording ? "recording" : ""}`}
-                            onClick={isRecording ? stopRecording : startRecording}
-                            disabled={isProcessing || loading}
-                        >
-                            {isRecording ? "⏹ Dừng & Chấm điểm" : "🎤 Bắt đầu ghi âm"}
-                        </button>
-                        {loading && <div style={{ color: '#1976d2', fontWeight: 'bold', marginTop: 10 }}>⏳ Đang chấm điểm...</div>}
-                        {tempResults[Object.keys(tempResults).length >= currentPart ? currentPart : -1] && !isRecording && (
-                            <div className="audio-player-wrapper">
-                                <audio className="audio-player" src={tempResults[currentPart]?.previewUrl} controls />
-                            </div>
+                        {!isReviewMode && (
+                            <button
+                                className={`record-btn ${isRecording ? "recording" : ""}`}
+                                onClick={isRecording ? stopRecording : startRecording}
+                                disabled={isProcessing || loading}
+                            >
+                                {isRecording ? "⏹ Dừng & Chấm điểm" : "🎤 Bắt đầu ghi âm"}
+                            </button>
                         )}
+                        {loading && <div style={{ color: '#1976d2', fontWeight: 'bold', marginTop: 10 }}>⏳ Đang chấm điểm...</div>}
+                        <div className="audio-player-wrapper" style={{ marginTop: 10 }}>
+                            {tempResults[currentPart]?.previewUrl ? (
+                                <audio className="audio-player" src={tempResults[currentPart]?.previewUrl} controls />
+                            ) : (
+                                <audio className="audio-player" controls />
+                            )}
+                            {!tempResults[currentPart]?.previewUrl && (
+                                <div style={{ color: '#888', fontSize: 13, marginTop: 4 }}>Chưa có ghi âm cho câu này</div>
+                            )}
+                        </div>
                         {/* Hiển thị kết quả AI từng đoạn */}
                         {tempResults[currentPart]?.aiResult && (
                             <div className="result-box" style={{ marginTop: '20px', padding: '16px', border: '1px solid #ddd', borderRadius: '8px', background: '#f9f9f9', textAlign: 'left' }}>
@@ -348,14 +400,16 @@ const SpeakingTest = () => {
                         Tiếp theo →
                     </button>
                 ) : (
-                    <button
-                        className="btn-next btn-finish"
-                        onClick={submitAllAndFinish}
-                        disabled={isProcessing}
-                        style={{ background: "#10b981" }}
-                    >
-                        {isProcessing ? "Đang gửi dữ liệu..." : "🚀 Hoàn thành bài Test"}
-                    </button>
+                    !isReviewMode && (
+                        <button
+                            className="btn-next btn-finish"
+                            onClick={submitAllAndFinish}
+                            disabled={isProcessing}
+                            style={{ background: "#10b981" }}
+                        >
+                            {isProcessing ? "Đang gửi dữ liệu..." : "🚀 Hoàn thành bài Test"}
+                        </button>
+                    )
                 )}
             </div>
             {/* Hiển thị kết quả AI tổng hợp sau khi hoàn thành */}

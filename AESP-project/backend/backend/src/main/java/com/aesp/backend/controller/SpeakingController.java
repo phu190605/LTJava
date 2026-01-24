@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,6 +12,12 @@ import com.aesp.backend.dto.response.SpeakingResponseDTO;
 import com.aesp.backend.entity.SpeakingResult;
 import com.aesp.backend.repository.SpeakingResultRepository;
 import com.aesp.backend.service.SpeakingService;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping("/api/speaking")
@@ -21,7 +28,7 @@ public class SpeakingController {
     private final SpeakingResultRepository repository;
 
     public SpeakingController(SpeakingService speakingService,
-                              SpeakingResultRepository repository) {
+            SpeakingResultRepository repository) {
         this.speakingService = speakingService;
         this.repository = repository;
     }
@@ -30,24 +37,61 @@ public class SpeakingController {
     public SpeakingResponseDTO submitSpeaking(
             @RequestParam("audio") MultipartFile audio,
             @RequestParam("UserId") Long UserId,
-            @RequestParam("partNumber") int partNumber
-    ) {
-        // 1. Tính điểm từ file âm thanh
-        int score = speakingService.calculateScore(audio);
-        String feedback = speakingService.generateFeedback(score);
+            @RequestParam("partNumber") int partNumber) {
+        try {
+            // 1. Tính điểm từ file âm thanh
+            int score = speakingService.calculateScore(audio);
+            String feedback = speakingService.generateFeedback(score);
 
-        // 2. Tìm kiếm kết quả cũ để ghi đè (Update) thay vì tạo mới (Insert)
-        SpeakingResult result = repository.findByUserIdAndPartNumber(UserId, partNumber)
-                .orElse(new SpeakingResult());
+            // 2. Lưu file audio vào thư mục resources/audio
+            String audioDir = "src/main/resources/audio/";
+            String fileName = "user_" + UserId + "_part_" + partNumber + "_" + System.currentTimeMillis() + ".wav";
+            java.io.File dest = new java.io.File(audioDir + fileName);
+            dest.getParentFile().mkdirs();
+            audio.transferTo(dest);
+            String audioPath = "/api/speaking/audio/" + fileName;
 
-        result.setUserId(UserId);
-        result.setPartNumber(partNumber);
-        result.setScore(score);
-        result.setFeedback(feedback);
+            // 3. Tìm kiếm kết quả cũ để ghi đè (Update) thay vì tạo mới (Insert)
+            SpeakingResult result = repository.findByUserIdAndPartNumber(UserId, partNumber)
+                    .orElse(new SpeakingResult());
 
-        // 3. Lưu vào database (Ghi đè dựa trên ID nếu đã tồn tại)
+            result.setUserId(UserId);
+            result.setPartNumber(partNumber);
+            result.setScore(score);
+            result.setFeedback(feedback);
+            result.setAudioPath(audioPath);
+
+            // 4. Lưu vào database (Ghi đè dựa trên ID nếu đã tồn tại)
+            repository.save(result);
+
+            return new SpeakingResponseDTO(score, feedback);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi lưu file audio: " + e.getMessage());
+        }
+    }
+
+    // GET endpoint to fetch all speaking results for a user
+    @GetMapping("/results")
+    public List<SpeakingResult> getSpeakingResults(@RequestParam("userId") Long userId) {
+        return repository.findAllByUserIdOrderByPartNumberAsc(userId);
+    }
+
+    // Serve audio files
+    @GetMapping("/audio/{fileName}")
+    public org.springframework.core.io.Resource getAudioFile(
+            @org.springframework.web.bind.annotation.PathVariable String fileName) throws java.io.IOException {
+        java.nio.file.Path path = java.nio.file.Paths.get("src/main/resources/audio/" + fileName);
+        org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(path.toUri());
+        if (resource.exists() && resource.isReadable()) {
+            return resource;
+        } else {
+            throw new java.io.FileNotFoundException("Không tìm thấy file audio");
+        }
+    }
+
+    @PostMapping("/results")
+    public ResponseEntity<?> saveSpeakingResult(@RequestBody SpeakingResult result) {
         repository.save(result);
-
-        return new SpeakingResponseDTO(score, feedback);
+        return ResponseEntity.ok().build();
     }
 }

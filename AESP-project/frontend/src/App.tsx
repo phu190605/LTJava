@@ -26,6 +26,7 @@ import MentorDashboard from "./pages/mentor/MentorDashboard";
 import FeedbackList from "./pages/mentor/FeedbackList";
 import Materials from "./pages/mentor/Materials";
 import MentorProfile from "./pages/mentor/Profile";
+import PlacementReviewPage from "./pages/mentor/PlacementReviewPage";
 
 /* ===== AUTH & PUBLIC PAGES ===== */
 import LoginPage from './pages/LoginPage';
@@ -91,6 +92,7 @@ function App() {
           <Route path="feedback" element={<FeedbackList />} />
           <Route path="materials" element={<Materials />} />
           <Route path="profile" element={<MentorProfile />} />
+          <Route path="placement-review" element={<PlacementReviewPage />} />
         </Route>
 
         {/* Các route giữ chỗ (Placeholder) cho Menu đỡ lỗi */}
