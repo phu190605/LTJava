@@ -154,7 +154,7 @@ const UserManagement: React.FC = () => {
     <div style={{ padding: 24 }}>
       <Title level={2}>👥 Quản lý người dùng</Title>
       <Text type="secondary">
-        Quản lý tài khoản Admin / Mentor / Learner
+        Quản lý tài khoản Mentor / Learner
       </Text>
 
       <Card style={{ marginTop: 20 }}>
