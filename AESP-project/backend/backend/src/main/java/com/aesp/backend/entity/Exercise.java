@@ -33,4 +33,11 @@ public class Exercise {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
+    public String getLearnerId() {
+        return learnerId;
+    }
+
+    public void setLearnerId(String learnerId) {
+        this.learnerId = learnerId;
+    }
 }

@@ -148,9 +148,7 @@ const MentorPlacementPanel = () => {
               {assessmentDetail?.transcript && (
                 <div><b>Transcript:</b> {assessmentDetail.transcript}</div>
               )}
-              {assessmentDetail?.audioUrl && (
-                <audio controls src={assessmentDetail.audioUrl} style={{ marginTop: 8, width: '100%' }} />
-              )}
+
               {(!assessmentDetail?.audioUrl && !assessmentDetail?.transcript && !assessmentDetail?.question) && (
                 <div>Không có dữ liệu kiểm tra đầu vào.</div>
               )}
@@ -159,11 +157,11 @@ const MentorPlacementPanel = () => {
                 style={{ padding: 0, marginTop: 8 }}
                 onClick={() => {
                   if (selectedLearner?.user?.id) {
-                    navigate(`/speaking-test?userId=${selectedLearner.user.id}`);
+                    navigate(`/review-all-results/${selectedLearner.user.id}`);
                   }
                 }}
               >
-                Xem chi tiết bài kiểm tra đầu vào
+                Xem chi tiết kết quả kiểm tra đầu vào
               </Button>
             </div>
           )}

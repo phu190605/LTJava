@@ -31,6 +31,18 @@ public class SpeakingResult {
     @Column(columnDefinition = "TEXT")
     private String feedback;
 
+    // Lưu lại nội dung câu hỏi mà học viên đã đọc
+    @Column(name = "reference_text", columnDefinition = "TEXT")
+    private String referenceText;
+
+    public String getReferenceText() {
+        return referenceText;
+    }
+
+    public void setReferenceText(String referenceText) {
+        this.referenceText = referenceText;
+    }
+
     @Column(name = "audio_path")
     private String audioPath;
 

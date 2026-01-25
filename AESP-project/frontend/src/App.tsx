@@ -27,6 +27,8 @@ import FeedbackList from "./pages/mentor/FeedbackList";
 import Materials from "./pages/mentor/Materials";
 import MentorProfile from "./pages/mentor/Profile";
 import PlacementReviewPage from "./pages/mentor/PlacementReviewPage";
+import ReviewSpeakingResult from "./pages/ReviewSpeakingResult";
+import ReviewAllResults from "./pages/ReviewAllResults";
 
 /* ===== AUTH & PUBLIC PAGES ===== */
 import LoginPage from './pages/LoginPage';
@@ -86,6 +88,7 @@ function App() {
           <Route path="reports" element={<AdminReportPage />} />
         </Route>
 
+
         {/* ===== MENTOR ===== */}
         <Route path="/mentor" element={<MentorLayout />}>
           <Route index element={<MentorDashboard />} />
@@ -95,9 +98,14 @@ function App() {
           <Route path="placement-review" element={<PlacementReviewPage />} />
         </Route>
 
+
+        {/* Route review speaking result cho mentor, phải để ngoài cùng */}
+        <Route path="/review-speaking-result/:userId" element={<ReviewSpeakingResult />} />
+        <Route path="/review-all-results/:userId" element={<ReviewAllResults />} />
+
         {/* Các route giữ chỗ (Placeholder) cho Menu đỡ lỗi */}
         <Route path="/my-courses" element={<div>Trang Khóa học (Đang phát triển)</div>} />
-        <Route path="/schedule" element={<div>Trang Lịch học (Đang phát triển)</div>} />
+
 
         {/* Trang nội bộ: Phải đăng nhập mới vào được (Đã xử lý trong MainLayout) */}
         <Route path="/speaking-test" element={<SpeakingTest />} />

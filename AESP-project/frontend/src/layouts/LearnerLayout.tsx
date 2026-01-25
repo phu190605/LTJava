@@ -59,7 +59,7 @@ const LearnerLayout: React.FC = () => {
         { key: '/ai-practice', icon: <AudioOutlined />, label: 'Luyện nói AI (Premium)' },
         { key: '/my-courses', icon: <ReadOutlined />, label: 'Khoá học của tôi' },
         { key: '/setup', icon: <AimOutlined />, label: 'Mục tiêu & Lộ trình' },
-        { key: '/schedule', icon: <CalendarOutlined />, label: 'Lịch học' },
+
         { key: '/learner/learnmentor', icon: <TeamOutlined />, label: 'Đăng ký mentor' },
 
         // --- THÊM MỤC NÀY ---

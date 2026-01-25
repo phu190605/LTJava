@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.aesp.backend.dto.response.SpeakingResponseDTO;
+import com.aesp.backend.dto.response.SpeakingResultDTO;
 import com.aesp.backend.entity.SpeakingResult;
 import com.aesp.backend.repository.SpeakingResultRepository;
 import com.aesp.backend.service.SpeakingService;
@@ -36,7 +37,7 @@ public class SpeakingController {
     @PostMapping
     public SpeakingResponseDTO submitSpeaking(
             @RequestParam("audio") MultipartFile audio,
-            @RequestParam("UserId") Long UserId,
+            @RequestParam("userId") Long userId,
             @RequestParam("partNumber") int partNumber) {
         try {
             // 1. Tính điểm từ file âm thanh
@@ -45,17 +46,17 @@ public class SpeakingController {
 
             // 2. Lưu file audio vào thư mục resources/audio
             String audioDir = "src/main/resources/audio/";
-            String fileName = "user_" + UserId + "_part_" + partNumber + "_" + System.currentTimeMillis() + ".wav";
+            String fileName = "user_" + userId + "_part_" + partNumber + "_" + System.currentTimeMillis() + ".wav";
             java.io.File dest = new java.io.File(audioDir + fileName);
             dest.getParentFile().mkdirs();
             audio.transferTo(dest);
             String audioPath = "/api/speaking/audio/" + fileName;
 
             // 3. Tìm kiếm kết quả cũ để ghi đè (Update) thay vì tạo mới (Insert)
-            SpeakingResult result = repository.findByUserIdAndPartNumber(UserId, partNumber)
+            SpeakingResult result = repository.findByUserIdAndPartNumber(userId, partNumber)
                     .orElse(new SpeakingResult());
 
-            result.setUserId(UserId);
+            result.setUserId(userId);
             result.setPartNumber(partNumber);
             result.setScore(score);
             result.setFeedback(feedback);
@@ -70,10 +71,20 @@ public class SpeakingController {
         }
     }
 
-    // GET endpoint to fetch all speaking results for a user
+    // GET endpoint to fetch all speaking results for a user (returns DTO with
+    // audioUrl)
     @GetMapping("/results")
-    public List<SpeakingResult> getSpeakingResults(@RequestParam("userId") Long userId) {
-        return repository.findAllByUserIdOrderByPartNumberAsc(userId);
+    public List<SpeakingResultDTO> getSpeakingResults(@RequestParam("userId") Long userId) {
+        List<SpeakingResult> results = repository.findAllByUserIdOrderByPartNumberAsc(userId);
+        return results.stream().map(result -> new SpeakingResultDTO(
+                result.getId(),
+                result.getUserId(),
+                result.getPartNumber(),
+                result.getScore(),
+                result.getFeedback(),
+                result.getAudioPath(), // mapped as audioUrl
+                result.getReferenceText(),
+                result.getCreatedAt())).toList();
     }
 
     // Serve audio files
@@ -91,6 +102,10 @@ public class SpeakingController {
 
     @PostMapping("/results")
     public ResponseEntity<?> saveSpeakingResult(@RequestBody SpeakingResult result) {
+        // Ensure referenceText is set if missing (for safety, but should come from frontend)
+        if (result.getReferenceText() == null || result.getReferenceText().isEmpty()) {
+            // Optionally, set a default or log a warning
+        }
         repository.save(result);
         return ResponseEntity.ok().build();
     }

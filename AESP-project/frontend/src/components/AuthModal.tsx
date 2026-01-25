@@ -166,7 +166,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
   const handleRegister = async (values: any) => {
     setLoading(true);
     try {
-      await axiosClient.post("/auth/register", values);
+      // Loại bỏ agreePolicy khỏi payload gửi lên backend
+      const { agreePolicy, ...payload } = values;
+      await axiosClient.post("/auth/register", payload);
       message.success("Đăng ký thành công! Vui lòng đăng nhập.");
       setView("LOGIN");
     } catch (error: any) {

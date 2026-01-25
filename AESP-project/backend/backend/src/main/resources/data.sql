@@ -15,8 +15,9 @@ INSERT IGNORE INTO skills (name) VALUES
 ('TOEIC'),
 ('Writing');
 
--- ================= TEST QUESTIONS =================
-INSERT IGNORE INTO test_questions (type, level, content, answer) VALUES
+-- Clear test_questions to avoid duplicates
+DELETE FROM test_questions;
+INSERT INTO test_questions (type, level, content, answer) VALUES
 ('read', 'A1', '"Tom has a red ball." What color is Tom''s ball?', 'red'),
 ('read', 'A2', '"Mary eats breakfast at 7 o''clock." When does Mary eat breakfast?', '7 o''clock'),
 ('fill', 'A1', 'The sun rises in the ___.', 'east'),

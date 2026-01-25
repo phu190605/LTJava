@@ -15,7 +15,7 @@ import com.aesp.backend.service.SpeechService;
 
 @RestController
 @RequestMapping("/api/speech")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"}, allowCredentials = "true")
+@CrossOrigin(origins = {  "http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173" }, allowCredentials = "true")
 public class SpeechController {
 
     @Autowired
@@ -24,9 +24,11 @@ public class SpeechController {
     @PostMapping(value = "/assess", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> assessPronunciation(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("text") String referenceText) {
+            @RequestParam("text") String referenceText,
+            @RequestParam("userId") Long userId,
+            @RequestParam("partNumber") int partNumber) {
         try {
-            AssessmentResult result = speechService.analyzePronunciation(file, referenceText);
+            AssessmentResult result = speechService.analyzePronunciation(file, referenceText, userId, partNumber);
             return ResponseEntity.ok(result);
         } catch (Exception e) { // Catch only Exception, not Throwable
             // Log error to server console

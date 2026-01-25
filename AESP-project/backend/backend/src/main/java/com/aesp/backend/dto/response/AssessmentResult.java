@@ -2,28 +2,23 @@ package com.aesp.backend.dto.response;
 
 import java.util.List;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
 public class AssessmentResult {
-    
     // Thứ tự khai báo các biến dưới đây phải KHỚP 100% với file Service
-    private String level;               
-    private double overallScore;       
-    private String feedback;            
-    private double accuracyScore;       
-    private double fluencyScore;        
-    private double completenessScore;   
-    private double prosodyScore;        
-    private List<WordResult> words;     
+    private String level;
+    private double overallScore;
+    private String feedback;
+    private double accuracyScore;
+    private double fluencyScore;
+    private double completenessScore;
+    private double prosodyScore;
+    private List<WordResult> words;
+    private String audioUrl; // Thêm trường audioUrl
 
     // --- CONSTRUCTOR THỦ CÔNG (Thêm đoạn này là hết lỗi ngay) ---
-    public AssessmentResult(String level, double overallScore, String feedback, 
-                            double accuracyScore, double fluencyScore, 
-                            double completenessScore, double prosodyScore, 
-                            List<WordResult> words) {
+    public AssessmentResult(String level, double overallScore, String feedback,
+            double accuracyScore, double fluencyScore,
+            double completenessScore, double prosodyScore,
+            List<WordResult> words, String audioUrl) {
         this.level = level;
         this.overallScore = overallScore;
         this.feedback = feedback;
@@ -32,7 +27,17 @@ public class AssessmentResult {
         this.completenessScore = completenessScore;
         this.prosodyScore = prosodyScore;
         this.words = words;
+        this.audioUrl = audioUrl;
     }
+
+    public String getAudioUrl() {
+        return audioUrl;
+    }
+
+    public void setAudioUrl(String audioUrl) {
+        this.audioUrl = audioUrl;
+    }
+
     public String getLevel() {
         return level;
     }

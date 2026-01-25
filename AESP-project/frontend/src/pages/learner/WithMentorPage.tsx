@@ -1,3 +1,13 @@
+// Quy đổi điểm sang level (A1, A2, B1, B2)
+function convertScoreToLevel(score?: string | number | null): string {
+    if (score == null || score === "") return "Chưa có";
+    const s = typeof score === "string" ? parseFloat(score) : score;
+    if (isNaN(s)) return "Chưa có";
+    if (s >= 80) return "B2";
+    if (s >= 60) return "B1";
+    if (s >= 40) return "A2";
+    return "A1";
+}
 import { useEffect, useState } from "react";
 import {
     Tabs,
@@ -17,7 +27,8 @@ import {
     VideoCameraOutlined,
     DownloadOutlined
 } from "@ant-design/icons";
-import { getSelectedMentor } from "../../api/learnerMentorApi";
+import { getSelectedMentor, getPlacementResult } from "../../api/learnerMentorApi";
+import type { PlacementResult } from "../../api/learnerMentorApi";
 import { getMyMentorMaterials } from "../../api/learnerMaterialApi";
 import type { LearningMaterial } from "../../api/learnerMaterialApi";
 
@@ -34,6 +45,8 @@ export default function WithMentorPage() {
     const [loading, setLoading] = useState(true);
     const [mentor, setMentor] = useState<any>(null);
     const [materials, setMaterials] = useState<LearningMaterial[]>([]);
+    const [placementResult, setPlacementResult] = useState<PlacementResult | null>(null);
+    const [showPlacementDetail, setShowPlacementDetail] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -44,6 +57,10 @@ export default function WithMentorPage() {
 
                 const list = await getMyMentorMaterials();
                 setMaterials(Array.isArray(list) ? list : []);
+
+                // Lấy kết quả kiểm tra đầu vào và nhận xét mentor
+                const placement = await getPlacementResult();
+                setPlacementResult(placement);
             } finally {
                 setLoading(false);
             }
@@ -67,8 +84,27 @@ export default function WithMentorPage() {
                 {/* ===== MAIN CONTENT ===== */}
                 <Col span={17}>
                     <Tabs
-                        defaultActiveKey="materials"
+                        defaultActiveKey="placement"
                         items={[
+                            {
+                                key: "placement",
+                                label: "📝 Kết quả kiểm tra đầu vào",
+                                children: (
+                                    placementResult ? (
+                                        <Card style={{ borderRadius: 12, marginTop: 16 }}>
+                                            <div><b>Điểm test đầu vào:</b> {placementResult.levelBefore || 'Chưa có'}
+                                                {placementResult.levelBefore && (
+                                                    <span style={{ marginLeft: 12, color: '#000000' }}>
+                                                        (Level: {convertScoreToLevel(placementResult.levelBefore)})
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div><b>Level sau khi mentor đánh giá:</b> {placementResult.levelAfter || 'Chưa có'}</div>
+                                            <div><b>Nhận xét của mentor:</b> {placementResult.mentorNote ? placementResult.mentorNote : <span style={{ color: '#888' }}>Chưa có nhận xét</span>}</div>
+                                        </Card>
+                                    ) : <Empty description="Chưa có dữ liệu kiểm tra đầu vào." style={{ marginTop: 48 }} />
+                                ),
+                            },
                             {
                                 key: "materials",
                                 label: "📚 Tài liệu tham khảo",
@@ -96,14 +132,12 @@ export default function WithMentorPage() {
                                                     <div style={{ fontSize: 28, marginRight: 16 }}>
                                                         {getFileIcon(m.type)}
                                                     </div>
-
                                                     <div style={{ flex: 1 }}>
                                                         <Text strong>{m.title}</Text>
                                                         <div>
                                                             <Tag>{m.type}</Tag>
                                                         </div>
                                                     </div>
-
                                                     <Button
                                                         type="primary"
                                                         icon={<DownloadOutlined />}

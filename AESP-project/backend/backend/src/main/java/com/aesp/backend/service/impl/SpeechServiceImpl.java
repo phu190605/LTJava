@@ -3,9 +3,10 @@ package com.aesp.backend.service.impl;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.List; // Vẫn import để sau này dùng lại
+import java.util.List;
+import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired; // Vẫn import để sau này dùng lại
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,8 +44,13 @@ public class SpeechServiceImpl implements SpeechService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private com.aesp.backend.repository.SpeakingResultRepository speakingResultRepository;
+
     @Override
-    public AssessmentResult analyzePronunciation(MultipartFile file, String referenceText) throws Exception {
+    // Thêm partNumber vào tham số để lưu đúng phần
+    public AssessmentResult analyzePronunciation(MultipartFile file, String referenceText, Long userId, int partNumber)
+            throws Exception {
         File tempFile = File.createTempFile("upload_", ".wav");
         SpeechRecognizer recognizer = null;
         try (FileOutputStream fos = new FileOutputStream(tempFile)) {
@@ -98,10 +104,22 @@ public class SpeechServiceImpl implements SpeechService {
 
             // --- Lưu kết quả đánh giá vào DB để sau này truy vấn lịch sử ---
             com.aesp.backend.entity.SpeechAssessment assessmentEntity = new com.aesp.backend.entity.SpeechAssessment();
-            // Nếu có userId từ context thì set vào sau này; hiện để null
-            assessmentEntity.setUserId(null);
+            // Đã truyền userId từ controller vào hàm này
+            assessmentEntity.setUserId(userId);
             assessmentEntity.setReferenceText(referenceText);
-            assessmentEntity.setAudioUrl(null);
+            // Upload file lên Cloudinary và lấy URL
+            String audioUrl = null;
+            try {
+                Map uploadResult = cloudinary.uploader().upload(tempFile, Map.of(
+                        "resource_type", "auto",
+                        "folder", "aesp/audio"));
+                System.out.println("[DEBUG] Cloudinary uploadResult: " + uploadResult);
+                audioUrl = (String) uploadResult.get("secure_url");
+            } catch (Exception ex) {
+                System.err.println("[ERROR] Upload audio to Cloudinary failed:");
+                ex.printStackTrace();
+            }
+            assessmentEntity.setAudioUrl(audioUrl);
             assessmentEntity.setAccuracyScore(pronResult.getAccuracyScore());
             assessmentEntity.setFluencyScore(pronResult.getFluencyScore());
             assessmentEntity.setCompletenessScore(pronResult.getCompletenessScore());
@@ -110,7 +128,7 @@ public class SpeechServiceImpl implements SpeechService {
 
             // Chuyển WordResult -> WordDetail và liên kết
             List<com.aesp.backend.entity.WordDetail> wordDetails = new ArrayList<>();
-            for (com.aesp.backend.dto.response.WordResult wr : wordResultsDTO) {
+            for (WordResult wr : wordResultsDTO) {
                 com.aesp.backend.entity.WordDetail wd = new com.aesp.backend.entity.WordDetail();
                 wd.setSpeechAssessment(assessmentEntity);
                 wd.setWord(wr.getWord());
@@ -123,6 +141,33 @@ public class SpeechServiceImpl implements SpeechService {
             // Save (cascade will persist WordDetail)
             assessmentRepository.save(assessmentEntity);
 
+            // --- Đồng bộ sang bảng speaking_results ---
+            Double overallScore = pronResult.getPronunciationScore();
+            int score = (overallScore != null) ? (int) Math.round(overallScore) : 0;
+            String feedback = generateFeedback(pronResult.getPronunciationScore());
+            if (userId != null) {
+                java.util.Optional<com.aesp.backend.entity.SpeakingResult> opt = speakingResultRepository
+                        .findByUserIdAndPartNumber(userId, partNumber);
+                com.aesp.backend.entity.SpeakingResult speakingResult;
+                if (opt.isPresent()) {
+                    speakingResult = opt.get();
+                    speakingResult.setAudioPath(audioUrl);
+                    speakingResult.setScore(score);
+                    speakingResult.setFeedback(feedback);
+                    speakingResult.setReferenceText(referenceText);
+                } else {
+                    speakingResult = new com.aesp.backend.entity.SpeakingResult();
+                    speakingResult.setUserId(userId);
+                    speakingResult.setPartNumber(partNumber);
+                    speakingResult.setScore(score);
+                    speakingResult.setFeedback(feedback);
+                    speakingResult.setAudioPath(audioUrl);
+                    speakingResult.setReferenceText(referenceText);
+                    speakingResult.setCreatedAt(java.time.LocalDateTime.now());
+                }
+                speakingResultRepository.save(speakingResult);
+            }
+
             return new AssessmentResult(
                     determineLevel(pronResult.getPronunciationScore()),
                     pronResult.getPronunciationScore(),
@@ -131,11 +176,12 @@ public class SpeechServiceImpl implements SpeechService {
                     pronResult.getFluencyScore(),
                     pronResult.getCompletenessScore(),
                     0.0,
-                    wordResultsDTO);
+                    wordResultsDTO,
+                    audioUrl // truyền url file ghi âm
+            );
         } catch (Exception e) {
             // Log error and rethrow for controller to handle
             System.err.println("[ERROR] Pronunciation analysis failed:");
-            e.printStackTrace();
             throw e;
         } finally {
             if (recognizer != null) {
@@ -176,17 +222,14 @@ public class SpeechServiceImpl implements SpeechService {
                 azureConfig.getSpeechRegion());
         speechConfig.setSpeechRecognitionLanguage("en-US");
         AudioConfig audioConfig = AudioConfig.fromWavFileInput(tempFile.getAbsolutePath());
-        SpeechRecognizer recognizer = new SpeechRecognizer(speechConfig, audioConfig);
-
-        SpeechRecognitionResult result = recognizer.recognizeOnceAsync().get();
-
-        recognizer.close();
-        tempFile.delete();
-
-        if (result.getReason() == ResultReason.RecognizedSpeech) {
-            return result.getText();
-        } else {
-            throw new RuntimeException("Speech recognition failed: " + result.getReason());
+        try (SpeechRecognizer recognizer = new SpeechRecognizer(speechConfig, audioConfig)) {
+            SpeechRecognitionResult result = recognizer.recognizeOnceAsync().get();
+            tempFile.delete();
+            if (result.getReason() == ResultReason.RecognizedSpeech) {
+                return result.getText();
+            } else {
+                throw new RuntimeException("Speech recognition failed: " + result.getReason());
+            }
         }
     }
 }

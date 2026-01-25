@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
+import { getCurrentUser } from "../utils/auth";
 import axiosClient from "../api/axiosClient";
 import "../styles/speaking-test.css";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -53,10 +54,11 @@ const SpeakingTest = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Lấy userId từ query string nếu có
-    const userId = (() => {
-        const params = new URLSearchParams(location.search);
-        return params.get("userId");
+    // Chỉ lấy userId từ user hiện tại (learner)
+    const userId: string = (() => {
+        const user = getCurrentUser();
+        if (user && user.id !== null && user.id !== undefined) return user.id.toString();
+        return "";
     })();
 
     // Fetch questions from backend
@@ -70,28 +72,12 @@ const SpeakingTest = () => {
         }).catch(() => setTexts([]));
     }, []);
 
-    // Nếu có userId (mentor review), fetch kết quả speaking test của user đó
+    // Không còn chế độ mentor review, chỉ learner mới vào được trang này
+    // Luôn cho phép ghi âm/nộp bài nếu userId hợp lệ
     useEffect(() => {
-        if (!userId) return;
-        axiosClient.get(`/speaking/results?userId=${userId}`).then(res => {
-            // Debug log dữ liệu trả về để kiểm tra trường audioUrl, partNumber, ...
-            console.log("[DEBUG] speaking results API:", res);
-            if (Array.isArray(res)) {
-                const mapped: Record<number, PartResult> = {};
-                res.forEach((item: any) => {
-                    mapped[item.partNumber] = {
-                        audioFile: undefined,
-                        previewUrl: item.audioUrl,
-                        aiResult: item.aiResult
-                    };
-                });
-                setTempResults(mapped);
-            }
-        });
-    }, [userId]);
-
-    // Nếu là chế độ mentor review (có userId), disable ghi âm/nộp bài
-    const isReviewMode = !!userId;
+        // Không fetch kết quả cũ, chỉ cho learner làm mới
+    }, []);
+    const isReviewMode = false;
 
     const TOTAL_PARTS = texts.length;
 
@@ -131,6 +117,15 @@ const SpeakingTest = () => {
                     const form = new FormData();
                     form.append("file", audioFile, `part_${currentPart}.wav`);
                     form.append("text", texts[currentPart - 1].content);
+                    // Lấy userId từ biến hoặc localStorage
+                    let currentUserId = userId;
+                    if (!currentUserId) {
+                        alert("Không xác định được userId. Vui lòng đăng nhập lại.");
+                        setLoading(false);
+                        return;
+                    }
+                    form.append("userId", currentUserId);
+                    form.append("partNumber", String(currentPart)); // Gửi đúng partNumber cho backend
                     const res = await axiosClient.post("/speech/assess", form);
                     const aiResult: AssessmentResult = (res && typeof res === 'object' && 'level' in res && 'words' in res)
                         ? (res as unknown as AssessmentResult)
@@ -187,22 +182,36 @@ const SpeakingTest = () => {
             const avgSpeaking = Math.round(totalScore / (readCount || 1));
             const totalFinal = avgSpeaking + fillTotal;
 
-            // Phân level
+            // Phân level (chỉ A1, A2, B1, B2)
             let mainLevel = "A1";
-            if (totalFinal >= 95) mainLevel = "C1";
-            else if (totalFinal >= 80) mainLevel = "B2";
+            if (totalFinal >= 80) mainLevel = "B2";
             else if (totalFinal >= 60) mainLevel = "B1";
             else if (totalFinal >= 40) mainLevel = "A2";
 
             const mainFeedback = feedbacks.length > 0 ? feedbacks[0] : "Cần luyện tập thêm.";
             setAiResult({ avgScore: totalFinal, mainLevel, mainFeedback });
 
+            // Gửi kết quả fill-in-the-blank lên backend
+            const fillResults = texts.map((t, idx) => {
+                if (t.type === "fill") {
+                    return {
+                        userId: Number(userId),
+                        partNumber: idx + 1,
+                        userAnswer: fillAnswers[idx + 1] || "",
+                        correct: fillScore[idx + 1] === 1
+                    };
+                }
+                return null;
+            }).filter(Boolean);
+            if (fillResults.length > 0) {
+                await axiosClient.post('/fill-results', fillResults);
+            }
             // Gửi từng kết quả speaking lên backend
             // Lấy userId hiện tại (nếu có), nếu không thì lấy từ localStorage hoặc context
             let currentUserId = userId;
             if (!currentUserId) {
                 // Thử lấy từ localStorage nếu có lưu
-                currentUserId = localStorage.getItem("userId");
+                currentUserId = localStorage.getItem("userId") ?? "";
             }
             // Gửi từng part speaking
             for (const [partNumber, partData] of Object.entries(tempResults)) {
@@ -212,6 +221,7 @@ const SpeakingTest = () => {
                         partNumber: Number(partNumber),
                         score: Math.round(partData.aiResult.overallScore), // Đảm bảo là số nguyên
                         feedback: partData.aiResult.feedback || "",
+                        referenceText: texts[Number(partNumber) - 1]?.content || ""
                     });
                 }
             }

@@ -33,13 +33,13 @@ public class MentorLearnerController {
         List<String> learnerIds = exerciseRepo.findByMentorId(mentorId)
                 .stream()
                 .map(e -> e.getLearnerId())
+                .filter(id -> id != null && !id.isBlank() && id.matches("\\d+"))
                 .distinct()
                 .toList();
 
-        // Query user info theo learnerId
+        // Query user info theo learnerId (chỉ lấy id hợp lệ)
         List<User> learners = userRepo.findAllById(
-                learnerIds.stream().map(Long::parseLong).toList()
-        );
+                learnerIds.stream().map(Long::parseLong).toList());
 
         return ResponseEntity.ok(learners);
     }
