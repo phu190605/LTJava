@@ -1,0 +1,162 @@
+.goal-container {
+  background: linear-gradient(180deg, #2b32b2 0%, #1488cc 100%);
+  /* Màu xanh tím giống mẫu */
+  min-height: 60vh;
+  padding: 30px;
+  border-radius: 20px;
+  color: white;
+  text-align: center;
+}
+
+.goal-mascot {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 15px;
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4));
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.goal-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.goal-subtitle {
+  color: #dbeafe;
+  margin-bottom: 30px;
+  font-size: 15px;
+}
+
+/* Grid 2 cột cho các ô to */
+.goal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.goal-card {
+  background: rgba(255, 255, 255, 0.15);
+  /* Kính mờ */
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 140px;
+  /* Ô cao như hình mẫu */
+}
+
+.goal-card:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.goal-card.selected {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid #60a5fa;
+  /* Viền xanh sáng */
+  box-shadow: 0 0 15px rgba(96, 165, 250, 0.6);
+}
+
+.goal-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.goal-text {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* ===============================
+   Chỉ chỉnh hai nút: Thoát & Tiếp tục
+   Đồng bộ kích thước, bo tròn, phong cách
+   =============================== */
+
+/* Hai nút bằng nhau, cùng bo tròn */
+.back-btn,
+.continue-btn {
+  flex: 1 1 0;
+  /* mỗi nút chia đều không gian */
+  display: inline-flex;
+  /* căn giữa nội dung */
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 14px;
+  /* bo tròn giống nhau */
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Nút Thoát: phiên bản secondary, đồng bộ phong cách */
+.back-btn {
+  background-color: #eef2ff;
+  /* nền nhạt */
+  color: #1f2937;
+  /* chữ xám đậm */
+  border: 1px solid #c7d2fe;
+  /* viền nhẹ */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+}
+
+.back-btn:hover {
+  background-color: #e0e7ff;
+  border-color: #a5b4fc;
+  transform: translateY(-1px);
+}
+
+/* Nút Tiếp tục: phiên bản primary, đồng bộ bo tròn/kích thước */
+.continue-btn {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.35);
+  transition: all 0.25s ease;
+}
+
+/* AntD `block` làm nút full-width, ghi đè để hai nút bằng nhau */
+.continue-btn.ant-btn-block {
+  width: auto !important;
+  display: inline-flex !important;
+  border-radius: 14px !important;
+}
+
+.continue-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(30, 64, 175, 0.35);
+}
+
+/* Trạng thái disabled (khi chưa chọn mục) vẫn đồng bộ hình dạng */
+.continue-btn[disabled],
+.continue-btn.ant-btn-disabled {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  color: #cbd5e1;
+  box-shadow: none;
+  cursor: not-allowed;
+  border-radius: 14px !important;
+}

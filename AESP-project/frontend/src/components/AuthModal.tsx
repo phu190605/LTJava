@@ -1,11 +1,14 @@
+
+
 import React, { useState, useEffect } from "react";
-import { Modal, Form, Input, Button, Typography, message, Row, Col, Divider, Steps, theme } from "antd";
+import { Modal, Form, Input, Button, Typography, message, Divider, Steps, Space } from "antd";
 import { 
   UserOutlined, LockOutlined, MailOutlined, SafetyCertificateOutlined, 
-  ArrowLeftOutlined, GoogleOutlined, FacebookFilled, EyeInvisibleOutlined, EyeTwoTone
+  ArrowLeftOutlined, EyeInvisibleOutlined, EyeTwoTone, GoogleOutlined, FacebookFilled
 } from "@ant-design/icons";
+import { useNavigate } from 'react-router-dom';
 import axiosClient from "../api/axiosClient";
-import logoImg from '../assets/images/logo.png'; // Đảm bảo đường dẫn đúng
+import logoImg from '../assets/images/logo.png';
 
 const { Title, Text } = Typography;
 
@@ -14,15 +17,12 @@ const PRIMARY_COLOR = '#2B4DFF';
 const PRIMARY_GRADIENT = 'linear-gradient(135deg, #2B4DFF 0%, #8752f3 100%)';
 const INPUT_BG = '#F8FAFC';
 
-// CSS Animation (Inject vào component)
 const cssStyles = `
   @keyframes slideUpFade {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  .auth-modal-content {
-    animation: slideUpFade 0.4s ease-out;
-  }
+  .auth-modal-content { animation: slideUpFade 0.4s ease-out; }
   .custom-input .ant-input, .custom-input .ant-input-password {
     background-color: ${INPUT_BG} !important;
     border: 1px solid transparent !important;
@@ -33,11 +33,7 @@ const cssStyles = `
     border-color: ${PRIMARY_COLOR} !important;
     box-shadow: 0 0 0 4px rgba(43, 77, 255, 0.1) !important;
   }
-  .ant-modal-content {
-    padding: 0 !important;
-    border-radius: 24px !important;
-    overflow: hidden;
-  }
+  .ant-modal-content { padding: 0 !important; border-radius: 24px !important; overflow: hidden; }
 `;
 
 type AuthView = "LOGIN" | "REGISTER" | "FORGOT_EMAIL" | "VERIFY_OTP" | "RESET_PASSWORD";
@@ -52,50 +48,74 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
   const [view, setView] = useState<AuthView>(initialView);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const navigate = useNavigate();
   
-  // State luồng quên mật khẩu
   const [resetEmail, setResetEmail] = useState("");
   const [resetToken, setResetToken] = useState("");
-  const [currentStep, setCurrentStep] = useState(0); // 0: Email, 1: OTP, 2: New Pass
+  const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
     if (isOpen) {
       setView(initialView);
       form.resetFields();
-      setResetEmail("");
-      setResetToken("");
       setCurrentStep(0);
     }
   }, [isOpen, initialView, form]);
 
-  // --- API HANDLERS (Giữ nguyên logic cũ) ---
+  // --- MERGED LOGIC FROM LOGINPAGE ---
   const handleLogin = async (values: any) => {
     setLoading(true);
     try {
-      const res = await axiosClient.post("/auth/login", values);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data));
-      message.success("Chào mừng bạn quay trở lại!");
-      onClose();
-      window.location.reload();
+      const res: any = await axiosClient.post('/auth/login', {
+        email: values.email,
+        password: values.password,
+      });
+
+      // 1. Lưu thông tin (Theo cấu trúc bạn yêu cầu)
+      if (res.token) {
+        localStorage.setItem('token', res.token);
+        const realName = res.fullName || res.full_name || res.username || "Học viên";
+        localStorage.setItem('fullName', realName);
+        localStorage.setItem('userId', res.userId || res.id);
+        localStorage.setItem('user', JSON.stringify(res));
+
+        message.success(`Chào mừng ${realName} quay trở lại!`);
+        onClose();
+
+        // 2. Logic điều hướng thông minh (Merged from LoginPage)
+        if (res.role === 'ADMIN') {
+          navigate('/admin');
+        } else if (res.role === 'MENTOR') {
+          navigate('/mentor');
+        } else {
+          if (res.isTested !== true) {
+            navigate('/speaking-test');
+          } else {
+            navigate('/dashboard');
+          }
+        }
+      }
     } catch (error: any) {
-      message.error(error.response?.data?.message || "Đăng nhập thất bại");
+      message.error(error.response?.data?.message || "Sai email hoặc mật khẩu!");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleRegister = async (values: any) => {
     setLoading(true);
     try {
       await axiosClient.post("/auth/register", values);
-      message.success("Đăng ký thành công! Vui lòng đăng nhập.");
+      message.success("Đăng ký thành công! Hãy đăng nhập để bắt đầu.");
       setView("LOGIN");
     } catch (error: any) {
       message.error(error.response?.data?.message || "Đăng ký thất bại");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
+  // --- FORGOT PASSWORD HANDLERS ---
   const handleSendOtp = async (values: { email: string }) => {
     setLoading(true);
     try {
@@ -104,23 +124,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
       message.success("Mã OTP đã được gửi!");
       setView("VERIFY_OTP");
       setCurrentStep(1);
-    } catch (error: any) {
-      message.error("Lỗi gửi mail hoặc email không tồn tại.");
-    }
+    } catch (error) { message.error("Email không tồn tại."); }
     setLoading(false);
   };
 
   const handleVerifyOtp = async (values: { otp: string }) => {
     setLoading(true);
     try {
-      const res = await axiosClient.post("/auth/verify-otp", { email: resetEmail, otp: values.otp });
-      setResetToken(res.data.token);
+      const res: any = await axiosClient.post("/auth/verify-otp", { email: resetEmail, otp: values.otp });
+      setResetToken(res.token);
       message.success("Xác thực thành công!");
       setView("RESET_PASSWORD");
       setCurrentStep(2);
-    } catch (error: any) {
-      message.error("OTP sai hoặc hết hạn.");
-    }
+    } catch (error) { message.error("OTP không chính xác."); }
     setLoading(false);
   };
 
@@ -128,258 +144,121 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
     setLoading(true);
     try {
       await axiosClient.post("/auth/reset-password", { token: resetToken, newPassword: values.password });
-      message.success("Đổi mật khẩu thành công!");
+      message.success("Mật khẩu đã được đổi thành công!");
       setView("LOGIN");
-    } catch (error: any) {
-      message.error("Lỗi đổi mật khẩu.");
-    }
+    } catch (error) { message.error("Lỗi đổi mật khẩu."); }
     setLoading(false);
   };
 
-  // --- STYLES OBJECTS ---
-  const headerStyle: React.CSSProperties = {
-    background: 'linear-gradient(180deg, #EEF2FF 0%, #FFFFFF 100%)',
-    padding: '40px 30px 20px',
-    textAlign: 'center',
-    borderBottom: '1px solid #F1F5F9',
-    position: 'relative'
-  };
-
-  const formContainerStyle: React.CSSProperties = {
-    padding: '30px 30px 40px'
-  };
-
+  // --- REUSABLE STYLES ---
   const btnPrimaryStyle: React.CSSProperties = {
-    height: '50px',
-    borderRadius: '12px',
-    background: PRIMARY_GRADIENT,
-    border: 'none',
-    fontWeight: 600,
-    fontSize: '16px',
+    height: '50px', borderRadius: '12px', background: PRIMARY_GRADIENT,
+    border: 'none', fontWeight: 600, fontSize: '16px',
     boxShadow: '0 8px 20px rgba(43, 77, 255, 0.25)',
-    transition: 'transform 0.2s',
   };
 
-  const btnSocialStyle: React.CSSProperties = {
-    height: '45px',
-    borderRadius: '12px',
-    border: '1px solid #E2E8F0',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '10px',
-    fontSize: '14px',
-    fontWeight: 500,
-    color: '#475569'
-  };
-
-  // --- RENDER HELPERS ---
-  const AuthHeader = ({ title, subtitle, showLogo = true }: { title: string, subtitle: string, showLogo?: boolean }) => (
-    <div style={headerStyle}>
-      {showLogo && <img src={logoImg} alt="Logo" style={{ height: 50, marginBottom: 15 }} />}
+  const AuthHeader = ({ title, subtitle }: { title: string, subtitle: string }) => (
+    <div style={{ background: 'linear-gradient(180deg, #EEF2FF 0%, #FFFFFF 100%)', padding: '40px 30px 20px', textAlign: 'center', borderBottom: '1px solid #F1F5F9' }}>
+      <img src={logoImg} alt="Logo" style={{ height: 50, marginBottom: 15 }} />
       <Title level={2} style={{ margin: 0, fontWeight: 800, color: '#0F172A', fontSize: '26px' }}>{title}</Title>
       <Text style={{ fontSize: '15px', color: '#64748B', marginTop: 5, display: 'block' }}>{subtitle}</Text>
     </div>
   );
 
-  // --- RENDER CONTENT ---
-  const renderContent = () => {
-    switch (view) {
-      // === LOGIN VIEW ===
-      case "LOGIN":
-        return (
-          <div className="auth-modal-content">
-            <AuthHeader title="Chào mừng trở lại!" subtitle="Cùng AESP chinh phục tiếng Anh mỗi ngày" />
-            <div style={formContainerStyle}>
-              <Form form={form} layout="vertical" onFinish={handleLogin} size="large">
-                <Form.Item name="email" rules={[{ required: true, message: "Vui lòng nhập Email" }, { type: 'email' }]}>
-                  <Input prefix={<MailOutlined style={{ color: '#94A3B8' }} />} placeholder="Email của bạn" className="custom-input" style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }} />
-                </Form.Item>
-                <Form.Item name="password" rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}>
-                  <Input.Password 
-                    prefix={<LockOutlined style={{ color: '#94A3B8' }} />} 
-                    placeholder="Mật khẩu" 
-                    className="custom-input"
-                    iconRender={(visible) => (visible ? <EyeTwoTone twoToneColor={PRIMARY_COLOR} /> : <EyeInvisibleOutlined />)}
-                    style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }} 
-                  />
-                </Form.Item>
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, marginTop: -5 }}>
-                  <Text type="secondary" style={{ fontSize: 13 }}>Ghi nhớ đăng nhập</Text>
-                  <a onClick={() => setView("FORGOT_EMAIL")} style={{ color: PRIMARY_COLOR, fontWeight: 600, fontSize: 14 }}>Quên mật khẩu?</a>
-                </div>
-
-                <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>
-                  Đăng nhập
-                </Button>
-              </Form>
-              <div style={{ textAlign: 'center', marginTop: 25 }}>
-                <Text style={{ color: '#64748B' }}>Chưa có tài khoản? </Text>
-                <a onClick={() => setView("REGISTER")} style={{ color: PRIMARY_COLOR, fontWeight: 700 }}>Đăng ký ngay</a>
-              </div>
-            </div>
-          </div>
-        );
-
-      // === REGISTER VIEW ===
-      case "REGISTER":
-        return (
-          <div className="auth-modal-content">
-            <AuthHeader title="Tạo tài khoản mới" subtitle="Tham gia cộng đồng học viên AESP" />
-            <div style={formContainerStyle}>
-              <Form form={form} layout="vertical" onFinish={handleRegister} size="large">
-                <Form.Item name="fullName" rules={[{ required: true, message: "Nhập họ tên" }]}>
-                  <Input prefix={<UserOutlined style={{ color: '#94A3B8' }} />} placeholder="Họ và tên" className="custom-input" style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }} />
-                </Form.Item>
-                <Form.Item name="email" rules={[{ required: true, message: "Nhập Email" }, { type: 'email' }]}>
-                  <Input prefix={<MailOutlined style={{ color: '#94A3B8' }} />} placeholder="Email" className="custom-input" style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }} />
-                </Form.Item>
-                <Form.Item name="password" rules={[{ required: true, message: "Nhập mật khẩu" }, { min: 6 }]}>
-                  <Input.Password prefix={<LockOutlined style={{ color: '#94A3B8' }} />} placeholder="Mật khẩu" className="custom-input" style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }} />
-                </Form.Item>
-
-                <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>
-                  Đăng ký miễn phí
-                </Button>
-              </Form>
-              <div style={{ textAlign: 'center', marginTop: 25 }}>
-                <Text style={{ color: '#64748B' }}>Đã có tài khoản? </Text>
-                <a onClick={() => setView("LOGIN")} style={{ color: PRIMARY_COLOR, fontWeight: 700 }}>Đăng nhập</a>
-              </div>
-            </div>
-          </div>
-        );
-
-      // === FORGOT PASSWORD FLOW ===
-      case "FORGOT_EMAIL":
-      case "VERIFY_OTP":
-      case "RESET_PASSWORD":
-        return (
-          <div className="auth-modal-content">
-            {/* Header cho luồng Quên MK */}
-            <div style={{ ...headerStyle, paddingBottom: 10 }}>
-              <Title level={3} style={{ marginBottom: 20 }}>Khôi phục mật khẩu</Title>
-              <Steps 
-                current={currentStep} 
-                size="small" 
-                items={[
-                  { title: 'Email' },
-                  { title: 'OTP' },
-                  { title: 'Mật khẩu mới' },
-                ]}
-              />
-            </div>
-
-            <div style={formContainerStyle}>
-              {/* STEP 1: EMAIL */}
-              {view === "FORGOT_EMAIL" && (
-                <Form layout="vertical" onFinish={handleSendOtp} size="large">
-                  <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                     <div style={{ width: 60, height: 60, background: '#EFF6FF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
-                        <MailOutlined style={{ fontSize: 24, color: PRIMARY_COLOR }} />
-                     </div>
-                     <Text type="secondary">Nhập email đăng ký để nhận mã xác thực.</Text>
-                  </div>
-                  <Form.Item name="email" rules={[{ required: true }, { type: 'email' }]}>
-                    <Input placeholder="Email của bạn" className="custom-input" style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none', textAlign: 'center' }} />
-                  </Form.Item>
-                  <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>Gửi mã OTP</Button>
-                </Form>
-              )}
-
-              {/* STEP 2: OTP */}
-              {view === "VERIFY_OTP" && (
-                <Form layout="vertical" onFinish={handleVerifyOtp} size="large">
-                  <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                     <div style={{ width: 60, height: 60, background: '#F0FDF4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
-                        <SafetyCertificateOutlined style={{ fontSize: 24, color: '#16A34A' }} />
-                     </div>
-                     <Text type="secondary">Nhập mã 6 số gửi tới <b>{resetEmail}</b></Text>
-                  </div>
-                  <Form.Item name="otp" rules={[{ required: true }, { len: 6 }]}>
-                    <Input 
-                      placeholder="• • • • • •" 
-                      maxLength={6} 
-                      className="custom-input"
-                      style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none', textAlign: 'center', fontSize: 24, letterSpacing: 8, fontWeight: 700 }} 
-                    />
-                  </Form.Item>
-                  <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>Xác thực</Button>
-                  <Button type="link" onClick={() => handleSendOtp({email: resetEmail})} style={{ display: 'block', margin: '15px auto 0', color: '#64748B' }}>Gửi lại mã</Button>
-                </Form>
-              )}
-
-              {/* STEP 3: RESET PASS */}
-              {view === "RESET_PASSWORD" && (
-                <Form layout="vertical" onFinish={handleResetPassword} size="large">
-                  <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                     <div style={{ width: 60, height: 60, background: '#FAF5FF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
-                        <LockOutlined style={{ fontSize: 24, color: '#9333EA' }} />
-                     </div>
-                     <Text type="secondary">Thiết lập mật khẩu mới cho tài khoản.</Text>
-                  </div>
-                  <Form.Item name="password" rules={[{ required: true }, { min: 6 }]}>
-                    <Input.Password placeholder="Mật khẩu mới" className="custom-input" style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }} />
-                  </Form.Item>
-                  <Form.Item name="confirm" rules={[{ required: true }, ({ getFieldValue }) => ({ validator(_, value) { if (!value || getFieldValue('password') === value) return Promise.resolve(); return Promise.reject(new Error('Mật khẩu không khớp!')); } })]}>
-                    <Input.Password placeholder="Nhập lại mật khẩu" className="custom-input" style={{ borderRadius: 12, height: 50, backgroundColor: INPUT_BG, border: 'none' }} />
-                  </Form.Item>
-                  <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>Hoàn tất</Button>
-                </Form>
-              )}
-              
-              <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => setView("LOGIN")} style={{ display: 'block', margin: '10px auto 0', color: '#64748B' }}>
-                Quay lại đăng nhập
-              </Button>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <>
       <style>{cssStyles}</style>
       <Modal
-        open={isOpen}
-        onCancel={onClose}
-        footer={null}
-        width={450}
-        centered
-        destroyOnHidden
-        closable={false}
-        maskClosable={false} // Bắt buộc bấm X để đóng, tránh đóng nhầm
-        style={{ top: 20 }}
-        modalRender={(modal) => (
-          <div style={{ 
-            borderRadius: '24px', 
-            overflow: 'hidden', 
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            background: '#fff'
-          }}>
-            {modal}
+        open={isOpen} onCancel={onClose} footer={null} width={450} centered
+        closable={false} maskClosable={false}
+      >
+        <div onClick={onClose} style={{ position: 'absolute', top: 15, right: 15, zIndex: 100, cursor: 'pointer', background: '#fff', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>✕</div>
+        
+        {view === "LOGIN" && (
+          <div className="auth-modal-content">
+            <AuthHeader title="Chào mừng trở lại!" subtitle="Cùng AESP chinh phục tiếng Anh" />
+            <div style={{ padding: '30px' }}>
+              <Form layout="vertical" onFinish={handleLogin} size="large">
+                <Form.Item name="email" rules={[{ required: true, type: 'email', message: "Email không hợp lệ" }]}>
+                  <Input prefix={<MailOutlined />} placeholder="Email của bạn" className="custom-input" />
+                </Form.Item>
+                <Form.Item name="password" rules={[{ required: true, message: "Nhập mật khẩu" }]}>
+                  <Input.Password prefix={<LockOutlined />} placeholder="Mật khẩu" className="custom-input" />
+                </Form.Item>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
+                  <a onClick={() => setView("FORGOT_EMAIL")} style={{ color: PRIMARY_COLOR, fontWeight: 600 }}>Quên mật khẩu?</a>
+                </div>
+                <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>Đăng nhập</Button>
+              </Form>
+              <Divider plain><Text type="secondary" style={{ fontSize: 12 }}>HOẶC</Text></Divider>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                 <Button icon={<GoogleOutlined />} block style={{ borderRadius: 12, height: 45 }}>Tiếp tục với Google</Button>
+              </Space>
+              <div style={{ textAlign: 'center', marginTop: 25 }}>
+                <Text>Chưa có tài khoản? <a onClick={() => setView("REGISTER")} style={{ color: PRIMARY_COLOR, fontWeight: 700 }}>Đăng ký ngay</a></Text>
+              </div>
+            </div>
           </div>
         )}
-      >
-        {/* Nút đóng Custom */}
-        <div 
-          onClick={onClose} 
-          style={{ 
-            position: 'absolute', top: 15, right: 15, zIndex: 100, cursor: 'pointer',
-            background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(4px)',
-            borderRadius: '50%', width: 32, height: 32, 
-            display: 'flex', alignItems: 'center', justifyContent: 'center', 
-            fontSize: 14, color: '#64748B', boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
-          }}
-        >
-          ✕
-        </div>
-        
-        {renderContent()}
+
+        {view === "REGISTER" && (
+          <div className="auth-modal-content">
+            <AuthHeader title="Tạo tài khoản" subtitle="Học thử miễn phí ngay hôm nay" />
+            <div style={{ padding: '30px' }}>
+              <Form layout="vertical" onFinish={handleRegister} size="large">
+                <Form.Item name="fullName" rules={[{ required: true, message: "Nhập họ tên" }]}>
+                  <Input prefix={<UserOutlined />} placeholder="Họ và tên" className="custom-input" />
+                </Form.Item>
+                <Form.Item name="email" rules={[{ required: true, type: 'email' }]}>
+                  <Input prefix={<MailOutlined />} placeholder="Email" className="custom-input" />
+                </Form.Item>
+                <Form.Item name="password" rules={[{ required: true, min: 6 }]}>
+                  <Input.Password prefix={<LockOutlined />} placeholder="Mật khẩu" className="custom-input" />
+                </Form.Item>
+                <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>Đăng ký ngay</Button>
+              </Form>
+              <div style={{ textAlign: 'center', marginTop: 25 }}>
+                <Text>Đã có tài khoản? <a onClick={() => setView("LOGIN")} style={{ color: PRIMARY_COLOR, fontWeight: 700 }}>Đăng nhập</a></Text>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {(view === "FORGOT_EMAIL" || view === "VERIFY_OTP" || view === "RESET_PASSWORD") && (
+          <div className="auth-modal-content">
+            <div style={{ padding: '40px 30px 20px', textAlign: 'center' }}>
+               <Title level={3}>Khôi phục mật khẩu</Title>
+               <Steps current={currentStep} size="small" items={[{ title: 'Mail' }, { title: 'OTP' }, { title: 'Mới' }]} style={{ marginTop: 20 }} />
+            </div>
+            <div style={{ padding: '0 30px 40px' }}>
+              {view === "FORGOT_EMAIL" && (
+                <Form onFinish={handleSendOtp} size="large">
+                  <Form.Item name="email" rules={[{ required: true, type: 'email' }]}>
+                    <Input placeholder="Nhập email của bạn" className="custom-input" />
+                  </Form.Item>
+                  <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>Gửi mã OTP</Button>
+                </Form>
+              )}
+              {view === "VERIFY_OTP" && (
+                <Form onFinish={handleVerifyOtp} size="large">
+                  <Form.Item name="otp" rules={[{ required: true, len: 6 }]}>
+                    <Input placeholder="Mã OTP 6 số" className="custom-input" style={{ textAlign: 'center', letterSpacing: 8, fontSize: 20 }} />
+                  </Form.Item>
+                  <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>Xác thực</Button>
+                </Form>
+              )}
+              {view === "RESET_PASSWORD" && (
+                <Form onFinish={handleResetPassword} size="large">
+                  <Form.Item name="password" rules={[{ required: true, min: 6 }]}>
+                    <Input.Password placeholder="Mật khẩu mới" className="custom-input" />
+                  </Form.Item>
+                  <Button type="primary" htmlType="submit" block style={btnPrimaryStyle} loading={loading}>Hoàn tất</Button>
+                </Form>
+              )}
+              <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => setView("LOGIN")} block style={{ marginTop: 15, color: '#64748B' }}>Quay lại</Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </>
   );

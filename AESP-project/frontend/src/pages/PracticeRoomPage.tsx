@@ -80,7 +80,7 @@ const globalStyles = `
   }
 `;
 
-type Message = {
+type MessageType = {
   id: string;
   from: 'user' | 'ai' | 'system';
   text: string;
@@ -96,7 +96,7 @@ interface Topic {
 }
 
 export default function PracticeRoomPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [input, setInput] = useState('');
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
@@ -125,8 +125,12 @@ export default function PracticeRoomPage() {
     
     axiosClient.get('/topics')
       .then(res => {
-        setTopics(res.data);
-        if (res.data.length > 0) setSelectedTopic(res.data[0]);
+        // res đã được bóc từ axiosClient interceptor
+        const data = Array.isArray(res) ? res : (res as any).data;
+        if (data && data.length > 0) {
+            setTopics(data);
+            setSelectedTopic(data[0]);
+        }
       })
       .catch(err => console.error("Lỗi tải topics:", err));
 
@@ -136,16 +140,15 @@ export default function PracticeRoomPage() {
     };
   }, []);
 
-  // --- LOGIC TẢI LỊCH SỬ CHAT (Đã tối ưu dùng axiosClient) ---
+  // --- LOGIC TẢI LỊCH SỬ CHAT ---
   useEffect(() => {
     if (selectedTopic) {
-        setMessages([]); // Clear màn hình để load
+        setMessages([]); 
         
-        // SỬA: Dùng axiosClient thay vì fetch để đồng bộ auth header
         axiosClient.get(`/chat-history/${selectedTopic.topicId}`)
             .then(res => {
-                const data = res.data;
-                if (Array.isArray(data) && data.length > 0) {
+                const data = Array.isArray(res) ? res : (res as any).data;
+                if (data && data.length > 0) {
                     const mappedMessages = data.map((m: any) => ({
                         id: m.id.toString(),
                         from: m.sender,
@@ -158,11 +161,10 @@ export default function PracticeRoomPage() {
             })
             .catch(err => console.error("Lỗi tải lịch sử chat:", err));
         
-        setTargetSentence(''); // Reset câu mẫu
+        setTargetSentence(''); 
     }
   }, [selectedTopic, selectedLevel]);
 
-        // axiosClient.get(`/chat-history/${selectedTopic.topicId}`) // <-- Remove stray statement
   useEffect(() => {
     if (scrollRef.current) {
         scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -212,28 +214,28 @@ export default function PracticeRoomPage() {
     setMessages(prev => prev.some(m => m.id === typingId) ? prev : [...prev, { id: typingId, from: 'system', text: 'Đang tạo mẫu câu mới...' }]);
     setLastAssessment(null);
     try {
-        let res = await axiosClient.get('/sentences/practice', {
+        let res: any = await axiosClient.get('/sentences/practice', {
             params: { topic: selectedTopic?.topicName || 'Daily Life', level: selectedLevel, forceAI: false, excludedSentences: sentenceHistory.join('|||') }
         });
+        
         // Nếu không có câu trả về, thử gọi lại với forceAI=true
-        if (!res.data?.sentence) {
+        if (!res?.sentence) {
             res = await axiosClient.get('/sentences/practice', {
                 params: { topic: selectedTopic?.topicName || 'Daily Life', level: selectedLevel, forceAI: true, excludedSentences: sentenceHistory.join('|||') }
             });
         }
+        
         setMessages(prev => prev.filter(m => m.id !== typingId));
-        if (res.data?.sentence) {
-            setTargetSentence(res.data.sentence);
-            setSentenceHistory(prev => [...prev, res.data.sentence]);
-            // Nếu đang ở chế độ rảnh tay, tạm tắt micro khi AI đọc
+        if (res?.sentence) {
+            setTargetSentence(res.sentence);
+            setSentenceHistory(prev => [...prev, res.sentence]);
             if (autoModeRef.current) {
                 setRecording(false);
-                speak(res.data.sentence, () => {
-                    // Sau khi đọc xong mới bật lại micro
+                speak(res.sentence, () => {
                     if (autoModeRef.current) setTimeout(() => startLiveRecognition(), 300);
                 });
             } else {
-                speak(res.data.sentence);
+                speak(res.sentence);
             }
         } else {
             message.error("Không lấy được câu mẫu.");
@@ -257,9 +259,9 @@ export default function PracticeRoomPage() {
 
     try {
       const topicContext = selectedTopic ? `[Topic: ${selectedTopic.topicName}] ` : "";
-      const res = await axiosClient.post('/chat/ask', { message: `${topicContext} ${content}` });
+      const res: any = await axiosClient.post('/chat/ask', { message: `${topicContext} ${content}` });
       setMessages(prev => prev.filter(m => m.id !== typingId));
-      const aiText = res.data;
+      const aiText = typeof res === 'string' ? res : res.data;
       
       setMessages(prev => [...prev, { id: uuidv4(), from: 'ai', text: aiText }]);
       saveMessageToDB(aiText, 'ai');
@@ -284,7 +286,11 @@ export default function PracticeRoomPage() {
     rec.onstart = () => setRecording(true);
     rec.onresult = (event: any) => sendText(event.results[0][0].transcript);
     rec.onerror = (e: any) => { 
-        if (e.error === 'no-speech' && autoModeRef.current) { setAutoMode(false); autoModeRef.current = false; message.warning("Đã tắt Mic do không có tiếng nói."); }
+        if (e.error === 'no-speech' && autoModeRef.current) { 
+            setAutoMode(false); 
+            autoModeRef.current = false; 
+            message.warning("Đã tắt Mic do không có tiếng nói."); 
+        }
         setRecording(false); 
     };
     rec.onend = () => setRecording(false);
@@ -294,24 +300,35 @@ export default function PracticeRoomPage() {
   const handleAudio = async (blob: Blob) => {
     try {
         setTranscribing(true);
-        const form = new FormData(); form.append('file', blob, 'record.wav'); 
-        const res = await axiosClient.post('/speech/transcribe', form, { headers: { 'Content-Type': 'multipart/form-data' }});
+        const form = new FormData(); 
+        form.append('file', blob, 'record.wav'); 
+        const res: any = await axiosClient.post('/speech/transcribe', form);
         
-        const assessForm = new FormData(); assessForm.append('file', blob, 'record.wav'); assessForm.append('text', targetSentence || res.data);
-        const assessRes = await axiosClient.post('/speech/assess', assessForm, { headers: { 'Content-Type': 'multipart/form-data' }});
+        const transcript = typeof res === 'string' ? res : res.data;
         
-        setLastAssessment(assessRes.data);
-        if (!targetSentence) await sendText(res.data);
+        const assessForm = new FormData(); 
+        assessForm.append('file', blob, 'record.wav'); 
+        assessForm.append('text', targetSentence || transcript);
+        const assessRes: any = await axiosClient.post('/speech/assess', assessForm);
+        
+        setLastAssessment(assessRes);
+        if (!targetSentence) await sendText(transcript);
         else {
-            setMessages(prev => [...prev, { id: uuidv4(), from: 'user', text: res.data }]);
-            saveMessageToDB(res.data, 'user');
+            setMessages(prev => [...prev, { id: uuidv4(), from: 'user', text: transcript }]);
+            saveMessageToDB(transcript, 'user');
         }
-    } catch (e) { message.error('Lỗi xử lý âm thanh.'); } 
-    finally { setTranscribing(false); }
+    } catch (e) { 
+        message.error('Lỗi xử lý âm thanh.'); 
+    } finally { 
+        setTranscribing(false); 
+    }
   };
 
   const toggleRecord = async () => {
-    if (recording) { if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') mediaRecorderRef.current.stop(); return; }
+    if (recording) { 
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') mediaRecorderRef.current.stop(); 
+        return; 
+    }
     try {
         if (mediaStreamRef.current) { mediaStreamRef.current.getTracks().forEach(t => t.stop()); mediaStreamRef.current = null; }
         setLastAssessment(null);
@@ -322,7 +339,10 @@ export default function PracticeRoomPage() {
         mr.ondataavailable = (e: any) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
         mr.onstop = async () => { 
             setRecording(false); 
-            if (chunksRef.current.length > 0) { const blob = new Blob(chunksRef.current, { type: 'audio/wav' }); await handleAudio(blob); }
+            if (chunksRef.current.length > 0) { 
+                const blob = new Blob(chunksRef.current, { type: 'audio/wav' }); 
+                await handleAudio(blob); 
+            }
         };
         mr.start(); mediaRecorderRef.current = mr; setRecording(true);
     } catch(e) { message.error("Không thể mở Mic"); }
@@ -332,13 +352,11 @@ export default function PracticeRoomPage() {
     <>
       <style>{globalStyles}</style>
       <div style={{ height: '100%', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
-        
         <div className="glass-panel" style={{
             width: '100%', maxWidth: '1000px', height: '90vh',
             borderRadius: '24px', display: 'flex', overflow: 'hidden', position: 'relative'
         }}>
-            
-            {/* SIDEBAR (LEFT) */}
+            {/* SIDEBAR */}
             <div style={{ width: '280px', borderRight: GLASS_BORDER, padding: '24px', display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,0.4)' }} className="hidden md:flex">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 30 }}>
                     <div style={{ background: PRIMARY_GRADIENT, padding: 8, borderRadius: 10 }}>
@@ -366,17 +384,18 @@ export default function PracticeRoomPage() {
                 </div>
                 <div style={{ marginBottom: 20 }}>
                     <label style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginBottom: 8, display: 'block', textTransform: 'uppercase' }}>Cấp độ (Level)</label>
-                     <Select
-                         className="w-full"
-                         suffixIcon={<ChevronDown size={14} color="#4F46E5" />}
-                         value={selectedLevel}
-                         onChange={setSelectedLevel}
-                         options={[
-                         { value: 'BEGINNER', label: 'Cơ bản (Beginner)' },
+                    <Select
+                        className="w-full"
+                        suffixIcon={<ChevronDown size={14} color="#4F46E5" />}
+                        value={selectedLevel}
+                        onChange={setSelectedLevel}
+                        options={[
+                           { value: 'BEGINNER', label: 'Cơ bản (Beginner)' },
                            { value: 'INTERMEDIATE', label: 'Trung cấp (Intermediate)' }
-                         ]}
-                       />
-                     </div>
+                        ]}
+                    />
+                </div>
+
                 <div style={{ flex: 1 }}>
                      {lastAssessment && (
                         <div style={{ background: 'white', borderRadius: 16, padding: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
@@ -409,10 +428,8 @@ export default function PracticeRoomPage() {
                 </div>
             </div>
 
-            {/* MAIN CHAT (RIGHT) */}
+            {/* MAIN CHAT */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,0.6)' }}>
-                
-                {/* HEADER */}
                 <div style={{ 
                     height: 70, borderBottom: GLASS_BORDER, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px',
                     background: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(5px)'
@@ -422,7 +439,7 @@ export default function PracticeRoomPage() {
                             {selectedTopic ? selectedTopic.topicName : 'Tự do'}
                         </h3>
                         <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>
-                            {selectedTopic ? selectedTopic.description : 'Chọn chủ đề để lưu lịch sử'}
+                            {selectedTopic ? selectedTopic.description : 'Chọn chủ đề để luyện tập'}
                         </p>
                     </div>
 
@@ -436,13 +453,7 @@ export default function PracticeRoomPage() {
                                 cancelText="Hủy"
                                 okButtonProps={{ danger: true }}
                             >
-                                <Button 
-                                    danger 
-                                    type="text" 
-                                    shape="circle" 
-                                    icon={<Trash2 size={18} />} 
-                                    title="Xóa lịch sử chat chủ đề này"
-                                />
+                                <Button danger type="text" shape="circle" icon={<Trash2 size={18} />} />
                             </Popconfirm>
                         )}
 
@@ -488,7 +499,7 @@ export default function PracticeRoomPage() {
                     {messages.length === 0 && !targetSentence && (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.6 }}>
                             <MessageSquare size={32} color="#94a3b8" />
-                            <p style={{ color: '#64748b', marginTop: 10 }}>Lịch sử trò chuyện trống.</p>
+                            <p style={{ color: '#64748b', marginTop: 10 }}>Bắt đầu cuộc trò chuyện.</p>
                         </div>
                     )}
 
@@ -537,7 +548,6 @@ export default function PracticeRoomPage() {
                         />
                     </div>
                 </div>
-
             </div>
         </div>
       </div>
