@@ -8,7 +8,7 @@ import type { MenuProps } from 'antd';
 import {
     HomeOutlined, ReadOutlined, AimOutlined,
     CalendarOutlined, SettingOutlined, UserOutlined,
-    LogoutOutlined, HistoryOutlined, CrownOutlined // <--- THÊM ICON VƯƠNG MIỆN
+    LogoutOutlined, HistoryOutlined, CrownOutlined, RocketOutlined // <--- THÊM ICON VƯƠNG MIỆN VÀ ROCKET
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
@@ -61,6 +61,7 @@ const LearnerLayout: React.FC = () => {
         { key: '/setup', icon: <AimOutlined />, label: 'Mục tiêu & Lộ trình' },
 
         { key: '/learner/learnmentor', icon: <TeamOutlined />, label: 'Đăng ký mentor' },
+        { key: '/gamification', icon: <RocketOutlined style={{ color: '#f80606' }} />, label: 'Thử thách' },
 
         // --- THÊM MỤC NÀY ---
         {

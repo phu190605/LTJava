@@ -25,8 +25,8 @@ const LoginPage: React.FC = () => {
       // ⚠️ SỬA QUAN TRỌNG: Thay response.data.token bằng res.token
       if (res.token) {
         localStorage.setItem('token', res.token);
-        // Lưu thông tin user (nếu cần dùng sau này)
         localStorage.setItem('user', JSON.stringify(res));
+        localStorage.setItem('userId', res.id.toString()); // Lưu userId riêng để dashboard lấy đúng
 
         message.success('Đăng nhập thành công!');
 

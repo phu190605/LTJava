@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { getStreakStats } from '../api/streakApi';
 import {
     Row, Col, Card, Avatar, Typography, Progress, Tag, Timeline,
     Button, Skeleton, Space, Statistic, Alert
@@ -22,6 +23,36 @@ const MOCK_LEARNING_PATH = [
 const DashboardPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
+    const [streak, setStreak] = useState<number>(0);
+    const [totalXp, setTotalXp] = useState<number>(0);
+
+    const fetchTotalXp = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const userId = localStorage.getItem('userId');
+            console.log('[DASHBOARD] userId localStorage:', userId);
+            if (!userId) {
+                console.log('[DASHBOARD] Không có userId, set XP = 0');
+                setTotalXp(0);
+                return;
+            }
+            const res = await axiosClient.get(`/gamification/stats/${userId}`, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : ''
+                }
+            }) as { totalXp: number };
+            console.log('[DASHBOARD] XP API response:', res);
+            const xp = res.totalXp || 0;
+            console.log('[DASHBOARD] setTotalXp sẽ set:', xp);
+            setTotalXp(xp);
+            setTimeout(() => {
+                console.log('[DASHBOARD] totalXp sau setState:', xp);
+            }, 100);
+        } catch (e) {
+            console.log('[DASHBOARD] Lỗi fetchTotalXp, set XP = 0', e);
+            setTotalXp(0);
+        }
+    };
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -30,6 +61,17 @@ const DashboardPage: React.FC = () => {
                 // Gọi API lấy dữ liệu thật từ Backend
                 const res: any = await axiosClient.get('/profile/dashboard');
                 setData(res);
+                // Lấy userId từ localStorage hoặc context
+                let userId = localStorage.getItem('userId');
+                if (!userId || isNaN(Number(userId))) {
+                    setStreak(0);
+                } else {
+                    // Lấy streak như cũ
+                    const streakRes = await getStreakStats(Number(userId));
+                    setStreak(streakRes.currentStreak ?? 0);
+                }
+                // Luôn gọi lấy XP
+                await fetchTotalXp();
             } catch (error) {
                 console.error("Lỗi tải dashboard:", error);
             } finally {
@@ -77,6 +119,18 @@ const DashboardPage: React.FC = () => {
                             </Tag>
                             <Tag color="geekblue" style={{ padding: '4px 12px', borderRadius: 20, fontSize: 14, border: 'none' }}>
                                 <RocketOutlined /> Mục tiêu: {data?.mainGoal}
+                            </Tag>
+                            <Tag style={{ padding: '4px 12px', borderRadius: 20, fontSize: 14, border: 'none', background: '#f5f7fa', color: '#e74c3c', display: 'flex', alignItems: 'center' }}>
+                                <span style={{ fontSize: 18, marginRight: 6 }}>🔥</span>
+                                <span style={{ fontWeight: 600 }}>Streak</span>
+                                <span style={{ margin: '0 4px', color: '#2c3e50', fontWeight: 700 }}>{streak} Days</span>
+                            </Tag>
+                            <Tag style={{ padding: '4px 12px', borderRadius: 20, fontSize: 14, border: 'none', background: '#f5f7fa', color: '#1890ff', display: 'flex', alignItems: 'center' }}>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ marginRight: 6 }}>
+                                    <path d="M12 2L2 9l10 13 10-13-10-7z" stroke="#1890ff" strokeWidth="2" fill="none" />
+                                </svg>
+                                <span style={{ fontWeight: 600 }}>XP</span>
+                                <span style={{ margin: '0 4px', color: '#222', fontWeight: 700 }}>{totalXp}</span>
                             </Tag>
                         </Space>
                     </Col>

@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // Đảm bảo đã chạy: npm install axios
+import axios from 'axios';
 import './Gamification.css';
+import './GamificationDashboard.css';
 
 // Định nghĩa kiểu dữ liệu cho thử thách và stats
 interface Challenge {
@@ -11,14 +12,10 @@ interface Challenge {
     type: string;
     targetValue: number;
     xpReward: number;
+    completed?: boolean; // thêm trường này để nhận từ backend
 }
 
-interface ChallengeProgress {
-    id: number;
-    challenge: Challenge;
-    currentValue: number;
-    claimed: boolean;
-}
+
 
 interface GamificationStats {
     currentStreak: number;
@@ -26,111 +23,176 @@ interface GamificationStats {
 }
 
 
+
 const GamificationDashboard: React.FC = () => {
-    // Hardcode User ID = 1 để test. Sau này lấy từ Context/Login
-    const userId = 1;
-
-    const [stats, setStats] = useState<GamificationStats>({ currentStreak: 0, totalXp: 0 });
-    const [challenges, setChallenges] = useState<ChallengeProgress[]>([]);
+    const [challenges, setChallenges] = useState<Challenge[]>([]);
     const [loading, setLoading] = useState(true);
+    const [questions, setQuestions] = useState<any[]>([]);
+    const [answers, setAnswers] = useState<{ [key: string]: string }>({});
+    const [showQuiz, setShowQuiz] = useState(false);
+    const [quizResult, setQuizResult] = useState<{ correct: number, xp: number } | null>(null);
+    const [totalXp, setTotalXp] = useState<number>(0);
+    const [currentChallengeId, setCurrentChallengeId] = useState<number | null>(null);
 
-    // Hàm gọi API lấy dữ liệu
-    const fetchData = async () => {
+    // Lấy tổng XP của user
+    const fetchTotalXp = async () => {
         try {
-            // Gọi song song 2 API để lấy Stats và Challenges
-            const [statsRes, challengesRes] = await Promise.all([
-                axios.get(`http://localhost:8080/api/gamification/stats/${userId}`),
-                axios.get(`http://localhost:8080/api/gamification/challenges/${userId}`)
-            ]);
+            const token = localStorage.getItem('token');
+            const userId = localStorage.getItem('userId');
+            if (!userId) return setTotalXp(0);
+            const res = await axios.get(`http://localhost:8080/api/gamification/stats/${userId}`, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : ''
+                }
+            });
+            setTotalXp(res.data?.totalXp || 0);
+        } catch (e) {
+            setTotalXp(0);
+        }
+    };
+    // Nếu vẫn muốn giữ stats, có thể lấy từ API khác hoặc bỏ phần này nếu không cần
+    // const [stats, setStats] = useState<GamificationStats>({ currentStreak: 0, totalXp: 0 });
 
-            setStats(statsRes.data || { currentStreak: 0, totalXp: 0 });
-            setChallenges(challengesRes.data || []);
-            setLoading(false);
+    // Lấy danh sách thử thách từ API /api/challenge
+    const fetchChallenges = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const userId = localStorage.getItem('userId');
+            const res = await axios.get(`http://localhost:8080/api/challenge?userId=${userId}`, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : ''
+                }
+            });
+            setChallenges(res.data || []);
         } catch (error) {
-            console.error("Lỗi khi tải dữ liệu:", error);
+            console.error('Lỗi khi tải thử thách:', error);
+        } finally {
             setLoading(false);
         }
     };
 
-    // Gọi API khi component vừa hiện lên
     useEffect(() => {
-        fetchData();
+        fetchChallenges();
+        fetchTotalXp();
     }, []);
 
-    // Hàm giả lập hành động học bài (Nói 5 phút)
-    const handleSimulateLearning = async () => {
-        try {
-            // Giả lập nói 5 phút
-            await axios.post(`http://localhost:8080/api/gamification/simulate-speaking?userId=${userId}&minutes=5`);
-            alert("Đã hoàn thành bài luyện nói 5 phút! 🎉");
-            // Refresh lại dữ liệu để thấy thanh tiến độ tăng
-            fetchData();
-        } catch (error) {
-            alert("Lỗi kết nối server!");
-        }
-    };
 
-    if (loading) return <div>Đang tải dữ liệu game...</div>;
+
+    if (loading) return <div>Đang tải dữ liệu thử thách...</div>;
 
     return (
-        <div className="gamification-container">
-            <h2>Hồ sơ học tập</h2>
-
-            {/* --- PHẦN 1: STATS CARD (STREAK & XP) --- */}
-            <div className="stats-card">
-                <div className="stat-item">
-                    <div className="stat-value fire-icon">
-                        🔥 {stats.currentStreak}
-                    </div>
-                    <div className="stat-label">Chuỗi ngày (Streak)</div>
+        <div className="gamification-dashboard-bg">
+            <div className="gamification-dashboard-container">
+                <div className="xp-bar">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ marginRight: 10 }}>
+                        <path d="M12 2L2 9l10 13 10-13-10-7z" stroke="#1890ff" strokeWidth="2.5" fill="none" />
+                    </svg>
+                    <span className="xp-label">XP:</span>
+                    <span className="xp-value">{totalXp}</span>
                 </div>
-                <div className="stat-item">
-                    <div className="stat-value xp-icon">
-                        ⭐ {stats.totalXp}
+                <h2 className="challenge-title">Danh sách thử thách</h2>
+                {challenges.length === 0 ? (
+                    <p style={{ textAlign: 'center', color: '#888' }}>Không có thử thách nào.</p>
+                ) : (
+                    <div className="challenge-list">
+                        {challenges.map((item) => (
+                            <div key={item.id} className={`challenge-item-modern${item.completed ? ' completed' : ''}`}>
+                                <div className="challenge-header-modern">
+                                    <span>{item.title}</span>
+                                </div>
+                                <div className="challenge-desc">{item.description}</div>
+                                <div className="challenge-meta">
+                                    <span>Loại: <b>{item.type}</b></span>
+                                    <span>Mục tiêu: <b>{item.targetValue}</b></span>
+                                    <span>XP: <b style={{ color: '#1890ff' }}>{item.xpReward}</b></span>
+                                </div>
+                                <button
+                                    className="btn-test-modern"
+                                    disabled={item.completed}
+                                    onClick={async () => {
+                                        if (item.completed) return;
+                                        setQuizResult(null);
+                                        setShowQuiz(true);
+                                        setCurrentChallengeId(item.id);
+                                        const token = localStorage.getItem('token');
+                                        const res = await axios.get(`http://localhost:8080/api/vocab-challenge/questions?type=${encodeURIComponent(item.type)}`, {
+                                            headers: {
+                                                Authorization: token ? `Bearer ${token}` : ''
+                                            }
+                                        });
+                                        setQuestions(res.data || []);
+                                        setAnswers({});
+                                    }}
+                                >{item.completed ? 'Đã hoàn thành' : 'Chọn'}</button>
+                            </div>
+                        ))}
                     </div>
-                    <div className="stat-label">Tổng XP</div>
-                </div>
+                )}
+                {/* Hiển thị quiz nếu có */}
+                {showQuiz && questions.length > 0 && (
+                    <div className="quiz-container-modern">
+                        <h3>Làm bài tập từ vựng (5 câu)</h3>
+                        <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            const token = localStorage.getItem('token');
+                            const userId = localStorage.getItem('userId');
+                            if (!currentChallengeId) return;
+                            const res = await axios.post(
+                                `http://localhost:8080/api/vocab-challenge/submit?userId=${userId}&challengeId=${currentChallengeId}`,
+                                answers,
+                                {
+                                    headers: {
+                                        Authorization: token ? `Bearer ${token}` : ''
+                                    }
+                                }
+                            );
+                            setQuizResult(res.data);
+                            fetchTotalXp();
+                            // Cập nhật lại danh sách thử thách để disable nút
+                            fetchChallenges();
+                        }}>
+                            {questions.map((q, idx) => {
+                                const choices = q.choices ? q.choices.split(',') : null;
+                                return (
+                                    <div key={q.id} className="quiz-question-modern">
+                                        <div className="quiz-q-title"><b>Câu {idx + 1}:</b> {q.question}</div>
+                                        {choices && choices.length > 0 ? (
+                                            <div className="quiz-choices-modern">
+                                                {choices.map((choice: string) => (
+                                                    <label key={choice} className="quiz-choice-label">
+                                                        <input
+                                                            type="radio"
+                                                            name={`answer_${q.id}`}
+                                                            value={choice}
+                                                            checked={answers[q.id] === choice}
+                                                            onChange={e => setAnswers(a => ({ ...a, [q.id]: e.target.value }))}
+                                                            required
+                                                        /> {choice}
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <input
+                                                type="text"
+                                                value={answers[q.id] || ''}
+                                                onChange={e => setAnswers(a => ({ ...a, [q.id]: e.target.value }))}
+                                                className="quiz-input-modern"
+                                                required
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                            <button type="submit" className="btn-test-modern">Nộp bài</button>
+                        </form>
+                        {quizResult && (
+                            <div className="quiz-result-modern">
+                                <b>Kết quả:</b> Đúng {quizResult.correct}/5 câu, nhận {quizResult.xp} XP!
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
-
-            {/* --- PHẦN 2: LIST THỬ THÁCH (CHALLENGES) --- */}
-            <h3>Nhiệm vụ hôm nay</h3>
-            {challenges.length === 0 ? (
-                <p>Chưa có nhiệm vụ nào được kích hoạt.</p>
-            ) : (
-                challenges.map((item: ChallengeProgress) => {
-                    const target = item.challenge.targetValue;
-                    const current = item.currentValue;
-                    // Tính phần trăm: (current / target) * 100
-                    const percent = Math.min((current / target) * 100, 100);
-                    const isDone = item.claimed;
-
-                    return (
-                        <div key={item.id} className="challenge-item">
-                            <div className="challenge-header">
-                                <span>{item.challenge.title}</span>
-                                <span>
-                                    {isDone ? "Đã nhận ✅" : `${current} / ${target} ${item.challenge.type === 'SPEAKING_TIME' ? 'phút' : ''}`}
-                                </span>
-                            </div>
-                            {/* Thanh Progress Bar */}
-                            <div className="progress-container">
-                                <div
-                                    className={`progress-bar ${isDone ? 'completed' : ''}`}
-                                    style={{ width: `${percent}%` }}
-                                ></div>
-                            </div>
-                            <small style={{ color: '#7f8c8d' }}>
-                                {item.challenge.description} (+{item.challenge.xpReward} XP)
-                            </small>
-                        </div>
-                    );
-                })
-            )}
-
-            {/* Nút Test giả lập */}
-            <button className="btn-test" onClick={handleSimulateLearning}>
-                🎤 Giả lập: Luyện nói 5 phút
-            </button>
         </div>
     );
 };

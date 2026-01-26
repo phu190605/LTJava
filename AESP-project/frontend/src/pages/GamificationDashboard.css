@@ -1,0 +1,163 @@
+/* Modern, wide, centered gamification dashboard styles */
+.gamification-dashboard-bg {
+    min-height: 100vh;
+    background: #f6f8fa;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 40px;
+}
+
+.gamification-dashboard-container {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 32px 0 rgba(24, 144, 255, 0.10), 0 1.5px 6px 0 rgba(0, 0, 0, 0.04);
+    padding: 36px 48px 40px 48px;
+    min-width: 480px;
+    max-width: 600px;
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.xp-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+    background: #e6f7ff;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 22px;
+    font-weight: 600;
+    box-shadow: 0 1px 4px 0 rgba(24, 144, 255, 0.08);
+}
+
+.xp-label {
+    color: #1890ff;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.xp-value {
+    margin-left: 12px;
+    font-size: 28px;
+    font-weight: 800;
+    color: #222;
+}
+
+.challenge-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: #222;
+    text-align: center;
+}
+
+.challenge-list {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.challenge-item-modern {
+    background: #f7fbff;
+    border-radius: 14px;
+    box-shadow: 0 1.5px 8px 0 rgba(24, 144, 255, 0.07);
+    padding: 22px 28px 18px 28px;
+    transition: box-shadow 0.2s;
+    border: 1.5px solid #e6f7ff;
+    position: relative;
+}
+
+.challenge-item-modern.completed {
+    opacity: 0.7;
+    filter: grayscale(0.2);
+}
+
+.challenge-header-modern {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1890ff;
+    margin-bottom: 6px;
+}
+
+.challenge-desc {
+    color: #444;
+    margin-bottom: 8px;
+    font-size: 15px;
+}
+
+.challenge-meta {
+    display: flex;
+    gap: 18px;
+    font-size: 15px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.btn-test-modern {
+    background: linear-gradient(90deg, #1890ff 60%, #40a9ff 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 4px 0 rgba(24, 144, 255, 0.10);
+}
+
+.btn-test-modern:disabled {
+    background: #b5d6f8;
+    color: #fff;
+    cursor: not-allowed;
+}
+
+/* Quiz styles */
+.quiz-container-modern {
+    background: #f0f5ff;
+    border-radius: 14px;
+    box-shadow: 0 1.5px 8px 0 rgba(24, 144, 255, 0.07);
+    padding: 28px 32px 18px 32px;
+    margin-top: 36px;
+    margin-bottom: 10px;
+}
+
+.quiz-question-modern {
+    margin-bottom: 18px;
+}
+
+.quiz-q-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.quiz-choices-modern {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.quiz-choice-label {
+    font-size: 15px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.quiz-input-modern {
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1px solid #b5d6f8;
+    font-size: 15px;
+    margin-top: 4px;
+}
+
+.quiz-result-modern {
+    margin-top: 18px;
+    font-size: 17px;
+    color: #1890ff;
+    font-weight: 700;
+    text-align: center;
+}

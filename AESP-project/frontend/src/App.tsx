@@ -73,6 +73,7 @@ function App() {
           <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/learner/learnmentor" element={<LearnMentorPage />} />
           <Route path="/learner/with-mentor" element={<WithMentorPage />} />
+          <Route path="/gamification" element={<GamificationDashboard />} />
 
         </Route>
 

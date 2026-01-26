@@ -30,15 +30,17 @@ public class GamificationController {
     // 1. API Lấy thông tin Streak & Tổng XP (Cho Luồng 1)
     @GetMapping("/stats/{userId}")
     public ResponseEntity<UserGamificationStats> getUserStats(@PathVariable Long userId) {
+        // Luôn cập nhật streak khi lấy stats
+        gamificationService.updateStreak(userId);
         // Nếu chưa có thì tự động tạo bản ghi mặc định
         UserGamificationStats stats = statsRepository.findById(userId)
                 .orElseGet(() -> {
                     UserGamificationStats newStats = new UserGamificationStats();
                     newStats.setUserId(userId);
-                    newStats.setCurrentStreak(0);
-                    newStats.setMaxStreak(0);
+                    newStats.setCurrentStreak(1);
+                    newStats.setMaxStreak(1);
                     newStats.setTotalXp(0L);
-                    newStats.setLastPracticeDate(null);
+                    newStats.setLastPracticeDate(java.time.LocalDate.now());
                     return statsRepository.save(newStats);
                 });
         return ResponseEntity.ok(stats);
