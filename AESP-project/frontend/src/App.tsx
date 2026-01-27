@@ -43,6 +43,7 @@ import SubscriptionPage from './pages/SubscriptionPage'; // trang Quản lý gó
 import AIPracticePage from './pages/AIPracticePage'; //  trang Luyện nói AI 1-1
 import CheckoutPage from './pages/CheckoutPage';// trang Thanh toán
 import PaymentSuccessPage from './pages/PaymentSuccessPage';// trang Kết quả thanh toán
+import LeaderboardPage from "./pages/LeaderboardPage"; // trang Bảng xếp hạng
 import TestSpeechPage from './pages/TestSpeechPage';
 import PeerFindPage from './pages/PeerFindPage';
 import PeerRoomPage from './pages/PeerRoomPage';
@@ -74,6 +75,8 @@ function App() {
           <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/learner/learnmentor" element={<LearnMentorPage />} />
           <Route path="/learner/with-mentor" element={<WithMentorPage />} />
+          <Route path="/gamification" element={<GamificationDashboard />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
 
         </Route>
 

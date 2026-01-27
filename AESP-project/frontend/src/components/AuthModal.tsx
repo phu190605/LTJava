@@ -133,6 +133,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
       }
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res));
+      localStorage.setItem("userId", res.id.toString()); // Lưu userId để dashboard và API lấy đúng
 
       if (res.role === "MENTOR") {
         localStorage.setItem("mentorId", String(res.id));

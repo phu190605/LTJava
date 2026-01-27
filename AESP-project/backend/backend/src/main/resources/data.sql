@@ -1,3 +1,25 @@
+-- ================= VOCAB QUESTIONS =================
+CREATE TABLE IF NOT EXISTS vocab_questions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    question VARCHAR(255) NOT NULL,
+    answer VARCHAR(255) NOT NULL,
+    choices VARCHAR(255),
+    topic VARCHAR(100)
+);
+DELETE FROM vocab_questions;
+INSERT INTO vocab_questions (question, answer, choices, topic) VALUES
+-- Câu hỏi cho challenge "Khởi động ngày mới"
+('What is the synonym of "happy"?', 'joyful', 'joyful,sad,angry,fast', 'vocab'),
+('What is the antonym of "hot"?', 'cold', 'warm,cold,wet,soft', 'vocab'),
+('Fill in the blank: The cat is ___ the table.', 'on', 'in,on,under,behind', 'vocab'),
+('Translate to English: "quả táo"', 'apple', 'apple,banana,orange,grape', 'vocab'),
+('What is the plural of "child"?', 'children', 'childs,childes,children,child', 'vocab'),
+-- Câu hỏi cho challenge "Chiến binh kiên trì"
+('What is the synonym of "fast"?', 'quick', 'quick,slow,late,old', 'Word_2'),
+('What is the antonym of "difficult"?', 'easy', 'hard,easy,slow,short', 'Word_2'),
+('Fill in the blank: She ___ to school every day.', 'goes', 'goes,go,going,gone', 'Word_2'),
+('Translate to English: "con chó"', 'dog', 'dog,cat,mouse,bird', 'Word_2'),
+('What is the plural of "person"?', 'people', 'persons,peoples,people,person', 'Word_2');
 -- Active: 1768031295604@@127.0.0.1@3307
 -- ================= SKILLS =================
 CREATE TABLE IF NOT EXISTS skills (
@@ -54,22 +76,19 @@ VALUES
 (10,'Tài chính & Kinh doanh','FINANCE','Đầu tư, chứng khoán, kế toán','/icons/topics/finance.png','SPECIALIZED');
 
 -- ================= SERVICE PACKAGES (FIXED) =================
-INSERT IGNORE INTO service_packages
-(`package_name`, `has_mentor`, `price`, `duration_months`, `description`, `features`)
-VALUES
-('Gói Cơ Bản', 0, 299000.00, 1, 'Cơ bản - 299k/Tháng',
- '["Truy cập dashboard", "AI Practice không giới hạn", "Chấm điểm phát âm tự động", "Lộ trình cá nhân hóa cơ bản"]'),
-
-('Gói Chuyên Nghiệp', 1, 599000.00, 1, 'Phổ biến - 599k/Tháng',
- '["Tất cả tính năng gói Cơ bản", "2 buổi mentor/tháng", "Báo cáo tiến độ chi tiết", "Hỗ trợ ưu tiên"]'),
-
-('Gói Cao Cấp', 1, 999000.00, 1, 'Cao cấp - 999k/Tháng',
- '["Tất cả tính năng gói Chuyên nghiệp", "Mentor không giới hạn", "Xuất báo cáo PDF/Excel", "Chứng nhận hoàn thành", "Lộ trình chuyên sâu"]');
+ INSERT IGNORE INTO service_packages
+ (`package_id`, `package_name`, `has_mentor`, `price`, `duration_months`, `description`, `features`) VALUES 
+(1, 'Gói Cơ Bản', 0, 299000.00, 1, 'Cơ bản - 299k/Tháng', '["Truy cập dashboard", "AI Practice không giới hạn", "Chấm điểm phát âm tự động", "Lộ trình cá nhân hóa cơ bản"]'),
+(2, 'Gói Chuyên Nghiệp', 1, 599000.00, 1, 'Phổ biến - 599k/Tháng', '["Tất cả tính năng gói Cơ bản", "2 buổi mentor/tháng", "Báo cáo tiến độ chi tiết", "Hỗ trợ ưu tiên"]'),
+(3, 'Gói Cao Cấp', 1, 999000.00, 1, 'Cao cấp - 999k/Tháng', '["Tất cả tính năng gói Chuyên nghiệp", "Mentor không giới hạn", "Xuất báo cáo PDF/Excel", "Chứng nhận hoàn thành", "Lộ trình chuyên sâu"]');
 
 -- ================= CHALLENGES =================
-INSERT IGNORE INTO challenges (title, description, type, target_value, xp_reward)
+-- Xóa bảng con (tiến độ) trước
+DELETE FROM user_challenge_progress; -- Xóa tiến độ để tránh vi phạm khóa ngoại
+DELETE FROM challenges;
+INSERT INTO challenges (title, description, type, target_value, xp_reward)
 VALUES
-('Khởi động ngày mới', 'Luyện nói đủ 5 phút để làm nóng cơ miệng', 'SPEAKING_TIME', 5, 20),
-('Chiến binh kiên trì', 'Hoàn thành 15 phút luyện nói trong ngày', 'SPEAKING_TIME', 15, 50),
-('Phát âm chuẩn chỉnh', 'Đạt điểm đánh giá AI trên 80 điểm', 'ACCURACY_SCORE', 80, 30),
-('Học bá', 'Hoàn thành 3 bài học bất kỳ', 'LESSON_COUNT', 3, 40);
+('Khởi động ngày mới', 'Từ Vựng', 'Word_1', 5, 50),
+('Chiến binh kiên trì', 'Từ Vựng', 'Word_2', 5, 100);
+
+

@@ -33,6 +33,8 @@ import com.aesp.backend.service.IUserService;
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
+    @Autowired
+    private com.aesp.backend.service.GamificationService gamificationService;
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
@@ -70,7 +72,8 @@ public class AuthController {
         return ResponseEntity.ok("Đăng ký thành công!");
     }
 
-    // ================= ĐĂNG NHẬP (DÙNG CHO ADMIN / MENTOR / LEARNER) =================
+    // ================= ĐĂNG NHẬP (DÙNG CHO ADMIN / MENTOR / LEARNER)
+    // =================
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 
@@ -82,14 +85,20 @@ public class AuthController {
         User user = userOp.get();
         boolean passMatches = passwordEncoder.matches(
                 request.getPassword(),
-                user.getPassword()
-        );
+                user.getPassword());
 
         logger.info("Login email={} role={} pass={}",
                 user.getEmail(), user.getRole(), passMatches);
 
         if (!passMatches) {
             return ResponseEntity.badRequest().body("Sai email hoặc mật khẩu!");
+        }
+
+        // Gọi cập nhật streak cho user này mỗi lần đăng nhập
+        try {
+            gamificationService.updateStreak(user.getId());
+        } catch (Exception e) {
+            logger.warn("Không thể cập nhật streak cho user {}: {}", user.getId(), e.getMessage());
         }
 
         String token = jwtUtils.generateToken(user.getEmail());
@@ -115,8 +124,7 @@ public class AuthController {
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
         boolean ok = userService.resetPassword(
                 request.getToken(),
-                request.getNewPassword()
-        );
+                request.getNewPassword());
         return ok
                 ? ResponseEntity.ok("Đặt lại mật khẩu thành công!")
                 : ResponseEntity.badRequest().body("Token không hợp lệ hoặc hết hạn.");
@@ -142,8 +150,7 @@ public class AuthController {
         boolean ok = emailService.sendTestEmail(
                 request.getEmail(),
                 request.getSubject(),
-                request.getMessage()
-        );
+                request.getMessage());
         return ok
                 ? ResponseEntity.ok("Test email sent")
                 : ResponseEntity.status(500).body("Send email failed");
@@ -153,8 +160,7 @@ public class AuthController {
     public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request) {
         String token = userService.verifyOtp(
                 request.getEmail(),
-                request.getOtp()
-        );
+                request.getOtp());
         return token != null
                 ? ResponseEntity.ok(Map.of("token", token))
                 : ResponseEntity.badRequest().body("OTP không hợp lệ hoặc hết hạn.");

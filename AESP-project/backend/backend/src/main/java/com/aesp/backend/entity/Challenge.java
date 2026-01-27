@@ -19,8 +19,8 @@ public class Challenge {
     private String title; // Ví dụ: "Chiến binh kiên trì"
     private String description; // Ví dụ: "Luyện nói đủ 10 phút hôm nay"
 
-    @Enumerated(EnumType.STRING)
-    private ChallengeType type; // Loại: SPEAKING_TIME
+    @Column(name = "type")
+    private String type; // Loại: "VOCAL", "SPEAKING_TIME", ...
 
     @Column(name = "target_value")
     private Integer targetValue; // Mục tiêu: 10 (phút)
@@ -40,4 +40,13 @@ public class Challenge {
     public String getTitle() {
         return title;
     }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getType() {
+        return type;
+    }
+
 }
