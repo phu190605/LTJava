@@ -76,20 +76,15 @@ VALUES
 (10,'Tài chính & Kinh doanh','FINANCE','Đầu tư, chứng khoán, kế toán','/icons/topics/finance.png','SPECIALIZED');
 
 -- ================= SERVICE PACKAGES (FIXED) =================
-INSERT IGNORE INTO service_packages
-(`package_name`, `has_mentor`, `price`, `duration_months`, `description`, `features`)
-VALUES
-('Gói Cơ Bản', 0, 299000.00, 1, 'Cơ bản - 299k/Tháng',
- '["Truy cập dashboard", "AI Practice không giới hạn", "Chấm điểm phát âm tự động", "Lộ trình cá nhân hóa cơ bản"]'),
-
-('Gói Chuyên Nghiệp', 1, 599000.00, 1, 'Phổ biến - 599k/Tháng',
- '["Tất cả tính năng gói Cơ bản", "2 buổi mentor/tháng", "Báo cáo tiến độ chi tiết", "Hỗ trợ ưu tiên"]'),
-
-('Gói Cao Cấp', 1, 999000.00, 1, 'Cao cấp - 999k/Tháng',
- '["Tất cả tính năng gói Chuyên nghiệp", "Mentor không giới hạn", "Xuất báo cáo PDF/Excel", "Chứng nhận hoàn thành", "Lộ trình chuyên sâu"]');
+ INSERT IGNORE INTO service_packages
+ (`package_id`, `package_name`, `has_mentor`, `price`, `duration_months`, `description`, `features`) VALUES 
+(1, 'Gói Cơ Bản', 0, 299000.00, 1, 'Cơ bản - 299k/Tháng', '["Truy cập dashboard", "AI Practice không giới hạn", "Chấm điểm phát âm tự động", "Lộ trình cá nhân hóa cơ bản"]'),
+(2, 'Gói Chuyên Nghiệp', 1, 599000.00, 1, 'Phổ biến - 599k/Tháng', '["Tất cả tính năng gói Cơ bản", "2 buổi mentor/tháng", "Báo cáo tiến độ chi tiết", "Hỗ trợ ưu tiên"]'),
+(3, 'Gói Cao Cấp', 1, 999000.00, 1, 'Cao cấp - 999k/Tháng', '["Tất cả tính năng gói Chuyên nghiệp", "Mentor không giới hạn", "Xuất báo cáo PDF/Excel", "Chứng nhận hoàn thành", "Lộ trình chuyên sâu"]');
 
 -- ================= CHALLENGES =================
-
+-- Xóa bảng con (tiến độ) trước
+DELETE FROM user_challenge_progress; -- Xóa tiến độ để tránh vi phạm khóa ngoại
 DELETE FROM challenges;
 INSERT INTO challenges (title, description, type, target_value, xp_reward)
 VALUES

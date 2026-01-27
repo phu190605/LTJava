@@ -27,10 +27,21 @@ const PaymentHistoryPage: React.FC = () => {
             render: (text: string) => <strong>{text}</strong>,
         },
         {
+            
             title: 'Ngày thanh toán',
-            dataIndex: 'date',
-            key: 'date',
-            render: (date: string) => dayjs(date).format('DD/MM/YYYY HH:mm'),
+            dataIndex: 'paymentDate', 
+            key: 'paymentDate',
+            render: (_: any, record: any) => {
+                const val = record.paymentDate || record.date;
+                if (!val) return <Tag>Chưa có dữ liệu</Tag>;
+                
+                // Nếu Backend trả về mảng [2026, 1, 26...]
+                if (Array.isArray(val)) {
+                    return dayjs(new Date(val[0], val[1] - 1, val[2], val[3] || 0, val[4] || 0)).format('DD/MM/YYYY HH:mm');
+                }
+                // Nếu là chuỗi ISO
+                return dayjs(val).format('DD/MM/YYYY HH:mm');
+            },
         },
         {
             title: 'Số tiền',

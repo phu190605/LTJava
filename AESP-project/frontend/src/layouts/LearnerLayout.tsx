@@ -7,7 +7,7 @@ import { TeamOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import {
     HomeOutlined, ReadOutlined, AimOutlined,
-    CalendarOutlined, SettingOutlined, UserOutlined,
+    CalendarOutlined, SettingOutlined, UserOutlined,TrophyOutlined,
     LogoutOutlined, HistoryOutlined, CrownOutlined, RocketOutlined // <--- THÊM ICON VƯƠNG MIỆN VÀ ROCKET
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
@@ -68,6 +68,11 @@ const LearnerLayout: React.FC = () => {
             key: '/subscription',
             icon: <CrownOutlined style={{ color: '#faad14' }} />, // Màu vàng cho nổi bật
             label: 'Nâng cấp tài khoản'
+        },
+        {
+            key: '/leaderboard',
+            icon: <TrophyOutlined style={{ color: '#faad14' }} />, // Icon cái cúp màu vàng
+            label: 'Bảng xếp hạng'
         },
         // --------------------
 
