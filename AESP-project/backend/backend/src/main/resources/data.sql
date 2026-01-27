@@ -17,7 +17,7 @@ INSERT IGNORE INTO skills (name) VALUES
 
 -- Clear test_questions to avoid duplicates
 DELETE FROM test_questions;
-INSERT INTO test_questions (type, level, content, answer) VALUES
+INSERT IGNORE INTO test_questions (type, level, content, answer) VALUES
 ('read', 'A1', '"Tom has a red ball." What color is Tom''s ball?', 'red'),
 ('read', 'A2', '"Mary eats breakfast at 7 o''clock." When does Mary eat breakfast?', '7 o''clock'),
 ('fill', 'A1', 'The sun rises in the ___.', 'east'),
@@ -67,7 +67,7 @@ VALUES
  '["Tất cả tính năng gói Chuyên nghiệp", "Mentor không giới hạn", "Xuất báo cáo PDF/Excel", "Chứng nhận hoàn thành", "Lộ trình chuyên sâu"]');
 
 -- ================= CHALLENGES =================
-INSERT INTO challenges (title, description, type, target_value, xp_reward)
+INSERT IGNORE INTO challenges (title, description, type, target_value, xp_reward)
 VALUES
 ('Khởi động ngày mới', 'Luyện nói đủ 5 phút để làm nóng cơ miệng', 'SPEAKING_TIME', 5, 20),
 ('Chiến binh kiên trì', 'Hoàn thành 15 phút luyện nói trong ngày', 'SPEAKING_TIME', 15, 50),

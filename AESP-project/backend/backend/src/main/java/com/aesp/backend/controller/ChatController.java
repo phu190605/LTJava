@@ -1,29 +1,24 @@
 package com.aesp.backend.controller;
 
-import java.util.Map;
+import com.aesp.backend.entity.ChatMessage;
+import com.aesp.backend.repository.ChatMessageRepository;
+import org.springframework.web.bind.annotation.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.aesp.backend.service.GeminiService;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/chat")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"}, allowCredentials = "true")
+@CrossOrigin("*")
 public class ChatController {
 
-    @Autowired
-    private GeminiService geminiService;
+    private final ChatMessageRepository chatRepo;
 
-    @PostMapping("/ask")
-    public ResponseEntity<String> chat(@RequestBody Map<String, String> payload) {
-        String message = payload.getOrDefault("message", "");
-        String response = geminiService.chatWithAI(message);
-        return ResponseEntity.ok(response);
+    public ChatController(ChatMessageRepository chatRepo) {
+        this.chatRepo = chatRepo;
+    }
+
+    @GetMapping("/history/{conversationId}")
+    public List<ChatMessage> getHistory(@PathVariable Long conversationId) {
+        return chatRepo.findByConversationIdOrderByCreatedAtAsc(conversationId);
     }
 }

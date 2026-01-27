@@ -1,0 +1,6 @@
++ làm 1 trang gửi bài tập từ mentor cho leaner, gồm cả bài tập cho leaner ( dạng gửi tài liệu pdf, doc, png, jpg)
++ làm 1 trang làm bài tập phía leanrner ( gồm làm cái bài tập như bài tập phát âm, bài tập gramma, ..
++ sửa trang đánh giá và phản hồi (feedbacklist, feedbackeditor) sao cho trùng với nôp bài tập từ leanrner, và gửi lại số điểm và bài sửa lại cho leanrner
++ Thêm trang xem kết quả và phản hồi của mentor bên learner
++ làm thêm chatbox giữa mentor và learner ( có thể gửi cả link, file)
++ fix lỗi dữ liệu tĩnh ở trang tổng quan mentor và fix chỗ xem profile mentor 

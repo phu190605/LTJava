@@ -23,7 +23,6 @@ import {
 
 const { Title, Text } = Typography;
 
-// ✅ HÀM FORMAT THỜI GIAN AN TOÀN
 const formatDateTime = (record: any) => {
   const rawTime =
     record.createdAt ||
@@ -98,7 +97,7 @@ export default function FeedbackList() {
 
   return (
     <div style={{ padding: 24 }}>
-      <Title level={3}>✍️ Danh sách Feedback</Title>
+      <Title level={3}>✍️ Danh sách bài tập chờ chấm</Title>
 
       {/* SEARCH BAR */}
       <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
@@ -120,36 +119,6 @@ export default function FeedbackList() {
           pagination={{ pageSize: 4 }}
         />
       </Card>
-
-      {/* STATS */}
-      <Row gutter={16} style={{ marginTop: 24 }}>
-        <Col span={8}>
-          <Card style={{ borderRadius: 16 }}>
-            <Statistic
-              title="Đang chờ chấm"
-              value={data.length}
-              prefix={<ClockCircleOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card style={{ borderRadius: 16 }}>
-            <Statistic
-              title="Đã hoàn thành (Tuần này)"
-              value={45}
-              prefix={<CheckCircleOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card style={{ borderRadius: 16 }}>
-            <Statistic
-              title="Thời gian TB phản hồi"
-              value="4.2 giờ"
-            />
-          </Card>
-        </Col>
-      </Row>
     </div>
   );
 }

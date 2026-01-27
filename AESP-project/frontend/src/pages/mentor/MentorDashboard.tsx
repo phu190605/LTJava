@@ -3,7 +3,6 @@ import {
   Card,
   Row,
   Col,
-  List,
   Button,
   Empty,
 } from "antd";
@@ -22,11 +21,12 @@ export default function MentorDashboard() {
   const navigate = useNavigate();
 
   const [mentorName, setMentorName] = useState("");
+
   const [stats, setStats] = useState<{
-    pending: number;
-    feedback: number;
-    students: number;
-    materials: number;
+    pendingSessions: number;
+    completedFeedback: number;
+    studentCount: number;
+    totalMaterials: number;
   } | null>(null);
 
   useEffect(() => {
@@ -103,7 +103,6 @@ export default function MentorDashboard() {
 
   return (
     <div>
-      {/* HEADER */}
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ marginBottom: 4 }}>
           👋 Xin chào{mentorName ? `, ${mentorName}` : ""}!
@@ -113,39 +112,41 @@ export default function MentorDashboard() {
         </p>
       </div>
 
-      {/* STATS */}
       <Row gutter={16}>
         <Col span={6}>
           {stat(
             "Chờ xếp lớp",
-            stats?.pending ?? 0,
+            stats?.pendingSessions ?? 0,
             <FileTextOutlined />,
             "#eef2ff",
             "#4f46e5"
           )}
         </Col>
+
         <Col span={6}>
           {stat(
             "Bài chờ chấm",
-            stats?.pending ?? 0,
+            stats?.pendingSessions ?? 0,
             <CustomerServiceOutlined />,
             "#fff7ed",
             "#f97316"
           )}
         </Col>
+
         <Col span={6}>
           {stat(
             "Phản hồi đã gửi",
-            stats?.feedback ?? 0,
+            stats?.completedFeedback ?? 0,
             <CheckCircleOutlined />,
             "#ecfdf5",
             "#22c55e"
           )}
         </Col>
+
         <Col span={6}>
           {stat(
             "Học viên phụ trách",
-            stats?.students ?? 0,
+            stats?.studentCount ?? 0,
             <TeamOutlined />,
             "#f5f3ff",
             "#8b5cf6"
@@ -153,11 +154,8 @@ export default function MentorDashboard() {
         </Col>
       </Row>
 
-
-      {/* ASSESSMENTS */}
       <MentorPlacementPanel />
 
-      {/* EXERCISES */}
       <Card style={{ marginTop: 24, borderRadius: 16 }} bodyStyle={{ padding: 0 }}>
         {sectionHeader("Bài luyện tập cần feedback", <CustomerServiceOutlined />)}
         <div style={{ padding: 32 }}>
@@ -165,7 +163,6 @@ export default function MentorDashboard() {
         </div>
       </Card>
 
-      {/* NEW FEATURE */}
       <Card
         style={{
           marginTop: 24,

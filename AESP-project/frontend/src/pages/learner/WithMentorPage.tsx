@@ -8,6 +8,7 @@ function convertScoreToLevel(score?: string | number | null): string {
     if (s >= 40) return "A2";
     return "A1";
 }
+
 import { useEffect, useState } from "react";
 import {
     Tabs,
@@ -27,10 +28,14 @@ import {
     VideoCameraOutlined,
     DownloadOutlined
 } from "@ant-design/icons";
+
 import { getSelectedMentor, getPlacementResult } from "../../api/learnerMentorApi";
 import type { PlacementResult } from "../../api/learnerMentorApi";
 import { getMyMentorMaterials } from "../../api/learnerMaterialApi";
 import type { LearningMaterial } from "../../api/learnerMaterialApi";
+import { getLearnerConversation } from "../../api/chatApi";
+
+import ChatModal from "../../components/chat/ChatModal";
 
 const { Title, Text } = Typography;
 
@@ -46,7 +51,9 @@ export default function WithMentorPage() {
     const [mentor, setMentor] = useState<any>(null);
     const [materials, setMaterials] = useState<LearningMaterial[]>([]);
     const [placementResult, setPlacementResult] = useState<PlacementResult | null>(null);
-    const [showPlacementDetail, setShowPlacementDetail] = useState(false);
+
+    const [openChat, setOpenChat] = useState(false);
+    const [conversationId, setConversationId] = useState<number | null>(null);
 
     useEffect(() => {
         (async () => {
@@ -58,7 +65,6 @@ export default function WithMentorPage() {
                 const list = await getMyMentorMaterials();
                 setMaterials(Array.isArray(list) ? list : []);
 
-                // Lấy kết quả kiểm tra đầu vào và nhận xét mentor
                 const placement = await getPlacementResult();
                 setPlacementResult(placement);
             } finally {
@@ -71,17 +77,16 @@ export default function WithMentorPage() {
 
     return (
         <div style={{ padding: 24 }}>
-            {/* ===== HEADER ===== */}
             <Title level={3}>
                 🤝 Học với Mentor {mentor?.fullName}
                 <Tag color="blue" style={{ marginLeft: 8 }}>PRO MENTOR</Tag>
             </Title>
+
             <Text type="secondary">
                 Cùng nâng tầm kỹ năng ngôn ngữ của bạn ngay hôm nay.
             </Text>
 
             <Row gutter={24} style={{ marginTop: 24 }}>
-                {/* ===== MAIN CONTENT ===== */}
                 <Col span={17}>
                     <Tabs
                         defaultActiveKey="placement"
@@ -89,20 +94,30 @@ export default function WithMentorPage() {
                             {
                                 key: "placement",
                                 label: "📝 Kết quả kiểm tra đầu vào",
-                                children: (
-                                    placementResult ? (
-                                        <Card style={{ borderRadius: 12, marginTop: 16 }}>
-                                            <div><b>Điểm test đầu vào:</b> {placementResult.levelBefore || 'Chưa có'}
-                                                {placementResult.levelBefore && (
-                                                    <span style={{ marginLeft: 12, color: '#000000' }}>
-                                                        (Level: {convertScoreToLevel(placementResult.levelBefore)})
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div><b>Level sau khi mentor đánh giá:</b> {placementResult.levelAfter || 'Chưa có'}</div>
-                                            <div><b>Nhận xét của mentor:</b> {placementResult.mentorNote ? placementResult.mentorNote : <span style={{ color: '#888' }}>Chưa có nhận xét</span>}</div>
-                                        </Card>
-                                    ) : <Empty description="Chưa có dữ liệu kiểm tra đầu vào." style={{ marginTop: 48 }} />
+                                children: placementResult ? (
+                                    <Card style={{ borderRadius: 12, marginTop: 16 }}>
+                                        <div>
+                                            <b>Điểm test đầu vào:</b>{" "}
+                                            {placementResult.levelBefore || "Chưa có"}
+                                            {placementResult.levelBefore && (
+                                                <span style={{ marginLeft: 12 }}>
+                                                    (Level: {convertScoreToLevel(placementResult.levelBefore)})
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <b>Level sau khi mentor đánh giá:</b>{" "}
+                                            {placementResult.levelAfter || "Chưa có"}
+                                        </div>
+                                        <div>
+                                            <b>Nhận xét của mentor:</b>{" "}
+                                            {placementResult.mentorNote || (
+                                                <span style={{ color: "#888" }}>Chưa có nhận xét</span>
+                                            )}
+                                        </div>
+                                    </Card>
+                                ) : (
+                                    <Empty description="Chưa có dữ liệu kiểm tra đầu vào." style={{ marginTop: 48 }} />
                                 ),
                             },
                             {
@@ -110,15 +125,9 @@ export default function WithMentorPage() {
                                 label: "📚 Tài liệu tham khảo",
                                 children:
                                     materials.length === 0 ? (
-                                        <Empty
-                                            description="Mentor chưa đăng tài liệu nào"
-                                            style={{ marginTop: 48 }}
-                                        />
+                                        <Empty description="Mentor chưa đăng tài liệu nào" style={{ marginTop: 48 }} />
                                     ) : (
-                                        <Card
-                                            style={{ borderRadius: 16 }}
-                                            bodyStyle={{ padding: 0 }}
-                                        >
+                                        <Card style={{ borderRadius: 16 }} bodyStyle={{ padding: 0 }}>
                                             {materials.map((m) => (
                                                 <div
                                                     key={m.id}
@@ -134,9 +143,7 @@ export default function WithMentorPage() {
                                                     </div>
                                                     <div style={{ flex: 1 }}>
                                                         <Text strong>{m.title}</Text>
-                                                        <div>
-                                                            <Tag>{m.type}</Tag>
-                                                        </div>
+                                                        <div><Tag>{m.type}</Tag></div>
                                                     </div>
                                                     <Button
                                                         type="primary"
@@ -155,23 +162,16 @@ export default function WithMentorPage() {
                                 key: "practice",
                                 label: "🧠 Thực hành",
                                 children: (
-                                    <Empty
-                                        description="Tính năng đang được phát triển 🚧"
-                                        style={{ marginTop: 48 }}
-                                    />
+                                    <Empty description="Tính năng đang được phát triển 🚧" style={{ marginTop: 48 }} />
                                 ),
                             },
                         ]}
                     />
                 </Col>
 
-                {/* ===== SIDEBAR ===== */}
                 <Col span={7}>
-                    <Card
-                        title="⭐ Mentor Spotlight"
-                        style={{ borderRadius: 16 }}
-                    >
-                        <Space direction="vertical">
+                    <Card title="⭐ Mentor Spotlight" style={{ borderRadius: 16 }}>
+                        <Space direction="vertical" style={{ width: "100%" }}>
                             <Text strong>Chuyên môn</Text>
                             <Space wrap>
                                 <Tag color="blue">IELTS</Tag>
@@ -179,14 +179,48 @@ export default function WithMentorPage() {
                                 <Tag color="purple">Speaking</Tag>
                             </Space>
 
-                            <Text strong style={{ marginTop: 12 }}>
-                                Thông tin liên hệ
-                            </Text>
+                            <Text strong style={{ marginTop: 12 }}>Thông tin liên hệ</Text>
                             <Text>{mentor?.email}</Text>
+
+                            {/* ✅ CHAT – LẤY conversationId TỪ BACKEND */}
+                            <Button
+                                type="primary"
+                                block
+                                style={{ marginTop: 16 }}
+                                onClick={async () => {
+                                    try {
+                                        const convo = await getLearnerConversation();
+                                        setConversationId(convo.id);
+                                        setOpenChat(true);
+                                    } catch {
+                                        // chưa có mentor hoặc lỗi token
+                                    }
+                                }}
+                            >
+                                💬 Chat với mentor
+                            </Button>
                         </Space>
                     </Card>
                 </Col>
             </Row>
+
+            {/* ✅ POPUP CHAT */}
+            {mentor && conversationId && (
+                <ChatModal
+                    open={openChat}
+                    onClose={() => setOpenChat(false)}
+                    conversationId={conversationId}
+                    currentUser={{
+                        id: 0, // backend xác định learner bằng token
+                        fullName: "Learner",
+                    }}
+                    targetUser={{
+                        id: mentor.id,
+                        fullName: mentor.fullName,
+                        avatarUrl: mentor.avatarUrl,
+                    }}
+                />
+            )}
         </div>
     );
 }

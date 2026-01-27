@@ -2,9 +2,6 @@ import axiosClient from "./axiosClient";
 import type { LearningMaterial } from "../types/mentor";
 import type { User } from "../types/user";
 
-/* ======================
-   TYPES
-====================== */
 export interface Skill {
   id: number;
   name: string;
@@ -17,16 +14,10 @@ export interface Mentor {
   skills?: Skill[];
 }
 
-/* ======================
-   📊 DASHBOARD
-====================== */
 export const getDashboardStats = async (): Promise<any> => {
   return axiosClient.get("/mentor/dashboard");
 };
 
-/* ======================
-   📝 ASSESSMENT
-====================== */
 export const getPendingAssessments = async (): Promise<any[]> => {
   return axiosClient.get("/mentor/assessment/pending");
 };
@@ -46,9 +37,7 @@ export const submitAssessmentLevel = async (
   });
 };
 
-/* ======================
-   🎧 EXERCISE
-====================== */
+
 export const getPendingExercises = async (): Promise<any[]> => {
   return axiosClient.get("/mentor/exercise/pending");
 };
@@ -72,9 +61,6 @@ export const submitExerciseFeedback = async (
   });
 };
 
-/* ======================
-   📂 MATERIALS
-====================== */
 export const getAllMaterials = async (): Promise<LearningMaterial[]> => {
   return axiosClient.get("/mentor/materials");
 };
@@ -94,9 +80,7 @@ export const uploadMaterial = async (
   });
 };
 
-/* ======================
-   👤 PROFILE
-====================== */
+
 export const getMentorProfile = async (): Promise<User> => {
   return axiosClient.get("/mentor/profile");
 };
@@ -122,9 +106,11 @@ export const uploadCertificate = async (file: File): Promise<any> => {
     headers: { "Content-Type": "multipart/form-data" },
   });
 };
-/* ======================
-   ADMIN – MENTOR (❌ KHÔNG ĐỤNG)
-====================== */
+export interface CreateMentorRequest {
+  fullName: string;
+  email: string;
+  skillIds: number[];
+}
 export const createMentor = async (
   data: CreateMentorRequest
 ): Promise<Mentor> => {

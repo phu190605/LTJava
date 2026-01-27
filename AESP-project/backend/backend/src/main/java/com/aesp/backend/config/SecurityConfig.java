@@ -38,8 +38,6 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-    // ===================== MAIN SECURITY =====================
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -51,14 +49,19 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
 
-                // ========= AUTH =========
+                // ===== AUTH =====
                 .requestMatchers("/api/auth/**").permitAll()
 
-                // ========= PUBLIC =========
+                // ===== SOCKET + CHAT =====
                 .requestMatchers(
                         "/error",
                         "/ws/**",
                         "/api/chat/**",
+                        "/uploads/chat/**"   // ✅ FIX QUAN TRỌNG
+                ).permitAll()
+
+                // ===== PUBLIC APIs =====
+                .requestMatchers(
                         "/api/speech/**",
                         "/api/sentences/**",
                         "/api/profile/goals",
@@ -69,18 +72,17 @@ public class SecurityConfig {
                         "/api/public/**"
                 ).permitAll()
 
-                // ========= PUBLIC GET =========
                 .requestMatchers(HttpMethod.GET, "/api/public/mentors").permitAll()
                 .requestMatchers("/api/public/policies/**").permitAll()
 
-                // ========= STATIC FILE =========
+                // ===== STATIC =====
                 .requestMatchers(
                         "/avatars/**",
                         "/materials/**",
                         "/certificates/**"
                 ).permitAll()
 
-                // ========= ROLE =========
+                // ===== ROLE =====
                 .requestMatchers("/api/mentor/**").hasRole("MENTOR")
                 .requestMatchers("/api/learner/**").hasRole("LEARNER")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -96,8 +98,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ===================== CORS =====================
-
+    // ===== CORS =====
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -121,8 +122,7 @@ public class SecurityConfig {
         return source;
     }
 
-    // ===================== AUTH =====================
-
+    // ===== AUTH =====
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config

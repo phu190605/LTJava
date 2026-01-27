@@ -24,12 +24,10 @@ const LearnMentorPage = () => {
         return <Spin />;
     }
 
-    // ❌ Chưa có gói mentor
     if (!hasMentor) {
         return <UpgradeMentorPackage />;
     }
 
-    // ✅ Có gói mentor
     return (
         <div>
             <Title level={3}>Đăng ký mentor </Title>
@@ -42,7 +40,6 @@ const LearnMentorPage = () => {
 
             <Divider />
 
-            {/* 📌 Danh sách mentor + chọn mentor */}
             <MentorList />
         </div>
     );

@@ -6,11 +6,14 @@ import {
   BookOutlined,
   UserOutlined,
   LogoutOutlined,
+  TeamOutlined, // ✅ THÊM
 } from "@ant-design/icons";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { getRole, getMentorId } from "../utils/auth";
+import { getRole } from "../utils/auth";
 import { getMentorProfile } from "../api/mentorApi";
+
 const { Sider, Content } = Layout;
+
 export default function MentorLayout() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -91,7 +94,7 @@ export default function MentorLayout() {
           position: "relative",
         }}
       >
-        {/* ===== HEADER (AVATAR + NAME) ===== */}
+        {/* ===== HEADER ===== */}
         <div
           style={{
             display: "flex",
@@ -154,6 +157,15 @@ export default function MentorLayout() {
           }}
           items={[
             menuItem("/mentor", "Tổng quan", <DashboardOutlined />, "/mentor"),
+
+            // ✅ MENU MỚI: HỌC VIÊN PHỤ TRÁCH
+            menuItem(
+              "/mentor/learners",
+              "Học viên phụ trách",
+              <TeamOutlined />,
+              "/mentor/learners"
+            ),
+
             menuItem(
               "/mentor/placement-review",
               "Đánh giá & xếp lớp",
@@ -219,4 +231,3 @@ export default function MentorLayout() {
     </Layout>
   );
 }
-

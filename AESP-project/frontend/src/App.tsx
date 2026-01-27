@@ -29,6 +29,7 @@ import MentorProfile from "./pages/mentor/Profile";
 import PlacementReviewPage from "./pages/mentor/PlacementReviewPage";
 import ReviewSpeakingResult from "./pages/ReviewSpeakingResult";
 import ReviewAllResults from "./pages/ReviewAllResults";
+import MentorLearnersPage from "./pages/mentor/MentorLearnersPage";
 
 /* ===== AUTH & PUBLIC PAGES ===== */
 import LoginPage from './pages/LoginPage';
@@ -95,26 +96,21 @@ function App() {
           <Route path="feedback" element={<FeedbackList />} />
           <Route path="materials" element={<Materials />} />
           <Route path="profile" element={<MentorProfile />} />
+          <Route path="/mentor/learners" element={<MentorLearnersPage />} />
+
           <Route path="placement-review" element={<PlacementReviewPage />} />
         </Route>
 
-
-        {/* Route review speaking result cho mentor, phải để ngoài cùng */}
         <Route path="/review-speaking-result/:userId" element={<ReviewSpeakingResult />} />
         <Route path="/review-all-results/:userId" element={<ReviewAllResults />} />
-
-        {/* Các route giữ chỗ (Placeholder) cho Menu đỡ lỗi */}
         <Route path="/my-courses" element={<div>Trang Khóa học (Đang phát triển)</div>} />
 
-
-        {/* Trang nội bộ: Phải đăng nhập mới vào được (Đã xử lý trong MainLayout) */}
         <Route path="/speaking-test" element={<SpeakingTest />} />
         <Route path="/test-speech" element={<TestSpeechPage />} />
         <Route path="/peer/find" element={<PeerFindPage />} />
         <Route path="/peer/create" element={<CreateRoomPage />} />
         <Route path="/peer/room/:roomId" element={<PeerRoomPage />} />
         <Route path="/practice" element={<PracticeRoomPage />} />
-        {/* Route cho GamificationDashboard */}
         <Route path="/gamification" element={<GamificationDashboard />} />
       </Routes>
     </BrowserRouter>

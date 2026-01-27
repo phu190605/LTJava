@@ -5,7 +5,6 @@ const axiosClient = axios.create({
   // Không set Content-Type mặc định, để axios tự động khi gửi FormData
 });
 
-// ===== REQUEST =====
 axiosClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -17,10 +16,8 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ===== RESPONSE (🔥 QUAN TRỌNG NHẤT) =====
 axiosClient.interceptors.response.use(
   (response) => {
-    // 👉 Trả thẳng JSON, KHÔNG phải AxiosResponse
     return response.data;
   },
   (error) => {

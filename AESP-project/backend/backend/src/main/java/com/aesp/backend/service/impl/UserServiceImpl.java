@@ -39,9 +39,6 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // ==========================================================
-    // SPRING SECURITY
-    // ==========================================================
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
@@ -56,19 +53,12 @@ public class UserServiceImpl implements UserService {
                 )
         );
     }
-
-    // ==========================================================
-    // HELPER: chặn admin gốc
-    // ==========================================================
     private void blockRootAdmin(User user) {
         if (ROOT_ADMIN_EMAIL.equalsIgnoreCase(user.getEmail())) {
             throw new RuntimeException("Không thể thao tác với admin hệ thống");
         }
     }
 
-    // ==========================================================
-    // 1️⃣ Tạo mentor
-    // ==========================================================
     @Override
     public User createMentor(CreateMentorRequest request) {
         User mentor = new User();
@@ -80,17 +70,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(mentor);
     }
 
-    // ==========================================================
-    // 2️⃣ Lấy danh sách mentor
-    // ==========================================================
     @Override
     public List<User> getAllMentors() {
         return userRepository.findByRole("MENTOR");
     }
 
-    // ==========================================================
-    // 3️⃣ Gán skills cho mentor
-    // ==========================================================
     @Override
     @Transactional
     public void assignSkillsToMentor(Long mentorId, List<String> skills) {
@@ -112,9 +96,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(mentor);
     }
 
-    // ==========================================================
-    // 4️⃣ Xóa mentor
-    // ==========================================================
     @Override
     @Transactional
     public void deleteMentor(Long mentorId) {
@@ -124,9 +105,6 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(mentor);
     }
 
-    // ==========================================================
-    // 5️⃣ Gỡ skill khỏi mentor
-    // ==========================================================
     @Override
     @Transactional
     public void removeSkillFromMentor(Long mentorId, Long skillId) {
@@ -135,9 +113,6 @@ public class UserServiceImpl implements UserService {
         mentor.getSkills().removeIf(skill -> skill.getId().equals(skillId));
     }
 
-    // ==========================================================
-    // 6️⃣ USER MANAGEMENT (ADMIN)
-    // ==========================================================
     @Override
     public List<User> getAllUsers() {
         return userRepository.findAll()

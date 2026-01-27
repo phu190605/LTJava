@@ -1,16 +1,17 @@
 package com.aesp.backend.controller;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
+import com.aesp.backend.entity.LearnerProfile;
 import com.aesp.backend.entity.User;
-import com.aesp.backend.repository.ExerciseRepository;
+import com.aesp.backend.repository.LearnerProfileRepository;
 import com.aesp.backend.repository.UserRepository;
 
 @RestController
@@ -18,28 +19,47 @@ import com.aesp.backend.repository.UserRepository;
 @CrossOrigin(origins = "http://localhost:5173")
 public class MentorLearnerController {
 
+    private final LearnerProfileRepository learnerProfileRepo;
     private final UserRepository userRepo;
-    private final ExerciseRepository exerciseRepo;
 
-    public MentorLearnerController(UserRepository userRepo, ExerciseRepository exerciseRepo) {
+    public MentorLearnerController(
+            LearnerProfileRepository learnerProfileRepo,
+            UserRepository userRepo
+    ) {
+        this.learnerProfileRepo = learnerProfileRepo;
         this.userRepo = userRepo;
-        this.exerciseRepo = exerciseRepo;
     }
 
-    @GetMapping("/{mentorId}/learners")
-    public ResponseEntity<?> getLearnersForMentor(@PathVariable String mentorId) {
+    private User getCurrentMentor() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
 
-        // Lấy learnerId từ EXERCISE hoặc LEARNING_SESSION
-        List<String> learnerIds = exerciseRepo.findByMentorId(mentorId)
-                .stream()
-                .map(e -> e.getLearnerId())
-                .filter(id -> id != null && !id.isBlank() && id.matches("\\d+"))
-                .distinct()
-                .toList();
+        return userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Mentor not found"));
+    }
 
-        // Query user info theo learnerId (chỉ lấy id hợp lệ)
-        List<User> learners = userRepo.findAllById(
-                learnerIds.stream().map(Long::parseLong).toList());
+    @GetMapping("/learners")
+    public ResponseEntity<?> getLearnersForMentor() {
+        User mentor = getCurrentMentor();
+
+        List<Map<String, Object>> learners =
+                learnerProfileRepo.findAll()
+                        .stream()
+                        .filter(p -> p.getSelectedMentor() != null)
+                        .filter(p -> mentor.getId().equals(p.getSelectedMentor().getId()))
+                        .map(p -> {
+                            User u = p.getUser();
+
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("id", u.getId());
+                            map.put("fullName", u.getFullName());
+                            map.put("email", u.getEmail());
+                            map.put("avatarUrl", u.getAvatarUrl());
+                            map.put("conversationId", p.getProfileId());
+
+                            return map;
+                        })
+                        .toList();
 
         return ResponseEntity.ok(learners);
     }
