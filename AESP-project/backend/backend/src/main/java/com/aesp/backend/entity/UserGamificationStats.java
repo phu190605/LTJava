@@ -98,4 +98,21 @@ public class UserGamificationStats {
     public void addXp(int xpAmount) {
         this.totalXp += xpAmount;
     }
+
+
+
+    //Phần sửa đổi để làm trang xếp hạng
+    // Giải thích: Chúng ta map quan hệ 1-1. 
+    // "name = user_id": Cột user_id ở bảng hiện tại (bảng Stats).
+    // "referencedColumnName = user_id": Cột user_id ở bảng đích (bảng LearnerProfile).
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
+    private LearnerProfile learnerProfile;
+    public LearnerProfile getLearnerProfile() {
+        return learnerProfile;
+    }
+
+    public void setLearnerProfile(LearnerProfile learnerProfile) {
+        this.learnerProfile = learnerProfile;
+    }
 }
