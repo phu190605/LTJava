@@ -5,7 +5,7 @@ export default function AdminLayout() {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
-  // 🚫 Không phải admin thì đá về admin-login
+
   if (!token || role !== "ADMIN") {
     return <Navigate to="/admin-login" replace />;
   }

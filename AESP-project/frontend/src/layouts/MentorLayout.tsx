@@ -6,7 +6,7 @@ import {
   BookOutlined,
   UserOutlined,
   LogoutOutlined,
-  TeamOutlined, // ✅ THÊM
+  TeamOutlined, 
 } from "@ant-design/icons";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { getRole } from "../utils/auth";
@@ -21,14 +21,12 @@ export default function MentorLayout() {
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
-  // ===== AUTH CHECK =====
   useEffect(() => {
     if (getRole() !== "MENTOR") {
       navigate("/mentor", { replace: true });
     }
   }, []);
 
-  // ===== LOAD MENTOR PROFILE =====
   useEffect(() => {
     (async () => {
       try {
@@ -158,7 +156,6 @@ export default function MentorLayout() {
           items={[
             menuItem("/mentor", "Tổng quan", <DashboardOutlined />, "/mentor"),
 
-            // ✅ MENU MỚI: HỌC VIÊN PHỤ TRÁCH
             menuItem(
               "/mentor/learners",
               "Học viên phụ trách",
@@ -172,12 +169,7 @@ export default function MentorLayout() {
               <FileTextOutlined />,
               "/mentor/placement-review"
             ),
-            menuItem(
-              "/mentor/feedback",
-              "Đánh giá và phản hồi",
-              <FileTextOutlined />,
-              "/mentor/feedback"
-            ),
+
             menuItem(
               "/mentor/materials",
               "Kho tài liệu",

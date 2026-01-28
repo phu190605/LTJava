@@ -16,13 +16,10 @@ public class AdminPackageController {
         this.packageRepository = packageRepository;
     }
 
-    // API POST: Tạo mới
     @PostMapping
     public ServicePackage createPackage(@RequestBody ServicePackage newPackage) {
         return packageRepository.save(newPackage);
     }
-
-    // API PUT: Cập nhật (SỬA LẠI ĐỂ LƯU TRẠNG THÁI ACTIVE)
     @PutMapping("/{id}")
     public ResponseEntity<ServicePackage> updatePackage(@PathVariable Integer id, @RequestBody ServicePackage packageDetails) {
         return packageRepository.findById(id)
@@ -33,8 +30,7 @@ public class AdminPackageController {
                     existingPackage.setHasMentor(packageDetails.getHasMentor());
                     existingPackage.setDescription(packageDetails.getDescription());
                     existingPackage.setFeatures(packageDetails.getFeatures());
-                    
-                    // 👇 QUAN TRỌNG: Dòng này giúp nút Ẩn/Hiện hoạt động
+    
                     existingPackage.setActive(packageDetails.isActive()); 
                     
                     ServicePackage updatedPackage = packageRepository.save(existingPackage);
@@ -43,7 +39,6 @@ public class AdminPackageController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // API DELETE: Xóa cứng
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePackage(@PathVariable Integer id) {
         if (packageRepository.existsById(id)) {

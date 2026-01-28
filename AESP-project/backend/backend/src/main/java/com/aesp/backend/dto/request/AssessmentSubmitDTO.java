@@ -12,7 +12,6 @@ public class AssessmentSubmitDTO {
 
     private String mentorComment;
 
-    /* ================= GETTERS & SETTERS ================= */
 
     public String getAssessmentId() {
         return assessmentId;

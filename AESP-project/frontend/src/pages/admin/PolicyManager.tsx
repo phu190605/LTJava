@@ -19,7 +19,6 @@ const PolicyManager: React.FC = () => {
   const [terms, setTerms] = useState("");
   const [privacy, setPrivacy] = useState("");
 
-  // ✅ LOAD POLICY KHI VÀO TRANG
   useEffect(() => {
     loadPolicies();
   }, []);
@@ -58,7 +57,7 @@ const PolicyManager: React.FC = () => {
       });
 
       message.success("Cập nhật chính sách hệ thống thành công!");
-      loadPolicies(); // ✅ reload lại từ DB
+      loadPolicies(); 
     } catch (err) {
       console.error(err);
       message.error("Lỗi khi lưu chính sách!");

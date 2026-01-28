@@ -6,9 +6,6 @@ import ChatModal from "../../components/chat/ChatModal";
 import { getMentorProfile } from "../../api/mentorApi";
 import { getMentorConversation } from "../../api/chatApi";
 
-// ==================
-// Learner
-// ==================
 interface Learner {
   id: number;
   fullName: string;
@@ -69,13 +66,13 @@ export default function MentorLearnersPage() {
                   try {
                     setChatLearner(l);
 
-                    // ✅ LẤY conversationId TỪ BACKEND
+      
                     const convo = await getMentorConversation(l.id);
                     setConversationId(convo.id);
 
                     setChatOpen(true);
                   } catch {
-                    // có thể learner chưa được assign mentor
+                   
                   }
                 }}
               >
@@ -86,7 +83,7 @@ export default function MentorLearnersPage() {
         </Table>
       )}
 
-      {/* ✅ CHAT MODAL */}
+      {/* CHAT MODAL */}
       {chatLearner && mentor && conversationId && (
         <ChatModal
           open={chatOpen}

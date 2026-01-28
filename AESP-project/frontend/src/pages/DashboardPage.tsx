@@ -13,14 +13,11 @@ import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
-// Dữ liệu giả lập cho Lộ trình (Do chưa có API này, chờ bạn của bạn làm sau)
 const MOCK_LEARNING_PATH = [
     { title: 'Bài 1: Làm quen & Chào hỏi', status: 'finish', desc: 'Hoàn thành xuất sắc' },
     { title: 'Bài 2: Giới thiệu bản thân', status: 'process', desc: 'Đang học dở dang' },
     { title: 'Bài 3: Từ vựng mua sắm', status: 'wait', desc: 'Chưa mở khóa' },
 ];
-
-// Hàm phụ trợ: Xác định huy hiệu từ XP (Logic giống hệt Backend)
 const getBadgeInfo = (xp: number) => {
     if (xp <= 100) return { name: 'Mầm non', color: 'green', icon: '🌱' };
     if (xp <= 500) return { name: 'Học giả', color: 'blue', icon: '📚' };

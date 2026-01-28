@@ -3,7 +3,7 @@ package com.aesp.backend.dto.response;
 import java.util.List;
 
 public class AssessmentResult {
-    // Thứ tự khai báo các biến dưới đây phải KHỚP 100% với file Service
+
     private String level;
     private double overallScore;
     private String feedback;
@@ -12,9 +12,8 @@ public class AssessmentResult {
     private double completenessScore;
     private double prosodyScore;
     private List<WordResult> words;
-    private String audioUrl; // Thêm trường audioUrl
+    private String audioUrl;
 
-    // --- CONSTRUCTOR THỦ CÔNG (Thêm đoạn này là hết lỗi ngay) ---
     public AssessmentResult(String level, double overallScore, String feedback,
             double accuracyScore, double fluencyScore,
             double completenessScore, double prosodyScore,

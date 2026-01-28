@@ -6,7 +6,6 @@ public class FillResultDTO {
     private String userAnswer;
     private boolean correct;
 
-    // Getters and setters
     public Long getUserId() {
         return userId;
     }

@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS vocab_questions (
     choices VARCHAR(255),
     topic VARCHAR(100)
 );
+
+
 DELETE FROM vocab_questions;
 INSERT INTO vocab_questions (question, answer, choices, topic) VALUES
 -- Câu hỏi cho challenge "Khởi động ngày mới"
@@ -26,6 +28,11 @@ CREATE TABLE IF NOT EXISTS skills (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE
 );
+
+UPDATE mentor_skills ms
+JOIN skills s ON ms.skill_id = s.id
+SET ms.skill = s.name
+WHERE ms.skill_id IS NOT NULL;
 
 INSERT IGNORE INTO skills (name) VALUES
 ('Grammar'),

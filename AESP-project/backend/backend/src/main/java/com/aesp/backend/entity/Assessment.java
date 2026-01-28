@@ -32,8 +32,6 @@ public class Assessment {
 
     private String status; // PENDING / DONE
 
-    /* ================= AUTO GENERATE ID ================= */
-
     @PrePersist
     public void generateId() {
         if (this.id == null || this.id.isEmpty()) {
@@ -41,14 +39,10 @@ public class Assessment {
         }
     }
 
-    /* ================= GETTERS & SETTERS ================= */
 
     public String getId() {
         return id;
     }
-
-    // ❌ KHÔNG set id từ ngoài (tránh lỗi)
-    // public void setId(String id) { this.id = id; }
 
     public String getLearnerId() {
         return learnerId;

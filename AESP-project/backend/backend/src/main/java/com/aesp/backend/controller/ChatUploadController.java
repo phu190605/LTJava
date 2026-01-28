@@ -17,7 +17,6 @@ import java.util.UUID;
 @CrossOrigin(origins = "http://localhost:5173")
 public class ChatUploadController {
 
-    // 📌 upload vào thư mục uploads/chat nằm CÙNG CẤP với thư mục chạy app
     private static final String UPLOAD_DIR = "uploads/chat";
 
     @PostMapping("/upload")
@@ -53,7 +52,7 @@ public class ChatUploadController {
             return ResponseEntity.ok(res);
 
         } catch (Exception e) {
-            e.printStackTrace(); // 🔥 để nhìn lỗi thật trong console
+            e.printStackTrace(); 
             return ResponseEntity.badRequest().body("Upload failed");
         }
     }

@@ -41,13 +41,11 @@ export default function Materials() {
   const [title, setTitle] = useState("");
   const [search, setSearch] = useState("");
 
-  // ================= FETCH DATA =================
   const fetchMaterials = async () => {
     if (!mentorId) return;
 
     setLoading(true);
     try {
-      // ✅ axiosClient đã trả data
       const profile = await getMentorProfile();
       const name = profile?.fullName || "Mentor";
       setMentorName(name);
@@ -75,7 +73,6 @@ export default function Materials() {
     fetchMaterials();
   }, []);
 
-  // ================= UPLOAD =================
   const onUpload = async () => {
     if (!file || !title) {
       return message.warning("Vui lòng nhập tiêu đề và chọn file");

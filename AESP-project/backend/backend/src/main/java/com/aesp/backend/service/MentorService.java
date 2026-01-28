@@ -12,14 +12,11 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.aesp.backend.dto.request.FeedbackRequestDTO;
 import com.aesp.backend.dto.request.UpdateMentorProfileDTO;
-import com.aesp.backend.entity.Feedback;
 import com.aesp.backend.entity.LearningMaterial;
 import com.aesp.backend.entity.LearningSession;
 import com.aesp.backend.entity.MentorProfile;
 import com.aesp.backend.entity.User;
-import com.aesp.backend.repository.FeedbackRepository;
 import com.aesp.backend.repository.LearningMaterialRepository;
 import com.aesp.backend.repository.LearningSessionRepository;
 import com.aesp.backend.repository.MentorProfileRepository;
@@ -29,26 +26,22 @@ import com.aesp.backend.repository.UserRepository;
 public class MentorService {
 
     private final LearningSessionRepository sessionRepo;
-    private final FeedbackRepository feedbackRepo;
     private final LearningMaterialRepository materialRepo;
     private final MentorProfileRepository profileRepo;
     private final UserRepository userRepo;
 
     public MentorService(
             LearningSessionRepository sessionRepo,
-            FeedbackRepository feedbackRepo,
             LearningMaterialRepository materialRepo,
             MentorProfileRepository profileRepo,
             UserRepository userRepo
     ) {
         this.sessionRepo = sessionRepo;
-        this.feedbackRepo = feedbackRepo;
         this.materialRepo = materialRepo;
         this.profileRepo = profileRepo;
         this.userRepo = userRepo;
     }
 
-    /* ================= DASHBOARD ================= */
 
     public Map<String, Object> getDashboard(String mentorId) {
 
@@ -67,15 +60,11 @@ public class MentorService {
                 .distinct()
                 .count();
 
-        long feedbacksThisWeek = feedbackRepo.findAll().stream()
-        .filter(f -> mentorId.equals(f.getMentorId()))
-        .count();
 
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("activeLearners", activeLearners);
         stats.put("sessionsThisWeek", sessions.size());
-        stats.put("feedbacksThisWeek", feedbacksThisWeek);
 
         Map<String, Object> res = new HashMap<>();
         res.put("todo", todo);
@@ -85,29 +74,7 @@ public class MentorService {
         return res;
     }
 
-    /* ================= FEEDBACK ================= */
 
-    public Feedback submitFeedback(FeedbackRequestDTO dto) {
-
-        LearningSession session = sessionRepo
-                .findById(dto.sessionId)
-                .orElseThrow(() -> new RuntimeException("Session not found"));
-
-        Feedback fb = new Feedback();
-        fb.setMentorId(session.getMentorId());
-        fb.setLearnerId(session.getLearnerId());
-        fb.setExerciseId(session.getId()); // dùng sessionId thay cho exercise
-        fb.setMistake(null);
-        fb.setCorrection(null);
-        fb.setTag(null);
-        fb.setTime(dto.timeStamp);
-
-        return feedbackRepo.save(fb);
-    }
-
-    public List<Feedback> getFeedbackByExercise(String exerciseId) {
-        return feedbackRepo.findByExerciseId(exerciseId);
-    }
 
     /* ================= MATERIALS ================= */
 

@@ -25,14 +25,11 @@ public class AssessmentController {
         this.speakingService = speakingService;
     }
 
-    // ===== Danh sách bài test chờ =====
     @GetMapping("/pending")
     public ResponseEntity<List<SpeakingResult>> getPendingAssessments() {
         List<SpeakingResult> list = speakingRepo.findAll();
         return ResponseEntity.ok(list);
     }
-
-    // ===== Chi tiết 1 bài test =====
     @GetMapping("/{assessmentId}")
     public ResponseEntity<?> getAssessmentDetail(@PathVariable Long assessmentId) {
         SpeakingResult result = speakingRepo.findById(assessmentId)
@@ -41,14 +38,13 @@ public class AssessmentController {
         Map<String, Object> res = new HashMap<>();
         res.put("id", result.getId());
         res.put("userId", result.getUserId());
-        res.put("audioUrl", result.getFeedback()); // hoặc nếu có file audio, set đúng URL
+        res.put("audioUrl", result.getFeedback());
         res.put("score", result.getScore());
         res.put("feedback", result.getFeedback());
 
         return ResponseEntity.ok(res);
     }
 
-    // ===== Submit đánh giá & xếp lớp =====
     @PostMapping("/submit")
     public ResponseEntity<?> submitAssessment(@Valid @RequestBody AssessmentSubmitDTO dto) {
 

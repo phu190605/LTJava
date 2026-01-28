@@ -12,7 +12,6 @@ public class AssignSkillsRequest {
     private List<String> skills;
     public AssignSkillsRequest() {}
 
-    // Getter & Setter
     public Long getMentorId() { return mentorId; }
     public void setMentorId(Long mentorId) { this.mentorId = mentorId; }
 

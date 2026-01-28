@@ -9,6 +9,5 @@ export interface LearningMaterial {
 }
 
 export const getMyMentorMaterials = async (): Promise<LearningMaterial[]> => {
-    // axiosClient ĐÃ return response.data rồi
     return await axiosClient.get("/learner/materials");
 };

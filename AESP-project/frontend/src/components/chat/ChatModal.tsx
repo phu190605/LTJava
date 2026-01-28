@@ -32,7 +32,6 @@ interface Props {
   open: boolean;
   onClose: () => void;
 
-  // ✅ conversationId BẮT BUỘC truyền từ page (mentor / learner)
   conversationId: number;
 
   currentUser: ChatUser;
@@ -52,7 +51,7 @@ export default function ChatModal({
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ===== LOAD CHAT HISTORY =====
+
   useEffect(() => {
     if (!open || !conversationId) return;
 
@@ -70,7 +69,7 @@ export default function ChatModal({
     })();
   }, [open, conversationId]);
 
-  // ===== SOCKET =====
+
   useEffect(() => {
     if (!open || !conversationId) return;
 
@@ -100,12 +99,12 @@ export default function ChatModal({
     };
   }, [open, conversationId]);
 
-  // ===== AUTO SCROLL =====
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ===== SEND TEXT =====
+  
   const sendMessage = () => {
     if (!text.trim() || !stompClient.current) return;
 
@@ -123,7 +122,7 @@ export default function ChatModal({
     setText("");
   };
 
-  // ===== SEND FILE / IMAGE =====
+
   const sendFile = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -150,12 +149,15 @@ export default function ChatModal({
 
   return (
     <Modal
-      open={open}
-      onCancel={onClose}
-      footer={null}
-      width={640}
-      bodyStyle={{ padding: 0 }}
-    >
+  open={open}
+  onCancel={onClose}
+  footer={null}
+  width={640}
+  styles={{
+    body: { padding: 0 }
+  }}
+>
+
       {/* HEADER */}
       <div
         style={{
@@ -261,7 +263,6 @@ export default function ChatModal({
         <div ref={bottomRef} />
       </div>
 
-      {/* INPUT */}
       <div
         style={{
           display: "flex",

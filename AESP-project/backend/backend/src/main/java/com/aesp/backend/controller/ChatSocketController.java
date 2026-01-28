@@ -25,7 +25,6 @@ public class ChatSocketController {
     @MessageMapping("/chat.send")
     public void send(ChatMessage message) {
 
-        // ✅ FIX: luôn set thời gian khi gửi realtime
         message.setCreatedAt(LocalDateTime.now());
 
         ChatMessage saved = chatRepo.save(message);

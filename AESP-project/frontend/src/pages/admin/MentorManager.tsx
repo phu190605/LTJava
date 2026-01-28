@@ -232,7 +232,6 @@ export default function MentorManager() {
   );
 }
 
-/* ================= STYLE (GIỮ NGUYÊN) ================= */
 
 const page = {
   padding: 32,

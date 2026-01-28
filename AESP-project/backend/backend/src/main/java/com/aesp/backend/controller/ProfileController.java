@@ -58,9 +58,7 @@ public class ProfileController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    // =========================================================
-    // HELPER
-    // =========================================================
+
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = authentication.getName();
@@ -68,9 +66,6 @@ public class ProfileController {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + currentEmail));
     }
 
-    // =========================================================
-    // 1. API DANH MỤC (SETUP)
-    // =========================================================
 
     @GetMapping("/goals")
     public ResponseEntity<List<LearnerGoal>> getAllGoals() {
@@ -87,9 +82,6 @@ public class ProfileController {
         return ResponseEntity.ok(packageRepo.findAll());
     }
 
-    // =========================================================
-    // 2. API XEM PROFILE
-    // =========================================================
 
     @GetMapping("/me")
     public ResponseEntity<ProfileResponseRequest> getMyProfile() {
@@ -130,9 +122,6 @@ public class ProfileController {
         return ResponseEntity.ok(response);
     }
 
-    // =========================================================
-    // 3. API SETUP PROFILE
-    // =========================================================
 
     @PostMapping("/setup")
     @Transactional
@@ -196,9 +185,7 @@ public class ProfileController {
         }
     }
 
-    // =========================================================
-    // 4. UPDATE PROFILE
-    // =========================================================
+
 
     @PostMapping("/update-info")
     @Transactional
@@ -225,9 +212,6 @@ public class ProfileController {
         return ResponseEntity.ok("Cập nhật thành công!");
     }
 
-    // =========================================================
-    // 5. DASHBOARD
-    // =========================================================
 
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboardData(@RequestHeader("Authorization") String token) {
@@ -302,9 +286,7 @@ public class ProfileController {
         }
     }
 
-    // =========================================================
-    // 6. KIỂM TRA ĐÃ TEST ĐẦU VÀO CHƯA
-    // =========================================================
+
     @GetMapping("/has-tested")
     public ResponseEntity<?> hasTested() {
         User user = getCurrentUser();

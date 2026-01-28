@@ -37,9 +37,7 @@ public class LearnerMaterialController {
         this.jwtUtils = jwtUtils;
     }
 
-    /**
-     * ✅ LẤY TÀI LIỆU CỦA MENTOR ĐANG HỌC
-     */
+   
     @GetMapping
 public ResponseEntity<List<LearningMaterial>> getMyMentorMaterials(
         @RequestHeader("Authorization") String token
@@ -57,7 +55,6 @@ public ResponseEntity<List<LearningMaterial>> getMyMentorMaterials(
         return ResponseEntity.ok(List.of());
     }
 
-    // ✅ FIX CHUẨN – KHÔNG DÙNG findAll + filter
     List<LearningMaterial> materials =
             materialRepo.findByMentorId(mentor.getId().toString());
 

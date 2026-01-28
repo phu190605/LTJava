@@ -53,7 +53,6 @@ export default function Profile() {
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  /* ===== FETCH PROFILE ===== */
   const fetchProfile = async () => {
     try {
       const data = (await getMentorProfile()) as MentorProfile;
@@ -74,7 +73,6 @@ export default function Profile() {
     }
   };
 
-  /* ===== SAVE PROFILE ===== */
   const saveProfile = async () => {
     setLoading(true);
 
@@ -94,7 +92,6 @@ export default function Profile() {
     setLoading(false);
   };
 
-  /* ===== UPLOAD AVATAR ===== */
   const handleUploadAvatar = async () => {
     if (!selectedAvatar) {
       return message.warning("Vui lòng chọn ảnh trước");
@@ -112,7 +109,6 @@ export default function Profile() {
     }
   };
 
-  /* ===== UPLOAD CERTIFICATE ===== */
   const handleUploadCertificate = async (info: UploadChangeParam) => {
     if (!info.file.originFileObj) return;
 
@@ -143,7 +139,7 @@ export default function Profile() {
             icon={<UserOutlined />}
           />
 
-          <Space direction="vertical">
+          <Space orientation="vertical">
             <Upload
               showUploadList={false}
               beforeUpload={(file) => {

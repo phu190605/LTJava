@@ -19,13 +19,13 @@ public class ChatMessage {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    private String type; // TEXT | FILE | IMAGE
+    private String type; 
     private String fileUrl;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
-    // ===== getter / setter =====
+
 
     public Long getId() { return id; }
 

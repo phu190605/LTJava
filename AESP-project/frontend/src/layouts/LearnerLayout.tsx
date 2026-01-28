@@ -53,7 +53,6 @@ const LearnerLayout: React.FC = () => {
         };
     }, []);
 
-    // --- DANH SÁCH MENU BÊN TRÁI ---
     const menuItems = [
         { key: '/dashboard', icon: <HomeOutlined />, label: 'Tổng quan' },
         { key: '/ai-practice', icon: <AudioOutlined />, label: 'Luyện nói AI (Premium)' },
@@ -63,7 +62,7 @@ const LearnerLayout: React.FC = () => {
         { key: '/learner/learnmentor', icon: <TeamOutlined />, label: 'Đăng ký mentor' },
         { key: '/gamification', icon: <RocketOutlined style={{ color: '#f80606' }} />, label: 'Thử thách' },
 
-        // --- THÊM MỤC NÀY ---
+
         {
             key: '/subscription',
             icon: <CrownOutlined style={{ color: '#faad14' }} />, // Màu vàng cho nổi bật

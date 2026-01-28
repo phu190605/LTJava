@@ -24,7 +24,6 @@ import com.aesp.backend.entity.LearningMaterial;
 import com.aesp.backend.entity.LearningSession;
 import com.aesp.backend.entity.User;
 import com.aesp.backend.repository.DashboardResponse;
-import com.aesp.backend.repository.FeedbackRepository;
 import com.aesp.backend.repository.LearnerProfileRepository;
 import com.aesp.backend.repository.LearningMaterialRepository;
 import com.aesp.backend.repository.LearningSessionRepository;
@@ -36,28 +35,22 @@ import com.aesp.backend.repository.UserRepository;
 public class MentorController {
 
     private final LearningSessionRepository sessionRepo;
-    private final FeedbackRepository feedbackRepo;
     private final LearningMaterialRepository materialRepo;
     private final UserRepository userRepo;
-    private final LearnerProfileRepository learnerProfileRepo; // ✅ THÊM
+    private final LearnerProfileRepository learnerProfileRepo;
 
     public MentorController(
             LearningSessionRepository sessionRepo,
-            FeedbackRepository feedbackRepo,
             LearningMaterialRepository materialRepo,
             UserRepository userRepo,
-            LearnerProfileRepository learnerProfileRepo // ✅ THÊM
+            LearnerProfileRepository learnerProfileRepo 
     ) {
         this.sessionRepo = sessionRepo;
-        this.feedbackRepo = feedbackRepo;
         this.materialRepo = materialRepo;
         this.userRepo = userRepo;
         this.learnerProfileRepo = learnerProfileRepo;
     }
 
-    // ======================================================
-    // 🔐 HELPER: LẤY MENTOR TỪ JWT
-    // ======================================================
     private User getCurrentMentor() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -70,9 +63,7 @@ public class MentorController {
                 .orElseThrow(() -> new RuntimeException("Mentor not found"));
     }
 
-    // ================================
-    // 📚 SESSIONS
-    // ================================
+
     @GetMapping("/sessions")
     public ResponseEntity<List<LearningSession>> getSessions() {
         String mentorId = getCurrentMentor().getId().toString();
@@ -89,9 +80,6 @@ public class MentorController {
         return ResponseEntity.ok(sessionRepo.save(session));
     }
 
-    // ================================
-    // 📁 MATERIALS
-    // ================================
     @PostMapping("/materials")
     public ResponseEntity<?> uploadMaterial(
             @RequestParam("file") MultipartFile file,
@@ -133,9 +121,7 @@ public class MentorController {
                         .toList());
     }
 
-    // ================================
-    // DASHBOARD
-    // ================================
+
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboard() {
         User mentor = getCurrentMentor();
@@ -146,9 +132,8 @@ public class MentorController {
                 .filter(s -> !"DONE".equalsIgnoreCase(s.getStatus()))
                 .count();
 
-        int feedback = feedbackRepo.findByMentorId(mentorId).size();
+        int feedback = 0; 
 
-        // learner đã CHỌN mentor
         int students = (int) learnerProfileRepo.countBySelectedMentor(mentor);
 
         int materials = (int) materialRepo.findAll()
@@ -160,9 +145,6 @@ public class MentorController {
                 new DashboardResponse(pending, feedback, students, materials));
     }
 
-    // ================================
-    // 👤 PROFILE
-    // ================================
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile() {
         User u = getCurrentMentor();
@@ -189,9 +171,7 @@ public class MentorController {
         return ResponseEntity.ok(userRepo.saveAndFlush(u));
     }
 
-    // ================================
-    // 🖼 AVATAR
-    // ================================
+
     @PostMapping("/profile/upload-avatar")
     public ResponseEntity<?> uploadAvatar(@RequestParam("file") MultipartFile file) {
         try {
@@ -212,9 +192,7 @@ public class MentorController {
         }
     }
 
-    // ================================
-    // 📜 CERTIFICATE
-    // ================================
+
     @PostMapping("/profile/upload-certificate")
     public ResponseEntity<?> uploadCert(@RequestParam("file") MultipartFile file) {
         try {
@@ -237,11 +215,7 @@ public class MentorController {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
-    // ================================
-    // 🏆 PLACEMENT TEST EVALUATION (MENTOR)
-    // ================================
 
-    // 1. Lấy danh sách learner đã test đầu vào
     @GetMapping("/placement-results")
     public ResponseEntity<?> getPlacementResults() {
         var testedLearners = learnerProfileRepo.findAll()

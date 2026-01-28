@@ -2,7 +2,7 @@ import axios from "axios";
 
 const axiosClient = axios.create({
   baseURL: "http://localhost:8080/api",
-  // Không set Content-Type mặc định, để axios tự động khi gửi FormData
+  
 });
 
 axiosClient.interceptors.request.use(

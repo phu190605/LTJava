@@ -8,19 +8,19 @@ import {
 import axiosClient from "../api/axiosClient";
 import { checkHasTested } from "../api/userTestApi";
 import { useNavigate } from "react-router-dom";
-import logoImg from '../assets/images/logo.png'; // Đảm bảo đường dẫn đúng
+import logoImg from '../assets/images/logo.png'; 
 import { Checkbox, Spin } from "antd";
 import { getPolicyByType } from "../api/policyService";
 import type { SystemPolicy } from "../api/policyService";
 
 const { Title, Text } = Typography;
 
-// --- CONSTANTS & STYLES ---
+
 const PRIMARY_COLOR = '#2B4DFF';
 const PRIMARY_GRADIENT = 'linear-gradient(135deg, #2B4DFF 0%, #8752f3 100%)';
 const INPUT_BG = '#F8FAFC';
 
-// CSS Animation (Inject vào component)
+
 const cssStyles = `
   @keyframes slideUpFade {
     from { opacity: 0; transform: translateY(10px); }
@@ -70,7 +70,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialView = "L
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  /* ===== POLICY STATE ===== */
+  
   const [openPolicy, setOpenPolicy] = useState(false);
   const [policyType, setPolicyType] = useState<"TERMS" | "PRIVACY">("TERMS");
   const [policyCache, setPolicyCache] = useState<

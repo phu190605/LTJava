@@ -76,7 +76,7 @@ const MentorCard = ({ mentor, selected, disabled }: MentorCardProps) => {
                 </div>
             </div>
 
-            {/* ===== ACTION BUTTONS ===== */}
+
             {!selected && (
                 <Button
                     type="primary"
@@ -90,7 +90,7 @@ const MentorCard = ({ mentor, selected, disabled }: MentorCardProps) => {
             )}
 
             {selected && (
-                <Space direction="vertical" style={{ width: "100%", marginTop: 16 }}>
+                <Space orientation="vertical" style={{ width: "100%", marginTop: 16 }}>
                     <Button
                         type="primary"
                         block

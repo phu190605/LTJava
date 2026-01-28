@@ -8,7 +8,6 @@ public class ResetPasswordRequest {
     private String newPassword;
    public ResetPasswordRequest() {}
 
-    // Getter & Setter thủ công
     public String getToken() {
         return token;
     }

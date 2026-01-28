@@ -33,14 +33,13 @@ public class LearnerProfile {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    // ===== MENTOR ĐƯỢC CHỌN =====
-    // Learner chỉ chọn 1 mentor
+
     @ManyToOne
     @JoinColumn(name = "mentor_id")
     @com.fasterxml.jackson.annotation.JsonIgnore
     private User selectedMentor;
 
-    // ------ Thông tin cá nhân ------
+
     @Column(name = "display_name")
     private String displayName;
 
@@ -91,19 +90,17 @@ public class LearnerProfile {
     private List<ProfileInterest> interests;
     private ProficiencyLevel proficiencyLevel;
 
-    // Enum cho Learning Mode
     public enum LearningMode {
         FULL_SENTENCE,
         KEY_PHRASE
     }
 
-    // ============= CONSTRUCTORS =============
 
     public LearnerProfile() {
         this.interests = new ArrayList<>();
     }
 
-    // ============= GETTERS & SETTERS =============
+
     public Long getProfileId() {
         return profileId;
     }
@@ -120,7 +117,6 @@ public class LearnerProfile {
         this.user = user;
     }
 
-    /* ===== SELECTED MENTOR ===== */
 
     public User getSelectedMentor() {
         return selectedMentor;

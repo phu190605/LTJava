@@ -3,13 +3,9 @@ import {
   Card,
   Row,
   Col,
-  Button,
-  Empty,
 } from "antd";
 import {
   FileTextOutlined,
-  CustomerServiceOutlined,
-  CheckCircleOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -85,22 +81,6 @@ export default function MentorDashboard() {
     </Card>
   );
 
-  const sectionHeader = (title: string, icon: React.ReactNode) => (
-    <div
-      style={{
-        background: "#f8fafc",
-        padding: "12px 20px",
-        fontWeight: 600,
-        borderBottom: "1px solid #e5e7eb",
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-      }}
-    >
-      {icon} {title}
-    </div>
-  );
-
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
@@ -125,26 +105,6 @@ export default function MentorDashboard() {
 
         <Col span={6}>
           {stat(
-            "Bài chờ chấm",
-            stats?.pendingSessions ?? 0,
-            <CustomerServiceOutlined />,
-            "#fff7ed",
-            "#f97316"
-          )}
-        </Col>
-
-        <Col span={6}>
-          {stat(
-            "Phản hồi đã gửi",
-            stats?.completedFeedback ?? 0,
-            <CheckCircleOutlined />,
-            "#ecfdf5",
-            "#22c55e"
-          )}
-        </Col>
-
-        <Col span={6}>
-          {stat(
             "Học viên phụ trách",
             stats?.studentCount ?? 0,
             <TeamOutlined />,
@@ -155,13 +115,6 @@ export default function MentorDashboard() {
       </Row>
 
       <MentorPlacementPanel />
-
-      <Card style={{ marginTop: 24, borderRadius: 16 }} bodyStyle={{ padding: 0 }}>
-        {sectionHeader("Bài luyện tập cần feedback", <CustomerServiceOutlined />)}
-        <div style={{ padding: 32 }}>
-          <Empty description="Mọi phản hồi đều đã được hoàn thành!" />
-        </div>
-      </Card>
 
       <Card
         style={{
@@ -177,7 +130,6 @@ export default function MentorDashboard() {
               Theo dõi tiến độ học viên trực quan hơn với biểu đồ thống kê mới.
             </p>
           </div>
-          <Button type="link">Xem chi tiết</Button>
         </div>
       </Card>
     </div>

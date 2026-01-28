@@ -9,6 +9,10 @@ export interface Mentor {
     id: number;
     fullName: string;
     email: string;
+
+    avatarUrl?: string;
+    bio?: string;
+
     skills: Skill[];
 }
 

@@ -109,7 +109,7 @@ export const uploadCertificate = async (file: File): Promise<any> => {
 export interface CreateMentorRequest {
   fullName: string;
   email: string;
-  skillIds: number[];
+  password: string; 
 }
 export const createMentor = async (
   data: CreateMentorRequest

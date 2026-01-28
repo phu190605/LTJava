@@ -11,7 +11,7 @@ const MentorList = () => {
     const [selectedMentorId, setSelectedMentorId] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // 👇 STATE MỚI
+
     const [openDetail, setOpenDetail] = useState(false);
     const [viewMentor, setViewMentor] = useState<Mentor | null>(null);
 
@@ -30,7 +30,7 @@ const MentorList = () => {
             .finally(() => setLoading(false));
     }, []);
 
-    // 👇 CLICK MENTOR → XEM PROFILE
+   
     const handleViewMentor = (mentor: Mentor) => {
         setViewMentor(mentor);
         setOpenDetail(true);
@@ -60,7 +60,7 @@ const MentorList = () => {
                 ))}
             </Row>
 
-            {/* ✅ MODAL CHI TIẾT */}
+    
             <MentorDetailModal
                 mentor={viewMentor}
                 open={openDetail}

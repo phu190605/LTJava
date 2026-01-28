@@ -12,6 +12,7 @@ export interface Skill {
   id: number;
 }
 
+
 export const getAdminUsers = (): Promise<User[]> => {
   return axiosClient.get("/admin/users");
 };

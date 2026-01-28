@@ -15,22 +15,18 @@ public class Skill {
     @Column(unique = true, nullable = false)
     private String name;
 
-    // Quan hệ ngược với mentor
     @ManyToMany(mappedBy = "skills")
     @JsonIgnore 
     private Set<User> mentors;
 
-    // Constructor rỗng (Bắt buộc cho JPA)
     public Skill() {}
 
-    // Constructor có tham số (Thay cho @AllArgsConstructor)
     public Skill(Long id, String name, Set<User> mentors) {
         this.id = id;
         this.name = name;
         this.mentors = mentors;
     }
 
-    // --- GETTER & SETTER THỦ CÔNG ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

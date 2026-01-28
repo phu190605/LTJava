@@ -1,5 +1,7 @@
-import { Card, Avatar, Tag, Descriptions } from "antd";
+import { Card, Avatar, Tag, Descriptions, Typography } from "antd";
 import type { Mentor } from "../../api/mentorPublicApi";
+
+const { Paragraph } = Typography;
 
 interface Props {
     mentor: Mentor;
@@ -8,8 +10,12 @@ interface Props {
 const MentorProfileView = ({ mentor }: Props) => {
     return (
         <Card title="Hồ sơ Mentor">
-            <Avatar size={80} style={{ marginBottom: 16 }}>
-                {mentor.fullName.charAt(0)}
+            <Avatar
+                size={80}
+                src={mentor.avatarUrl || undefined}
+                style={{ marginBottom: 16 }}
+            >
+                {!mentor.avatarUrl && mentor.fullName.charAt(0)}
             </Avatar>
 
             <Descriptions column={1} bordered>
@@ -21,13 +27,22 @@ const MentorProfileView = ({ mentor }: Props) => {
                     {mentor.email}
                 </Descriptions.Item>
 
+
+                <Descriptions.Item label="Giới thiệu">
+                    {mentor.bio ? (
+                        <Paragraph>{mentor.bio}</Paragraph>
+                    ) : (
+                        "Chưa cập nhật"
+                    )}
+                </Descriptions.Item>
+
                 <Descriptions.Item label="Kỹ năng">
-                    {mentor.skills.length > 0
-                        ? mentor.skills.map(skill => (
-                            <Tag key={skill.id} color="blue">
-                                {skill.name}
-                            </Tag>
-                        ))
+                    {mentor.skills && mentor.skills.length > 0
+                        ? mentor.skills.map((skill) => (
+                              <Tag key={skill.id} color="blue">
+                                  {skill.name}
+                              </Tag>
+                          ))
                         : "Chưa cập nhật"}
                 </Descriptions.Item>
             </Descriptions>

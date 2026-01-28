@@ -26,7 +26,7 @@ public class ChatConversationController {
         this.jwtUtils = jwtUtils;
     }
 
-    // Learner mở chat với mentor đã đăng ký
+
     @GetMapping("/conversation/learner")
     public Conversation getOrCreateConversationForLearner(
             @RequestHeader("Authorization") String token
@@ -49,7 +49,6 @@ public class ChatConversationController {
                 ));
     }
 
-    // Mentor mở chat với learner
     @GetMapping("/conversation/mentor/{learnerId}")
     public Conversation getOrCreateConversationForMentor(
             @RequestHeader("Authorization") String token,

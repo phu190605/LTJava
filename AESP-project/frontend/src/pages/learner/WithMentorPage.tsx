@@ -127,8 +127,10 @@ export default function WithMentorPage() {
                                     materials.length === 0 ? (
                                         <Empty description="Mentor chưa đăng tài liệu nào" style={{ marginTop: 48 }} />
                                     ) : (
-                                        <Card style={{ borderRadius: 16 }} bodyStyle={{ padding: 0 }}>
-                                            {materials.map((m) => (
+                                        <Card style={{ borderRadius: 16 }} styles={{
+    body: { padding: 0 }
+  }}>
+                                            {materials.map((m) => ( 
                                                 <div
                                                     key={m.id}
                                                     style={{
@@ -158,31 +160,31 @@ export default function WithMentorPage() {
                                         </Card>
                                     ),
                             },
-                            {
-                                key: "practice",
-                                label: "🧠 Thực hành",
-                                children: (
-                                    <Empty description="Tính năng đang được phát triển 🚧" style={{ marginTop: 48 }} />
-                                ),
-                            },
+
+                            
                         ]}
                     />
                 </Col>
 
                 <Col span={7}>
                     <Card title="⭐ Mentor Spotlight" style={{ borderRadius: 16 }}>
-                        <Space direction="vertical" style={{ width: "100%" }}>
+                        <Space orientation="vertical" style={{ width: "100%" }}>
                             <Text strong>Chuyên môn</Text>
                             <Space wrap>
-                                <Tag color="blue">IELTS</Tag>
-                                <Tag color="green">Business English</Tag>
-                                <Tag color="purple">Speaking</Tag>
-                            </Space>
+    {mentor?.skills?.length > 0 ? (
+        mentor.skills.map((skill: string, index: number) => (
+            <Tag key={index} color="blue">
+                {skill}
+            </Tag>
+        ))
+    ) : (
+        <Text type="secondary">Chưa cập nhật chuyên môn</Text>
+    )}
+</Space>
+
 
                             <Text strong style={{ marginTop: 12 }}>Thông tin liên hệ</Text>
                             <Text>{mentor?.email}</Text>
-
-                            {/* ✅ CHAT – LẤY conversationId TỪ BACKEND */}
                             <Button
                                 type="primary"
                                 block
@@ -193,7 +195,7 @@ export default function WithMentorPage() {
                                         setConversationId(convo.id);
                                         setOpenChat(true);
                                     } catch {
-                                        // chưa có mentor hoặc lỗi token
+
                                     }
                                 }}
                             >
@@ -204,14 +206,13 @@ export default function WithMentorPage() {
                 </Col>
             </Row>
 
-            {/* ✅ POPUP CHAT */}
             {mentor && conversationId && (
                 <ChatModal
                     open={openChat}
                     onClose={() => setOpenChat(false)}
                     conversationId={conversationId}
                     currentUser={{
-                        id: 0, // backend xác định learner bằng token
+                        id: 0,
                         fullName: "Learner",
                     }}
                     targetUser={{

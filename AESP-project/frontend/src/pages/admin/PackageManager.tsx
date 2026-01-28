@@ -12,7 +12,6 @@ import axiosClient from '../../api/axiosClient';
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
-// Interface khớp với Backend
 interface ServicePackage {
     packageId?: number;
     packageName: string;

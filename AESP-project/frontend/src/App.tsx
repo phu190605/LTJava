@@ -23,7 +23,6 @@ import WithMentorPage from "./pages/learner/WithMentorPage";
 
 /* ===== MENTOR ===== */
 import MentorDashboard from "./pages/mentor/MentorDashboard";
-import FeedbackList from "./pages/mentor/FeedbackList";
 import Materials from "./pages/mentor/Materials";
 import MentorProfile from "./pages/mentor/Profile";
 import PlacementReviewPage from "./pages/mentor/PlacementReviewPage";
@@ -96,7 +95,6 @@ function App() {
         {/* ===== MENTOR ===== */}
         <Route path="/mentor" element={<MentorLayout />}>
           <Route index element={<MentorDashboard />} />
-          <Route path="feedback" element={<FeedbackList />} />
           <Route path="materials" element={<Materials />} />
           <Route path="profile" element={<MentorProfile />} />
           <Route path="/mentor/learners" element={<MentorLearnersPage />} />
