@@ -20,6 +20,13 @@ const MOCK_LEARNING_PATH = [
     { title: 'Bài 3: Từ vựng mua sắm', status: 'wait', desc: 'Chưa mở khóa' },
 ];
 
+// Hàm phụ trợ: Xác định huy hiệu từ XP (Logic giống hệt Backend)
+const getBadgeInfo = (xp: number) => {
+    if (xp <= 100) return { name: 'Mầm non', color: 'green', icon: '🌱' };
+    if (xp <= 500) return { name: 'Học giả', color: 'blue', icon: '📚' };
+    return { name: 'Bậc thầy', color: 'purple', icon: '💎' };
+};
+
 const DashboardPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
@@ -84,6 +91,8 @@ const DashboardPage: React.FC = () => {
     if (loading) {
         return <div style={{ padding: 24 }}><Skeleton active avatar paragraph={{ rows: 6 }} /></div>;
     }
+    // -- TÍNH TOÁN HUY HIỆU HIỆN TẠI ---
+    const currentBadge = getBadgeInfo(totalXp);
 
     return (
         <div>
@@ -109,9 +118,25 @@ const DashboardPage: React.FC = () => {
                     </Col>
                     <Col flex="auto">
                         <Text style={{ color: 'rgba(255,255,255,0.85)' }}>Chào mừng trở lại,</Text>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
                         <Title level={2} style={{ color: 'white', margin: '4px 0 12px 0' }}>
                             {data?.fullName || "Học viên AESP"}
                         </Title>
+                        <Tag color={currentBadge.color} style={{
+                                borderRadius: 20,
+                                padding: '4px 12px',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                border: '2px solid white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                            }}>
+                                <span style={{ fontSize: '16px' }}>{currentBadge.icon}</span>
+                                {currentBadge.name}
+                            </Tag>
+                            </div>
 
                         <Space size="middle" wrap>
                             <Tag color="#52c41a" style={{ padding: '4px 12px', borderRadius: 20, fontSize: 14, border: 'none' }}>
