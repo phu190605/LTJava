@@ -8,7 +8,5 @@ import com.aesp.backend.entity.LearningMaterial;
 
 public interface LearningMaterialRepository
         extends JpaRepository<LearningMaterial, String> {
-
-    // ✅ QUERY TRỰC TIẾP THEO mentorId
     List<LearningMaterial> findByMentorId(String mentorId);
 }

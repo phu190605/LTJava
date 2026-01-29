@@ -288,14 +288,13 @@ public class ProfileController {
 
 
     @GetMapping("/has-tested")
-    public ResponseEntity<?> hasTested() {
-        User user = getCurrentUser();
-        LearnerProfile profile = profileRepo.findByUser_Id(user.getId())
-                .orElse(null);
-        boolean hasTested = false;
-        if (profile != null && profile.getAssessmentScore() != null && profile.getAssessmentScore() > 0) {
-            hasTested = true;
-        }
-        return ResponseEntity.ok(java.util.Collections.singletonMap("hasTested", hasTested));
-    }
+public ResponseEntity<?> hasTested() {
+    User user = getCurrentUser();
+
+    boolean hasTested = profileRepo.findByUser_Id(user.getId()).isPresent();
+
+    return ResponseEntity.ok(
+            java.util.Collections.singletonMap("hasTested", hasTested)
+    );
+}
 }
