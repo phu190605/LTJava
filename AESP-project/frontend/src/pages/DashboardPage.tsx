@@ -5,14 +5,13 @@ import {
 } from 'antd';
 import {
     UserOutlined, CrownOutlined, RocketOutlined, ClockCircleOutlined,
-    StarFilled, ThunderboltFilled, RightOutlined, RiseOutlined, CalendarOutlined
+    StarFilled, ThunderboltFilled, RightOutlined, RiseOutlined
 } from '@ant-design/icons';
 import axiosClient from '../api/axiosClient';
 import { useNavigate } from 'react-router-dom';
 
-// Import các component bổ trợ để vẽ biểu đồ
+// Chỉ giữ lại biểu đồ xu hướng
 import LearningTrendChart from '../components/LearningTrendChart';
-import ActivityHeatMap from '../components/ActivityHeatMap';
 
 const { Title, Text } = Typography;
 
@@ -30,7 +29,7 @@ const DashboardPage: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // API này giờ sẽ trả về cả: pronunciationScores, fluencyScores, heatMapData, totalWordsLearned
+                // API lấy dữ liệu tổng hợp cho Dashboard
                 const res: any = await axiosClient.get('/profile/dashboard');
                 setData(res);
             } catch (error) {
@@ -91,7 +90,7 @@ const DashboardPage: React.FC = () => {
             </Card>
 
             <Row gutter={[24, 24]}>
-                {/* ================= CỘT TRÁI (TIẾN ĐỘ & HOẠT ĐỘNG) ================= */}
+                {/* ================= CỘT TRÁI ================= */}
                 <Col xs={24} lg={16}>
                     
                     {/* BIỂU ĐỒ XU HƯỚNG TIẾN BỘ */}
@@ -108,14 +107,7 @@ const DashboardPage: React.FC = () => {
                         ) : (
                             <Alert message="Chưa có dữ liệu đánh giá kỹ năng. Hãy bắt đầu luyện tập để thấy biểu đồ!" type="info" showIcon />
                         )}
-                    </Card>
-
-                    {/* BẢN ĐỒ NHIỆT (SỰ CHĂM CHỈ) */}
-                    <Card 
-                        title={<><CalendarOutlined style={{ color: '#52c41a' }} /> Nhật ký học tập & Sự chăm chỉ</>} 
-                        style={{ borderRadius: 12, marginBottom: 24 }}
-                    >
-                        <ActivityHeatMap rawData={data?.heatMapData || {}} />
+                        {/* Hiển thị vốn từ vựng ngay dưới biểu đồ thay vì trong heatmap cũ */}
                         <div style={{ marginTop: 16, textAlign: 'right' }}>
                             <Text type="secondary">Vốn từ vựng đã tích lũy: </Text>
                             <Text strong style={{ color: '#1890ff', fontSize: 18 }}>
@@ -164,7 +156,7 @@ const DashboardPage: React.FC = () => {
                     </Card>
                 </Col>
 
-                {/* ================= CỘT PHẢI (STATISTICS) ================= */}
+                {/* ================= CỘT PHẢI ================= */}
                 <Col xs={24} lg={8}>
                     {/* Mục tiêu ngày */}
                     <Card style={{ borderRadius: 12, marginBottom: 24, textAlign: 'center' }}>
