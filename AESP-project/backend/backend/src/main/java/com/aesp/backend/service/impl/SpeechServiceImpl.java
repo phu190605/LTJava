@@ -147,7 +147,7 @@ public class SpeechServiceImpl implements SpeechService {
             String feedback = generateFeedback(pronResult.getPronunciationScore());
             if (userId != null) {
                 java.util.Optional<com.aesp.backend.entity.SpeakingResult> opt = speakingResultRepository
-                        .findByUserIdAndPartNumber(userId, partNumber);
+                    .findTopByUserIdAndPartNumberOrderByIdDesc(userId, partNumber);
                 com.aesp.backend.entity.SpeakingResult speakingResult;
                 if (opt.isPresent()) {
                     speakingResult = opt.get();

@@ -53,7 +53,7 @@ public class SpeakingController {
             String audioPath = "/api/speaking/audio/" + fileName;
 
             // 3. Tìm kiếm kết quả cũ để ghi đè (Update) thay vì tạo mới (Insert)
-            SpeakingResult result = repository.findByUserIdAndPartNumber(userId, partNumber)
+                SpeakingResult result = repository.findTopByUserIdAndPartNumberOrderByIdDesc(userId, partNumber)
                     .orElse(new SpeakingResult());
 
             result.setUserId(userId);

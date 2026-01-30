@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getStreakStats } from '../api/streakApi';
 import {
     Row, Col, Card, Avatar, Typography, Progress, Tag, Timeline,
-    Button, Skeleton, Space, Statistic, Alert
+    Button, Skeleton, Space, Statistic, Alert, Empty, Spin
 } from 'antd';
 import {
     UserOutlined, CrownOutlined, RocketOutlined, ClockCircleOutlined,
@@ -10,14 +10,11 @@ import {
 } from '@ant-design/icons';
 import axiosClient from '../api/axiosClient';
 import { useNavigate } from 'react-router-dom';
+import { getUserLearningPath } from '../api/learningPathApi';
 
 const { Title, Text } = Typography;
 
-const MOCK_LEARNING_PATH = [
-    { title: 'Bài 1: Làm quen & Chào hỏi', status: 'finish', desc: 'Hoàn thành xuất sắc' },
-    { title: 'Bài 2: Giới thiệu bản thân', status: 'process', desc: 'Đang học dở dang' },
-    { title: 'Bài 3: Từ vựng mua sắm', status: 'wait', desc: 'Chưa mở khóa' },
-];
+
 const getBadgeInfo = (xp: number) => {
     if (xp <= 100) return { name: 'Mầm non', color: 'green', icon: '🌱' };
     if (xp <= 500) return { name: 'Học giả', color: 'blue', icon: '📚' };
@@ -29,6 +26,8 @@ const DashboardPage: React.FC = () => {
     const [data, setData] = useState<any>(null);
     const [streak, setStreak] = useState<number>(0);
     const [totalXp, setTotalXp] = useState<number>(0);
+    const [learningPath, setLearningPath] = useState<any>(null);
+    const [pathLoading, setPathLoading] = useState(false);
 
     const fetchTotalXp = async () => {
         try {
@@ -76,6 +75,17 @@ const DashboardPage: React.FC = () => {
                 }
                 // Luôn gọi lấy XP
                 await fetchTotalXp();
+                
+                // Lấy learning path đã enroll của user từ backend
+                setPathLoading(true);
+                try {
+                    const pathRes: any = await getUserLearningPath();
+                    setLearningPath(pathRes);
+                } catch (pathErr) {
+                    console.warn("Không tải được learning path:", pathErr);
+                } finally {
+                    setPathLoading(false);
+                }
             } catch (error) {
                 console.error("Lỗi tải dashboard:", error);
             } finally {
@@ -188,29 +198,88 @@ const DashboardPage: React.FC = () => {
                         )}
                     </Card>
 
-                    {/* 3. Lộ trình học (Tạm thời dùng Mock Data) */}
+                    {/* 3. Lộ trình học tập (Từ API thực) */}
                     <Card
-                        title={<><ThunderboltFilled style={{ color: '#faad14' }} /> Lộ trình học tập tiếp theo</>}
+                        title={<><ThunderboltFilled style={{ color: '#faad14' }} /> Lộ trình học tập</>}
                         style={{ borderRadius: 12 }}
+                        extra={
+                            <Button type="link" size="small" onClick={() => navigate('/learning-path')}>
+                                Xem chi tiết <RightOutlined />
+                            </Button>
+                        }
                     >
-                        <Timeline
-                            style={{ marginTop: 10 }}
-                            items={MOCK_LEARNING_PATH.map(item => ({
-                                color: item.status === 'finish' ? 'green' : item.status === 'process' ? 'blue' : 'gray',
-                                dot: item.status === 'process' ? <ClockCircleOutlined style={{ fontSize: '18px', color: '#1890ff' }} /> : null,
-                                children: (
-                                    <div style={{ paddingBottom: 12 }}>
-                                        <Text strong style={{ fontSize: 16 }}>{item.title}</Text>
-                                        <div style={{ margin: '4px 0' }}><Text type="secondary">{item.desc}</Text></div>
-                                        {item.status === 'process' && (
-                                            <Button type="primary" size="small" style={{ borderRadius: 12, marginTop: 4 }}>
-                                                Học tiếp <RightOutlined />
-                                            </Button>
-                                        )}
+                        {pathLoading ? (
+                            <Spin tip="Đang tải lộ trình..." />
+                        ) : learningPath ? (
+                            <div>
+                                {/* Header: Level, Goal, Topic & Status */}
+                                <div style={{ marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #f0f0f0' }}>
+                                    <Space wrap>
+                                        <Tag color="blue" style={{ fontSize: 12, padding: '4px 12px' }}>
+                                            📊 Cấp độ: {learningPath.level}
+                                        </Tag>
+                                        <Tag color="green" style={{ fontSize: 12, padding: '4px 12px' }}>
+                                            🎯 {learningPath.goalCode}
+                                        </Tag>
+                                        <Tag color="orange" style={{ fontSize: 12, padding: '4px 12px' }}>
+                                            📚 {learningPath.topicCode}
+                                        </Tag>
+                                        <Tag color={learningPath.status === 'IN_PROGRESS' ? 'processing' : 'default'} style={{ fontSize: 12, padding: '4px 12px' }}>
+                                            {learningPath.status === 'IN_PROGRESS' ? '🔄 Đang học' : '📅 ' + learningPath.status}
+                                        </Tag>
+                                    </Space>
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div style={{ marginBottom: 16 }}>
+                                    <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
+                                        <Text strong>Tiến độ học</Text>
+                                        <Text strong style={{ color: '#1890ff' }}>
+                                            {learningPath.progress || 0}%
+                                        </Text>
                                     </div>
-                                ),
-                            }))}
-                        />
+                                    <Progress
+                                        percent={learningPath.progress || 0}
+                                        strokeColor={{ "0%": "#108ee9", "100%": "#87d068" }}
+                                        size="small"
+                                    />
+                                </div>
+
+                                {/* Enrollment Info */}
+                                <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+                                    <div style={{ flex: 1 }}>
+                                        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                                            Ngày bắt đầu
+                                        </Text>
+                                        <Text strong style={{ fontSize: 14 }}>
+                                            {new Date(learningPath.startedAt).toLocaleDateString('vi-VN')}
+                                        </Text>
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                                            Enrollment ID
+                                        </Text>
+                                        <Text strong style={{ fontSize: 14 }}>
+                                            #{learningPath.enrollmentId}
+                                        </Text>
+                                    </div>
+                                </div>
+
+                                {/* Action Button */}
+                                <Button type="primary" block size="large" style={{ borderRadius: 12 }} onClick={() => navigate('/learning-path')}>
+                                    👉 Tiếp tục học <RightOutlined />
+                                </Button>
+                            </div>
+                        ) : (
+                            <div style={{ marginTop: 20 }}>
+                                <Empty description="Chưa có lộ trình học" />
+                                <div style={{ marginTop: 16, textAlign: 'center' }}>
+                                    <Button type="primary" onClick={() => navigate('/checkout')}>
+                                        Chọn lộ trình ngay
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </Card>
                 </Col>
 
@@ -232,7 +301,7 @@ const DashboardPage: React.FC = () => {
                             title="Thời gian đã học"
                             value={data?.learnedMinutes || 0}
                             suffix={`/ ${data?.dailyGoalMinutes} phút`}
-                            valueStyle={{ fontSize: 18, fontWeight: 'bold' }}
+                            styles={{ content: { fontSize: 18, fontWeight: 'bold' } }}
                         />
                     </Card>
 

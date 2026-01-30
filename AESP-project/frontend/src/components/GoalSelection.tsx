@@ -67,7 +67,18 @@ const GoalSelection: React.FC<Props> = ({ onNext, onBack }) => {
         {/* Continue: primary đồng bộ màu và trạng thái disabled */}
         <Button
           type="primary" className="continue-btn"
-          onClick={() => onNext({ interestTopicIds: selectedIds })}
+          onClick={() => {
+            // Lấy topic code từ selected topics
+            const selectedTopics = topics.filter(t => selectedIds.includes(t.topicId));
+            const topicCode = selectedTopics.length > 0 
+              ? (selectedTopics[0].topicCode || selectedTopics[0].topicName?.toUpperCase() || 'COOKING')
+              : 'COOKING';
+            
+            onNext({ 
+              interestTopicIds: selectedIds,
+              interestTopicCode: topicCode // Gửi thêm topic code để lưu vào localStorage
+            });
+          }}
           disabled={selectedIds.length === 0}
         >
           Tiếp tục

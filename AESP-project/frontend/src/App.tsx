@@ -20,6 +20,7 @@ import AdminReportPage from "./pages/admin/AdminReport";
 import DashboardPage from "./pages/DashboardPage";
 import LearnMentorPage from "./pages/learner/LearnMentorPage";
 import WithMentorPage from "./pages/learner/WithMentorPage";
+import LearningPathPage from "./pages/learner/LearningPathPage";
 
 /* ===== MENTOR ===== */
 import MentorDashboard from "./pages/mentor/MentorDashboard";
@@ -65,6 +66,7 @@ function App() {
         {/* ===== LEARNER ===== */}
         <Route element={<LearnerLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/learning-path" element={<LearningPathPage />} />
           <Route path="/setup" element={<ProfileSetupPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/payment-history" element={<PaymentHistoryPage />} />

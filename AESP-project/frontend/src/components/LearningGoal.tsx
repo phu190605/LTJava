@@ -29,9 +29,15 @@ const LearningGoal: React.FC<Props> = ({ onNext }) => {
   }, []);
 
   const handleContinue = () => {
-    // 2. Gửi đúng key 'mainGoalId' mà Backend cần
     if (selectedGoalId) {
-      onNext({ mainGoalId: selectedGoalId });
+      // Tìm goal object để lấy code
+      const selectedGoal = goals.find(g => g.goalId === selectedGoalId);
+      const goalCode = selectedGoal?.goalCode || selectedGoal?.goalName?.toUpperCase() || 'CAREER';
+      
+      onNext({ 
+        mainGoalId: selectedGoalId,
+        learningGoal: goalCode // Gửi thêm goal code để lưu vào localStorage
+      });
     }
   };
 

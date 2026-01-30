@@ -78,7 +78,7 @@ const CheckoutPage: React.FC = () => {
         <Col xs={24} md={14}>
           <Card title="Phương thức thanh toán" style={{ borderRadius: 8, marginBottom: 20 }}>
            <Radio.Group onChange={(e) => setPaymentMethod(e.target.value)} value={paymentMethod} style={{ width: '100%' }}>
-  <Space direction="vertical" style={{ width: '100%' }}>
+  <Space orientation="vertical" style={{ width: '100%' }}>
     
     {/* 1. VÍ MOMO */}
     <div style={{ padding: 15, border: '1px solid #d9d9d9', borderRadius: 8, background: '#fff' }}>

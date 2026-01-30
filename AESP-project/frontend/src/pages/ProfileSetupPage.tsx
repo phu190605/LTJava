@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Steps, message, Card } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
+import { enrollLearningPath } from '../api/learningPathApi';
 
 import LearningGoal from '../components/LearningGoal';
 import GoalSelection from '../components/GoalSelection';
@@ -44,6 +45,27 @@ const ProfileSetupPage: React.FC = () => {
 
       // Gọi API setup để lưu thông tin vào DB trước
       await axiosClient.post('/profile/setup', allData);
+
+      // ✅ ĐĂNG KÝ LEARNING PATH (LỘ TRÌNH HỌC)
+      // Cần có: currentLevel (từ profile), learningGoal (goalCode), interestTopicCode (topicCode)
+      console.log("📚 Attempting to enroll in learning path...");
+      console.log("  - level:", allData.currentLevel);
+      console.log("  - goalCode:", allData.learningGoal);
+      console.log("  - topicCode:", allData.interestTopicCode);
+
+      if (allData.currentLevel && allData.learningGoal && allData.interestTopicCode) {
+        try {
+          const enrollResponse = await enrollLearningPath({
+            level: allData.currentLevel,
+            goalCode: allData.learningGoal,
+            topicCode: allData.interestTopicCode,
+          });
+          console.log("✅ Learning path enrollment successful:", enrollResponse);
+        } catch (enrollError: any) {
+          console.warn("⚠️ Learning path enrollment failed:", enrollError);
+          // Không dừng flow nếu enrollment thất bại, vẫn tiếp tục navigate
+        }
+      }
 
       // --- LOGIC ĐIỀU HƯỚNG MỚI ---
       // Kiểm tra xem gói vừa chọn có phải gói trả phí không (price > 0)
