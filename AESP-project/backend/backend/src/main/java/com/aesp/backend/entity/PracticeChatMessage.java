@@ -13,7 +13,7 @@ import lombok.Data;
 @Entity
 @Table(name = "chat_messages")
 @Data
-public class ChatMessage {
+public class PracticeChatMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

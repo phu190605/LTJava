@@ -5,11 +5,11 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.aesp.backend.entity.ChatMessage;
+import com.aesp.backend.entity.PracticeChatMessage;
 
-public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
+public interface PracticeChatMessageRepository extends JpaRepository<PracticeChatMessage, Long> {
     // Tìm tin nhắn theo Topic và sắp xếp cũ nhất trước (để hiển thị từ trên xuống)
-    List<ChatMessage> findByTopicIdOrderByCreatedAtAsc(Long topicId);
+    List<PracticeChatMessage> findByTopicIdOrderByCreatedAtAsc(Long topicId);
     @Transactional
     void deleteByTopicId(Long topicId);
 }

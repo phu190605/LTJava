@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.aesp.backend.entity.ChatMessage;
-import com.aesp.backend.repository.ChatMessageRepository;
+import com.aesp.backend.entity.PracticeChatMessage;
+import com.aesp.backend.repository.PracticeChatMessageRepository;
 
 @RestController
 @RequestMapping("/api/chat-history")
@@ -21,17 +21,17 @@ import com.aesp.backend.repository.ChatMessageRepository;
 public class ChatHistoryController {
 
     @Autowired
-    private ChatMessageRepository chatMessageRepository;
+    private PracticeChatMessageRepository chatMessageRepository;
 
     // 1. Lấy lịch sử chat của một Topic
     @GetMapping("/{topicId}")
-    public List<ChatMessage> getHistoryByTopic(@PathVariable Long topicId) {
+    public List<PracticeChatMessage> getHistoryByTopic(@PathVariable Long topicId) {
         return chatMessageRepository.findByTopicIdOrderByCreatedAtAsc(topicId);
     }
 
     // 2. Lưu tin nhắn mới
     @PostMapping
-    public ChatMessage saveMessage(@RequestBody ChatMessage message) {
+    public PracticeChatMessage saveMessage(@RequestBody PracticeChatMessage message) {
         return chatMessageRepository.save(message);
     }
     @DeleteMapping("/{topicId}")

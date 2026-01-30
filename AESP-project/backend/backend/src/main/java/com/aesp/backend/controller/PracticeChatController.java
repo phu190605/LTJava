@@ -15,7 +15,7 @@ import com.aesp.backend.service.AIServiceManager; // <--- Thay đổi import
 @RestController
 @RequestMapping("/api/chat")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"}, allowCredentials = "true")
-public class ChatController {
+public class PracticeChatController {
 
     // Thay vì gọi GeminiService, ta gọi Manager
     @Autowired
