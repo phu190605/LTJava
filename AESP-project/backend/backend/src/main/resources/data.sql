@@ -98,4 +98,94 @@ VALUES
 ('Khởi động ngày mới', 'Từ Vựng', 'Word_1', 5, 50),
 ('Chiến binh kiên trì', 'Từ Vựng', 'Word_2', 5, 100);
 
+-- ================= SYSTEM POLICY =================
+CREATE TABLE IF NOT EXISTS system_policy (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    type VARCHAR(50) NOT NULL, -- TERMS, PRIVACY
+    content TEXT NOT NULL,
+    version VARCHAR(20),
+    is_active BOOLEAN DEFAULT TRUE
+);
 
+DELETE FROM system_policy;
+
+INSERT INTO system_policy (type, content, version, is_active)
+VALUES (
+'TERMS',
+'
+ĐIỀU KHOẢN SỬ DỤNG – AESP
+
+Chào mừng bạn đến với AESP – English Speaking Platform.
+Khi sử dụng hệ thống, bạn đồng ý tuân thủ các điều khoản sau.
+
+1. Mục đích sử dụng
+AESP cung cấp nền tảng học và luyện nói tiếng Anh thông qua AI, mentor và các công cụ hỗ trợ học tập.
+Người dùng chỉ được sử dụng hệ thống cho mục đích học tập hợp pháp.
+
+2. Tài khoản người dùng
+- Mỗi người dùng chỉ được tạo một tài khoản.
+- Người dùng chịu trách nhiệm bảo mật thông tin đăng nhập.
+- AESP có quyền khóa tài khoản nếu phát hiện hành vi gian lận hoặc lạm dụng.
+
+3. Nội dung và quyền sở hữu
+Toàn bộ nội dung trên hệ thống (bài học, câu hỏi, phản hồi AI, thiết kế)
+thuộc quyền sở hữu của AESP hoặc đối tác liên quan.
+
+4. Mentor và tương tác
+Người dùng phải giữ thái độ tôn trọng trong quá trình trao đổi với mentor.
+AESP có quyền ghi nhận và xử lý các hành vi vi phạm quy tắc cộng đồng.
+
+5. Thanh toán và gói dịch vụ
+Các gói dịch vụ có thời hạn rõ ràng.
+Phí đã thanh toán sẽ không được hoàn lại trừ khi có thông báo khác từ AESP.
+
+6. Thay đổi điều khoản
+AESP có quyền cập nhật điều khoản sử dụng.
+Phiên bản mới sẽ có hiệu lực ngay khi được công bố trên hệ thống.
+
+Việc tiếp tục sử dụng AESP đồng nghĩa với việc bạn đã đọc, hiểu và đồng ý với các điều khoản trên.
+',
+'v1.0',
+true
+);
+
+-- ================= PRIVACY =================
+INSERT INTO system_policy (type, content, version, is_active)
+VALUES (
+'PRIVACY',
+'
+CHÍNH SÁCH BẢO MẬT – AESP
+
+AESP cam kết bảo vệ thông tin cá nhân và quyền riêng tư của người dùng.
+
+1. Thông tin được thu thập
+- Email và tên hiển thị
+- Dữ liệu học tập, tiến độ và kết quả luyện tập
+- Nội dung luyện nói và phản hồi từ AI
+
+2. Mục đích sử dụng dữ liệu
+- Cá nhân hóa lộ trình học tập
+- Kết nối người học với mentor
+- Nâng cao chất lượng dịch vụ và hệ thống
+
+3. Bảo mật thông tin
+Dữ liệu người dùng được lưu trữ an toàn
+và chỉ được truy cập bởi hệ thống hoặc nhân sự có thẩm quyền.
+
+4. Chia sẻ dữ liệu
+AESP không chia sẻ thông tin cá nhân cho bên thứ ba
+ngoại trừ trường hợp có yêu cầu từ cơ quan pháp luật.
+
+5. Quyền của người dùng
+- Xem và cập nhật thông tin cá nhân
+- Yêu cầu xóa tài khoản
+- Liên hệ hỗ trợ khi có vấn đề liên quan đến dữ liệu
+
+6. Cập nhật chính sách
+Chính sách bảo mật có thể được cập nhật để phù hợp với quy định và dịch vụ mới.
+
+AESP luôn đặt quyền riêng tư của người dùng lên hàng đầu.
+',
+'v1.0',
+true
+);
