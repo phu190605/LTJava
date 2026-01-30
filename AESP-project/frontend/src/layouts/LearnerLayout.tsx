@@ -56,7 +56,7 @@ const LearnerLayout: React.FC = () => {
     const menuItems = [
         { key: '/dashboard', icon: <HomeOutlined />, label: 'Tổng quan' },
         { key: '/ai-practice', icon: <AudioOutlined />, label: 'Luyện nói AI (Premium)' },
-        { key: '/setup', icon: <AimOutlined />, label: 'Mục tiêu & Lộ trình' },
+       // { key: '/setup', icon: <AimOutlined />, label: 'Mục tiêu & Lộ trình' },
 
         { key: '/learner/learnmentor', icon: <TeamOutlined />, label: 'Đăng ký mentor' },
         { key: '/gamification', icon: <RocketOutlined style={{ color: '#f80606' }} />, label: 'Thử thách' },

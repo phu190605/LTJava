@@ -68,7 +68,7 @@ VALUES
 
 -- ================= TOPICS =================
 
-INSERT INTO topics (topic_id, topic_name, topic_code, description, icon_url, category) VALUES
+INSERT IGNORE INTO topics (topic_id, topic_name, topic_code, description, icon_url, category) VALUES
 (1, 'Nấu ăn', 'COOKING', 'Ẩm thực, công thức món ăn', '/icons/topics/cooking.png', 'GENERAL'),
 (2, 'Thể thao', 'SPORTS', 'Bóng đá, Gym, vận động', '/icons/topics/sports.png', 'GENERAL'),
 (3, 'Âm nhạc', 'MUSIC', 'Ca hát, nhạc cụ, giải trí', '/icons/topics/music.png', 'GENERAL'),
